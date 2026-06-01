@@ -50,10 +50,40 @@ func (s *CodegenService) generateCurl(req CodegenRequest) string {
 	}
 
 	if req.Body != "" && req.BodyType != "none" {
+		ct := contentTypeForBodyType(req.BodyType)
+		if ct != "" {
+			hasCT := false
+			for k := range req.Headers {
+				if strings.ToLower(k) == "content-type" {
+					hasCT = true
+					break
+				}
+			}
+			if !hasCT {
+				b.WriteString(fmt.Sprintf(" \\\n  -H 'Content-Type: %s'", ct))
+			}
+		}
 		b.WriteString(fmt.Sprintf(" \\\n  -d '%s'", req.Body))
 	}
 
 	return b.String()
+}
+
+func contentTypeForBodyType(bodyType string) string {
+	switch bodyType {
+	case "json":
+		return "application/json"
+	case "text":
+		return "text/plain"
+	case "urlencoded":
+		return "application/x-www-form-urlencoded"
+	case "form-data":
+		return "multipart/form-data"
+	case "binary":
+		return "application/octet-stream"
+	default:
+		return ""
+	}
 }
 
 func (s *CodegenService) generateJavaScript(req CodegenRequest) string {
@@ -61,13 +91,37 @@ func (s *CodegenService) generateJavaScript(req CodegenRequest) string {
 	b.WriteString("fetch('" + req.URL + "', {\n")
 	b.WriteString("  method: '" + req.Method + "',\n")
 
-	if len(req.Headers) > 0 {
-		headersJSON, _ := json.MarshalIndent(req.Headers, "  ", "  ")
+	headers := make(map[string]string)
+	for k, v := range req.Headers {
+		headers[k] = v
+	}
+	if req.Body != "" && req.BodyType != "none" {
+		ct := contentTypeForBodyType(req.BodyType)
+		if ct != "" {
+			hasCT := false
+			for k := range headers {
+				if strings.ToLower(k) == "content-type" {
+					hasCT = true
+					break
+				}
+			}
+			if !hasCT {
+				headers["Content-Type"] = ct
+			}
+		}
+	}
+	if len(headers) > 0 {
+		headersJSON, _ := json.MarshalIndent(headers, "  ", "  ")
 		b.WriteString("  headers: " + string(headersJSON) + ",\n")
 	}
 
 	if req.Body != "" && req.BodyType != "none" {
-		b.WriteString("  body: " + jsonString(req.Body) + ",\n")
+		switch req.BodyType {
+		case "urlencoded":
+			b.WriteString("  body: new URLSearchParams(" + jsonString(req.Body) + ").toString(),\n")
+		default:
+			b.WriteString("  body: " + jsonString(req.Body) + ",\n")
+		}
 	}
 
 	b.WriteString("})")
@@ -137,8 +191,12 @@ func (s *CodegenService) generateGo(req CodegenRequest) string {
 	b.WriteString("  \"fmt\"\n")
 	b.WriteString("  \"io\"\n")
 	b.WriteString("  \"net/http\"\n")
+	b.WriteString("  \"net/url\"\n")
 	if req.BodyType == "json" {
 		b.WriteString("  \"encoding/json\"\n")
+	}
+	if req.BodyType == "form-data" {
+		b.WriteString("  \"mime/multipart\"\n")
 	}
 	b.WriteString(")\n\n")
 	b.WriteString("func main() {\n")
@@ -150,6 +208,10 @@ func (s *CodegenService) generateGo(req CodegenRequest) string {
 			b.WriteString(fmt.Sprintf("  body := %s\n", req.Body))
 			b.WriteString("  bodyBytes, _ := json.Marshal(body)\n")
 			bodyVar = "bytes.NewReader(bodyBytes)"
+		case "urlencoded":
+			b.WriteString("  data := url.Values{}\n")
+			b.WriteString(fmt.Sprintf("  // Parse body as key=value pairs: %s\n", req.Body))
+			bodyVar = "strings.NewReader(data.Encode())"
 		default:
 			b.WriteString(fmt.Sprintf("  body := bytes.NewReader([]byte(`%s`))\n", req.Body))
 			bodyVar = "body"
@@ -168,6 +230,22 @@ func (s *CodegenService) generateGo(req CodegenRequest) string {
 	sort.Strings(keys)
 	for _, k := range keys {
 		b.WriteString(fmt.Sprintf("  req.Header.Set(\"%s\", \"%s\")\n", k, req.Headers[k]))
+	}
+
+	if req.Body != "" && req.BodyType != "none" {
+		ct := contentTypeForBodyType(req.BodyType)
+		if ct != "" {
+			hasCT := false
+			for k := range req.Headers {
+				if strings.ToLower(k) == "content-type" {
+					hasCT = true
+					break
+				}
+			}
+			if !hasCT {
+				b.WriteString(fmt.Sprintf("  req.Header.Set(\"Content-Type\", \"%s\")\n", ct))
+			}
+		}
 	}
 
 	b.WriteString("\n  client := &http.Client{}\n")

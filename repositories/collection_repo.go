@@ -69,6 +69,25 @@ func (r *CollectionRepo) Update(c *models.Collection) error {
 	return err
 }
 
+func (r *CollectionRepo) GetMaxSortOrder(projectID, parentID string) (int, error) {
+	var max sql.NullInt64
+	if parentID == "" {
+		err := database.DB.QueryRow(`SELECT MAX(sort_order) FROM collections WHERE project_id = ? AND parent_id IS NULL`, projectID).Scan(&max)
+		if err != nil {
+			return 0, err
+		}
+	} else {
+		err := database.DB.QueryRow(`SELECT MAX(sort_order) FROM collections WHERE project_id = ? AND parent_id = ?`, projectID, parentID).Scan(&max)
+		if err != nil {
+			return 0, err
+		}
+	}
+	if max.Valid {
+		return int(max.Int64), nil
+	}
+	return 0, nil
+}
+
 func (r *CollectionRepo) Delete(id string) error {
 	_, err := database.DB.Exec(`DELETE FROM collections WHERE id = ?`, id)
 	return err

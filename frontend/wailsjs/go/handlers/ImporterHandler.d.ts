@@ -4,6 +4,6 @@ import {handlers} from '../models';
 
 export function ImportCurl(arg1:string):Promise<handlers.ImportRequest>;
 
-export function ImportPostman(arg1:string):Promise<handlers.ImportResponse>;
+export function ImportPostman(arg1:string,arg2:string):Promise<handlers.ImportResponse>;
 
-export function ImportSwagger(arg1:string):Promise<handlers.ImportResponse>;
+export function ImportSwagger(arg1:string,arg2:string):Promise<handlers.ImportResponse>;

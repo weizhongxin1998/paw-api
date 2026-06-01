@@ -43,6 +43,19 @@ export const useProjectStore = defineStore('project', () => {
     selectedCollectionId.value = id
   }
 
+  function removeProject(id: string) {
+    projects.value = projects.value.filter(p => p.id !== id)
+    if (currentProject.value?.id === id) {
+      currentProject.value = projects.value[0] || null
+    }
+  }
+
+  function updateProject(p: Project) {
+    const idx = projects.value.findIndex(x => x.id === p.id)
+    if (idx !== -1) projects.value[idx] = p
+    if (currentProject.value?.id === p.id) currentProject.value = p
+  }
+
   function triggerRefresh() {
     refreshKey.value++
   }
@@ -51,6 +64,6 @@ export const useProjectStore = defineStore('project', () => {
     projects, currentProject, collections, selectedCollectionId, refreshKey,
     setProjects, addProject, setCurrentProject, setCollections,
     addCollection, removeCollection, updateCollection, selectCollection,
-    triggerRefresh,
+    removeProject, updateProject, triggerRefresh,
   }
 })

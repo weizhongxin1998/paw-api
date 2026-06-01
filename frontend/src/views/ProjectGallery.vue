@@ -5,7 +5,7 @@ import { FolderOpen, Add, Download, CodeSlash } from '@vicons/ionicons5'
 import { useRouter } from 'vue-router'
 import { useProjectStore } from '../stores/project'
 import { useTabsStore } from '../stores/tabs'
-import { ListProjects, CreateProject } from '../../wailsjs/go/handlers/ProjectHandler'
+import { ListProjects, CreateProject, DeleteProject, UpdateProject } from '../../wailsjs/go/handlers/ProjectHandler'
 import { ListCollections } from '../../wailsjs/go/handlers/CollectionHandler'
 import { ListEnvironments } from '../../wailsjs/go/handlers/EnvironmentHandler'
 import { ListRequests } from '../../wailsjs/go/handlers/RequestHandler'
@@ -32,6 +32,12 @@ const showNewModal = ref(false)
 const newName = ref('')
 const newDesc = ref('')
 const projectStats = ref<Record<string, { collections: number; requests: number }>>({})
+const showRenameModal = ref(false)
+const renameProjectId = ref('')
+const renameProjectName = ref('')
+const menuProjectId = ref<string | null>(null)
+const menuX = ref(0)
+const menuY = ref(0)
 
 async function loadAll() {
   loading.value = true
@@ -90,13 +96,54 @@ async function createProject() {
   }
 }
 
+function handleProjectContextMenu(e: MouseEvent, pid: string) {
+  e.preventDefault()
+  e.stopPropagation()
+  menuProjectId.value = pid
+  menuX.value = e.clientX
+  menuY.value = e.clientY
+}
+
+function closeMenu() {
+  menuProjectId.value = null
+}
+
+function startRenameProject(pid: string) {
+  closeMenu()
+  const p = projectStore.projects.find(x => x.id === pid)
+  if (!p) return
+  renameProjectId.value = pid
+  renameProjectName.value = p.name
+  showRenameModal.value = true
+}
+
+async function confirmRenameProject() {
+  if (!renameProjectName.value.trim()) return
+  try {
+    const p = await UpdateProject(renameProjectId.value, renameProjectName.value.trim(), '')
+    if (p) projectStore.updateProject(p)
+    showRenameModal.value = false
+    message.success('Renamed')
+  } catch (e: any) { message.error(e.message) }
+}
+
+async function handleDeleteProject(pid: string) {
+  closeMenu()
+  try {
+    await DeleteProject(pid)
+    projectStore.removeProject(pid)
+    message.success('Deleted')
+  } catch (e: any) { message.error(e.message) }
+}
+
 async function handleImport() {
+  if (!projectStore.currentProject) { message.warning('Select a project first'); return }
   try {
     let result
     if (importFormat.value === 'postman') {
-      result = await ImportPostman(importFileContent.value)
+      result = await ImportPostman(projectStore.currentProject.id, importFileContent.value)
     } else {
-      result = await ImportSwagger(importFileContent.value)
+      result = await ImportSwagger(projectStore.currentProject.id, importFileContent.value)
     }
     if (result) {
       message.success(`Imported ${result.requests?.length || 0} requests`)
@@ -137,13 +184,19 @@ function safeParse(str: string, fallback: any): any {
 async function handleExport() {
   if (!projectStore.currentProject) return
   try {
-    const cols = JSON.stringify(projectStore.collections || [])
-    const reqsJSON = JSON.stringify([])
+    const cols = await ListCollections(projectStore.currentProject.id)
+    const allReqs: any[] = []
+    for (const col of cols || []) {
+      const reqs = await ListRequests(col.id)
+      allReqs.push(...(reqs || []))
+    }
+    const colsJSON = JSON.stringify(cols || [])
+    const reqsJSON = JSON.stringify(allReqs)
     let result: string
     if (exportFormat.value === 'postman') {
-      result = await ExportPostman(cols, reqsJSON, projectStore.currentProject.name)
+      result = await ExportPostman(colsJSON, reqsJSON, projectStore.currentProject.name)
     } else {
-      result = await ExportSwagger(cols, reqsJSON, projectStore.currentProject.name)
+      result = await ExportSwagger(colsJSON, reqsJSON, projectStore.currentProject.name)
     }
     const blob = new Blob([result], { type: 'application/json' })
     const url = URL.createObjectURL(blob)
@@ -196,6 +249,7 @@ onMounted(loadAll)
           class="project-card"
           hoverable
           @click="selectProject(p)"
+          @contextmenu="(e: MouseEvent) => handleProjectContextMenu(e, p.id)"
           :class="{ active: projectStore.currentProject?.id === p.id }"
         >
           <div class="card-body">
@@ -210,6 +264,13 @@ onMounted(loadAll)
             </div>
           </div>
         </NCard>
+
+        <!-- Project context menu -->
+        <div v-if="menuProjectId" class="context-menu" :style="{ left: menuX + 'px', top: menuY + 'px' }" @click.stop>
+          <div class="context-item" @click="startRenameProject(menuProjectId!)">Rename</div>
+          <div class="context-item danger" @click="handleDeleteProject(menuProjectId!)">Delete</div>
+        </div>
+        <div v-if="menuProjectId" class="context-overlay" @click="closeMenu" @contextmenu.prevent="closeMenu" />
       </div>
     </NSpin>
 
@@ -244,6 +305,15 @@ onMounted(loadAll)
     <NModal v-model:show="showExportModal" title="Export" preset="card" style="width:360px">
       <NSelect v-model:value="exportFormat" :options="[{ label: 'Postman v2.1', value: 'postman' }, { label: 'OpenAPI/Swagger', value: 'swagger' }]" size="small" />
       <template #footer><NSpace justify="end"><NButton @click="showExportModal = false">Cancel</NButton><NButton type="primary" @click="handleExport">Export</NButton></NSpace></template>
+    </NModal>
+
+    <NModal v-model:show="showRenameModal" title="Rename Project" preset="card" style="width:360px">
+      <NForm>
+        <NFormItem label="Project name">
+          <NInput v-model:value="renameProjectName" placeholder="Project name" />
+        </NFormItem>
+      </NForm>
+      <template #footer><NSpace justify="end"><NButton @click="showRenameModal = false">Cancel</NButton><NButton type="primary" @click="confirmRenameProject">Save</NButton></NSpace></template>
     </NModal>
   </div>
 </template>
@@ -321,4 +391,10 @@ onMounted(loadAll)
 }
 .import-format { margin-bottom: 8px; }
 .import-textarea { font-family: 'Cascadia Code', 'Fira Code', 'Consolas', monospace; font-size: 13px; }
+.context-menu { position: fixed; z-index: 9999; background: #fff; border: 1px solid #ddd; border-radius: 6px; box-shadow: 0 4px 12px rgba(0,0,0,0.15); padding: 4px 0; min-width: 120px; }
+.context-item { padding: 6px 16px; font-size: 13px; cursor: pointer; }
+.context-item:hover { background: #f0f0f0; }
+.context-item.danger { color: #e74c3c; }
+.context-item.danger:hover { background: #fef0f0; }
+.context-overlay { position: fixed; top: 0; left: 0; right: 0; bottom: 0; z-index: 9998; }
 </style>

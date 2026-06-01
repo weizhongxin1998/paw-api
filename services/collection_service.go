@@ -21,6 +21,13 @@ func (s *CollectionService) Create(projectID, parentID, name string, sortOrder i
 	if name == "" {
 		return nil, errors.New("collection name is required")
 	}
+	if sortOrder <= 0 {
+		maxOrder, err := s.repo.GetMaxSortOrder(projectID, parentID)
+		if err != nil {
+			return nil, err
+		}
+		sortOrder = maxOrder + 1
+	}
 	now := time.Now()
 	var pid *string
 	if parentID != "" {
@@ -54,8 +61,12 @@ func (s *CollectionService) Update(id, name string, parentID *string, sortOrder 
 	if c == nil {
 		return nil, errors.New("collection not found")
 	}
-	c.Name = name
-	c.ParentID = parentID
+	if name != "" {
+		c.Name = name
+	}
+	if parentID != nil {
+		c.ParentID = parentID
+	}
 	c.SortOrder = sortOrder
 	c.UpdatedAt = time.Now()
 	return c, s.repo.Update(c)

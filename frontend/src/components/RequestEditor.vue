@@ -98,14 +98,14 @@ async function handleSave() {
   if (!tab || !projectStore.currentProject) return
   saving.value = true
   try {
-    const colId = projectStore.collections[0]?.id || ''
+    const colId = tab.httpData?.collectionId || projectStore.collections[0]?.id || ''
     if (!colId) { message.warning('No collection to save to'); return }
     const headersJSON = JSON.stringify(headers.value.filter(h => h.enabled))
     const paramsJSON = JSON.stringify(params.value.filter(p => p.enabled))
-    const bodyJSON = JSON.stringify({ body_type: bodyType.value, content: body.value })
+    const bodyJSON = JSON.stringify({ body_type: bodyType.value, content: body.value, body_files: bodyFiles.value.filter(f => f.enabled) })
     const authJSON = JSON.stringify({ type: authType.value, ...authData.value })
     if (tab.requestId) {
-      await UpdateRequest(tab.requestId, requestName.value, method.value, url.value, headersJSON, paramsJSON, bodyJSON, authJSON, '', 0)
+      await UpdateRequest(tab.requestId, colId, requestName.value, method.value, url.value, headersJSON, paramsJSON, bodyJSON, authJSON, '', 0)
       message.success('Saved')
     } else {
       const r = await CreateRequest(colId, requestName.value, method.value, url.value, headersJSON, paramsJSON, bodyJSON, authJSON, '', 0)

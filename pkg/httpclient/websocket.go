@@ -40,10 +40,10 @@ func WSConnect(url string, onMessage func(WSMessage)) error {
 }
 
 func (w *WSConn) readLoop() {
+	defer close(w.done)
 	for {
 		_, msg, err := w.conn.ReadMessage()
 		if err != nil {
-			close(w.done)
 			return
 		}
 		if w.onMsg != nil {
@@ -81,8 +81,12 @@ func WSClose() {
 		return
 	}
 	ws.mu.Lock()
-	defer ws.mu.Unlock()
-	ws.conn.Close()
+	conn := ws.conn
+	done := ws.done
+	ws.mu.Unlock()
+
+	conn.Close()
+	<-done
 	ws = nil
 }
 

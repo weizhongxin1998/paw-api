@@ -10,7 +10,8 @@ import { useTheme } from '../composables/useTheme'
 import { t, setLocale as setI18nLocale } from '../i18n'
 import { CreateProject, ListProjects } from '../../wailsjs/go/handlers/ProjectHandler'
 import { CreateCollection, ListCollections, UpdateCollection, DeleteCollection } from '../../wailsjs/go/handlers/CollectionHandler'
-import { CreateRequest, DeleteRequest, UpdateRequest, ListRequests } from '../../wailsjs/go/handlers/RequestHandler'
+import { CreateRequest, DeleteRequest, UpdateRequest, ListRequests, ListRequestsByProject } from '../../wailsjs/go/handlers/RequestHandler'
+import { ListCookies, ClearCookies } from '../../wailsjs/go/handlers/CookieHandler'
 import { ListEnvironments } from '../../wailsjs/go/handlers/EnvironmentHandler'
 import { useEnvironmentStore } from '../stores/environment'
 import EnvSelector from './EnvSelector.vue'
@@ -47,6 +48,23 @@ const showContextMenu = ref(false)
 const contextMenuX = ref(0)
 const contextMenuY = ref(0)
 
+const cookies = ref<any[]>([])
+const cookieDomain = ref('')
+
+async function loadCookies() {
+  try {
+    cookies.value = (await ListCookies(cookieDomain.value)) || []
+  } catch { cookies.value = [] }
+}
+
+async function handleClearCookies() {
+  try {
+    await ClearCookies()
+    cookies.value = []
+    message.success('Cookies cleared')
+  } catch (e: any) { message.error(e.message) }
+}
+
 const sections = [
   { id: 'workspace', labelKey: 'sidebar.workspaceLabel', icon: CodeSlash, route: '/workspace' },
   { id: 'project', labelKey: 'sidebar.projectLabel', icon: FolderOpen, route: '/projects' },
@@ -68,13 +86,20 @@ const allRequests = ref<any[]>([])
 async function loadAllRequests() {
   if (!projectStore.currentProject) return
   try {
-    const cols = await ListCollections(projectStore.currentProject.id)
-    const all: any[] = []
-    for (const col of cols) {
-      const reqs = await ListRequests(col.id)
-      all.push(...reqs.map((r: any) => ({ ...r, _collectionName: col.name, _collectionId: col.id })))
+    const [reqs, cols] = await Promise.all([
+      ListRequestsByProject(projectStore.currentProject.id),
+      ListCollections(projectStore.currentProject.id),
+    ])
+    projectStore.setCollections(cols || [])
+    const colMap: Record<string, string> = {}
+    for (const col of cols || []) {
+      colMap[col.id] = col.name
     }
-    allRequests.value = all
+    allRequests.value = (reqs || []).map((r: any) => ({
+      ...r,
+      _collectionName: colMap[r.collection_id] || '',
+      _collectionId: r.collection_id,
+    }))
   } catch { allRequests.value = [] }
 }
 
@@ -185,7 +210,6 @@ async function loadProjects() {
 
 async function loadCollections(projectId: string) {
   try {
-    projectStore.setCollections(await ListCollections(projectId))
     await loadAllRequests()
   }
   catch { projectStore.setCollections([]); allRequests.value = [] }
@@ -228,8 +252,9 @@ async function handleDrop({ node, dragNode, dropPosition }: any) {
   const draggedId = dragNode.key
   const targetId = node.key
   if (draggedId.startsWith('req-') || targetId.startsWith('req-') || targetId === 'collections-header') return
+  const col = projectStore.collections.find(c => c.id === draggedId)
   try {
-    await UpdateCollection(draggedId, '', targetId, 0)
+    await UpdateCollection(draggedId, col?.name || '', targetId, 0)
     if (projectStore.currentProject) await loadCollections(projectStore.currentProject.id)
     message.success('Moved')
   } catch (e: any) { message.error(e.message) }
@@ -256,7 +281,9 @@ function handleTreeSelect(keys: any) {
         params: safeParse(req.params, []),
         body: safeParseBody(req.body),
         bodyType: safeParseBodyType(req.body),
+        bodyFiles: safeParseBodyFiles(req.body),
         authType: safeParseAuth(req.auth),
+        collectionId: req._collectionId,
       })
     }
   }
@@ -273,6 +300,14 @@ function safeParseBody(body: string): string {
     const obj = JSON.parse(body)
     return obj.content || obj.body || ''
   } catch { return body }
+}
+
+function safeParseBodyFiles(body: string): any[] {
+  if (!body) return []
+  try {
+    const obj = JSON.parse(body)
+    return obj.body_files || obj.files || []
+  } catch { return [] }
 }
 
 function safeParseBodyType(body: string): string {
@@ -323,7 +358,7 @@ async function confirmRename() {
     } else {
       const req = allRequests.value.find(r => r.id === renameTarget.value!.id)
       if (req) {
-        await UpdateRequest(req.id, renameValue.value.trim(), req.method, req.url, req.headers, req.params, req.body, req.auth, req.script, req.sort_order)
+        await UpdateRequest(req.id, '', renameValue.value.trim(), req.method, req.url, req.headers, req.params, req.body, req.auth, req.script, req.sort_order)
         await loadAllRequests()
       }
     }
@@ -378,12 +413,7 @@ async function confirmMove(targetColId: string) {
   const req = allRequests.value.find(r => r.id === moveTargetId.value)
   if (!req) return
   try {
-    await UpdateRequest(req.id, req.name, req.method, req.url, req.headers, req.params, req.body, req.auth, req.script, 0)
-    // Note: The actual collection_id move would need a separate API,
-    // but we use UpdateRequest which doesn't support collection_id change.
-    // For now, recreate in target collection.
-    await CreateRequest(targetColId, req.name, req.method, req.url, req.headers, req.params, req.body, req.auth, req.script, 0)
-    await DeleteRequest(req.id)
+    await UpdateRequest(req.id, targetColId, req.name, req.method, req.url, req.headers, req.params, req.body, req.auth, req.script, req.sort_order)
     await loadAllRequests()
     if (projectStore.currentProject) await loadCollections(projectStore.currentProject.id)
     showMoveModal.value = false
@@ -428,6 +458,7 @@ async function createRequestInCollection(colId: string) {
     const r = await CreateRequest(colId, 'New Request', 'GET', '', '[]', '[]', '{}', '{}', '', 0)
     if (r) {
       const tabId = tabsStore.addHttpTab(r.id, r.name)
+      tabsStore.updateTabData({ collectionId: colId })
       message.success('Request created')
       if (projectStore.currentProject) await loadCollections(projectStore.currentProject.id)
     }
@@ -490,6 +521,24 @@ onMounted(loadProjects)
           <div class="setting-row"><span>Theme Color</span><NSelect :options="themeColorOptions" :value="themeColor" size="tiny" style="width:100px" @update:value="setThemeColor" /></div>
           <div class="setting-row"><span>Language</span><NButton size="tiny" @click="toggleLocale">{{ locale === 'zh-CN' ? 'English' : '中文' }}</NButton></div>
         </div>
+        <div class="cookies-section">
+          <div class="cookies-header">
+            <span class="cookies-title">Cookies</span>
+            <NButton size="tiny" quaternary @click="handleClearCookies" :disabled="cookies.length === 0">Clear All</NButton>
+          </div>
+          <div class="cookies-domain-row">
+            <NInput v-model:value="cookieDomain" size="tiny" placeholder="domain.com" @keyup.enter="loadCookies" />
+            <NButton size="tiny" @click="loadCookies">Load</NButton>
+          </div>
+          <div class="cookies-list">
+            <div v-if="cookies.length === 0" class="cookies-empty">No cookies</div>
+            <div v-for="(c, i) in cookies" :key="i" class="cookie-row">
+              <div class="cookie-domain">{{ c.domain }}</div>
+              <div class="cookie-name">{{ c.name }}</div>
+              <div class="cookie-value" :title="c.value">{{ c.value }}</div>
+            </div>
+          </div>
+        </div>
       </div>
     </div>
 
@@ -500,13 +549,13 @@ onMounted(loadProjects)
     <div v-if="collectionMenuId" class="context-overlay" @click="collectionMenuId = null" @contextmenu.prevent="collectionMenuId = null" />
 
     <div v-if="showContextMenu" class="context-menu" :style="{ left: contextMenuX + 'px', top: contextMenuY + 'px' }">
-      <div v-if="contextMenuColId" class="context-item" @click="startRename('collection', contextMenuColId!, '')">Rename Collection</div>
-      <div v-if="contextMenuColId" class="context-item" @click="() => startAdd(contextMenuColId ?? undefined)">New Sub-collection</div>
-      <div v-if="contextMenuColId" class="context-item" @click="handleDelete('collection', contextMenuColId!)">Delete Collection</div>
-      <div v-if="contextMenuReqId" class="context-item" @click="startRename('request', contextMenuReqId!, '')">Rename</div>
-      <div v-if="contextMenuReqId" class="context-item" @click="copyRequest(contextMenuReqId!)">Copy Request</div>
-      <div v-if="contextMenuReqId" class="context-item" @click="startMove(contextMenuReqId!)">Move to Collection</div>
-      <div v-if="contextMenuReqId" class="context-item" @click="handleDelete('request', contextMenuReqId!)">Delete</div>
+      <div v-if="contextMenuColId" class="context-item" @click="startRename('collection', contextMenuColId!, '')">{{ $t('contextMenu.renameCollection') }}</div>
+      <div v-if="contextMenuColId" class="context-item" @click="() => startAdd(contextMenuColId ?? undefined)">{{ $t('contextMenu.newSubCollection') }}</div>
+      <div v-if="contextMenuColId" class="context-item" @click="handleDelete('collection', contextMenuColId!)">{{ $t('contextMenu.deleteCollection') }}</div>
+      <div v-if="contextMenuReqId" class="context-item" @click="startRename('request', contextMenuReqId!, '')">{{ $t('contextMenu.renameRequest') }}</div>
+      <div v-if="contextMenuReqId" class="context-item" @click="copyRequest(contextMenuReqId!)">{{ $t('contextMenu.copyRequest') }}</div>
+      <div v-if="contextMenuReqId" class="context-item" @click="startMove(contextMenuReqId!)">{{ $t('contextMenu.moveToCollection') }}</div>
+      <div v-if="contextMenuReqId" class="context-item" @click="handleDelete('request', contextMenuReqId!)">{{ $t('contextMenu.deleteRequest') }}</div>
     </div>
     <div v-if="showContextMenu" class="context-overlay" @click="showContextMenu = false" @contextmenu.prevent="showContextMenu = false" />
 
@@ -576,4 +625,14 @@ onMounted(loadProjects)
 .move-list { max-height: 300px; overflow-y: auto; }
 .move-item { padding: 8px 12px; cursor: pointer; font-size: 13px; border-bottom: 1px solid var(--border-color); }
 .move-item:hover { background: var(--hover-color); }
+.cookies-section { padding: 8px 12px; border-top: 1px solid var(--border-color); }
+.cookies-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 6px; }
+.cookies-title { font-size: 12px; font-weight: 600; color: #888; text-transform: uppercase; }
+.cookies-domain-row { display: flex; gap: 4px; margin-bottom: 6px; }
+.cookies-list { max-height: 200px; overflow-y: auto; font-size: 11px; }
+.cookies-empty { color: #999; font-size: 12px; padding: 8px 0; text-align: center; }
+.cookie-row { display: flex; gap: 4px; padding: 3px 0; border-bottom: 1px solid var(--border-color); }
+.cookie-domain { width: 60px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: #666; }
+.cookie-name { width: 50px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-weight: 600; }
+.cookie-value { flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: #888; }
 </style>

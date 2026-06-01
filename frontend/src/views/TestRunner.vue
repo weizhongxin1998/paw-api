@@ -5,10 +5,12 @@ import { NButton, NTag, NIcon, NCheckbox, NSpace, NSpin, NEmpty, NSelect, NInput
 import { Play, Add, Trash, Settings as SettingsIcon } from '@vicons/ionicons5'
 import { useProjectStore } from '../stores/project'
 import { ListCollections } from '../../wailsjs/go/handlers/CollectionHandler'
-import { ListRequests } from '../../wailsjs/go/handlers/RequestHandler'
+import { ListRequests, UpdateRequest } from '../../wailsjs/go/handlers/RequestHandler'
 import { RunAsserts } from '../../wailsjs/go/handlers/RequestHandler'
+import { useMessage } from 'naive-ui'
 
 const projectStore = useProjectStore()
+const message = useMessage()
 const requests = ref<any[]>([])
 const selected = ref<Set<string>>(new Set())
 const results = ref<any[]>([])
@@ -36,22 +38,42 @@ async function loadRequests() {
 }
 
 function getAsserts(reqId: string): any[] {
-  if (!asserts.value[reqId]) asserts.value[reqId] = []
+  if (!asserts.value[reqId]) {
+    const req = requests.value.find(r => r.id === reqId)
+    if (req?.script) {
+      try { asserts.value[reqId] = JSON.parse(req.script) } catch { asserts.value[reqId] = [] }
+    } else {
+      asserts.value[reqId] = []
+    }
+  }
   return asserts.value[reqId]
+}
+
+async function saveAsserts(reqId: string) {
+  const rules = asserts.value[reqId]
+  if (!rules) return
+  const req = requests.value.find(r => r.id === reqId)
+  if (!req) return
+  try {
+    await UpdateRequest(req.id, req.collection_id, req.name, req.method, req.url, req.headers, req.params, req.body, req.auth, JSON.stringify(rules), req.sort_order)
+  } catch (e: any) { message.error(e.message) }
 }
 
 function addAssert(reqId: string) {
   if (!asserts.value[reqId]) asserts.value[reqId] = []
   asserts.value[reqId].push({ type: 'status', target: '', value: '200' })
+  saveAsserts(reqId)
 }
 
 function removeAssert(reqId: string, index: number) {
   asserts.value[reqId].splice(index, 1)
+  saveAsserts(reqId)
 }
 
 function updateAssert(reqId: string, index: number, field: string, val: any) {
   if (asserts.value[reqId]?.[index]) {
     asserts.value[reqId][index][field] = val
+    saveAsserts(reqId)
   }
 }
 

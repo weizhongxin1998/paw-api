@@ -32,8 +32,12 @@ func (h *RequestHandler) ListRequests(collectionID string) ([]models.Request, er
 	return h.service.ListByCollection(collectionID)
 }
 
-func (h *RequestHandler) UpdateRequest(id, name, method, url, headers, params, body, auth, script string, sortOrder int) (*models.Request, error) {
-	return h.service.Update(id, name, method, url, headers, params, body, auth, script, sortOrder)
+func (h *RequestHandler) ListRequestsByProject(projectID string) ([]models.Request, error) {
+	return h.service.ListByProjectID(projectID)
+}
+
+func (h *RequestHandler) UpdateRequest(id, collectionID, name, method, url, headers, params, body, auth, script string, sortOrder int) (*models.Request, error) {
+	return h.service.Update(id, collectionID, name, method, url, headers, params, body, auth, script, sortOrder)
 }
 
 type SendRequestInput struct {

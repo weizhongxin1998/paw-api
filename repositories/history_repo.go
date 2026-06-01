@@ -20,9 +20,17 @@ func (r *HistoryRepo) ListByProject(projectID string, limit int) ([]models.Histo
 	if limit <= 0 {
 		limit = 50
 	}
-	rows, err := database.DB.Query(
-		`SELECT id, project_id, request_id, method, url, headers, body, response_status, response_body, response_headers, duration_ms, created_at FROM history WHERE project_id = ? ORDER BY created_at DESC LIMIT ?`, projectID, limit,
-	)
+	var rows *sql.Rows
+	var err error
+	if projectID == "" {
+		rows, err = database.DB.Query(
+			`SELECT id, project_id, request_id, method, url, headers, body, response_status, response_body, response_headers, duration_ms, created_at FROM history ORDER BY created_at DESC LIMIT ?`, limit,
+		)
+	} else {
+		rows, err = database.DB.Query(
+			`SELECT id, project_id, request_id, method, url, headers, body, response_status, response_body, response_headers, duration_ms, created_at FROM history WHERE project_id = ? ORDER BY created_at DESC LIMIT ?`, projectID, limit,
+		)
+	}
 	if err != nil {
 		return nil, err
 	}

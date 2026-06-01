@@ -169,6 +169,15 @@ export default {
     importTitle: 'Import',
     exportTitle: 'Export',
   },
+  contextMenu: {
+    renameCollection: 'Rename Collection',
+    renameRequest: 'Rename',
+    newSubCollection: 'New Sub-collection',
+    deleteCollection: 'Delete Collection',
+    deleteRequest: 'Delete',
+    copyRequest: 'Copy Request',
+    moveToCollection: 'Move to Collection',
+  },
   codegen: {
     title: 'Code',
     lang: 'Language',

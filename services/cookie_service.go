@@ -4,8 +4,23 @@ import (
 	"net/http"
 	"net/http/cookiejar"
 	"net/url"
+	"sync"
 	"time"
 )
+
+var (
+	sharedJar   http.CookieJar
+	sharedJarMu sync.Mutex
+)
+
+func getSharedJar() http.CookieJar {
+	sharedJarMu.Lock()
+	defer sharedJarMu.Unlock()
+	if sharedJar == nil {
+		sharedJar, _ = cookiejar.New(nil)
+	}
+	return sharedJar
+}
 
 type CookieInfo struct {
 	Domain   string    `json:"domain"`
@@ -22,12 +37,7 @@ type CookieService struct {
 }
 
 func NewCookieService() *CookieService {
-	jar, _ := cookiejar.New(nil)
-	return &CookieService{jar: jar}
-}
-
-func (s *CookieService) SetJar(jar http.CookieJar) {
-	s.jar = jar
+	return &CookieService{jar: getSharedJar()}
 }
 
 func (s *CookieService) ListCookies(domain string) []CookieInfo {

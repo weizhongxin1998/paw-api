@@ -1,16 +1,20 @@
 <script lang="ts" setup>
 import { ref, onMounted, computed } from 'vue'
-import { NInput, NTag, NButton, NIcon, NEmpty, NSpin } from 'naive-ui'
-import { Play } from '@vicons/ionicons5'
-import { ListHistory } from '../../wailsjs/go/handlers/HistoryHandler'
+import { NInput, NTag, NButton, NIcon, NEmpty, NSpin, useDialog, useMessage } from 'naive-ui'
+import { Play, Trash, TrashOutline } from '@vicons/ionicons5'
+import { ListHistory, DeleteHistory, ClearHistory } from '../../wailsjs/go/handlers/HistoryHandler'
 import { useTabsStore } from '../stores/tabs'
 import { useProjectStore } from '../stores/project'
+import { useHistoryStore } from '../stores/history'
 
 const tabsStore = useTabsStore()
 const projectStore = useProjectStore()
+const historyStore = useHistoryStore()
 const history = ref<any[]>([])
 const loading = ref(false)
 const searchQuery = ref('')
+const dialog = useDialog()
+const message = useMessage()
 
 const filteredHistory = computed(() => {
   if (!searchQuery.value.trim()) return history.value
@@ -26,8 +30,33 @@ function methodTagType(method: string): 'success' | 'info' | 'warning' | 'error'
 async function loadHistory() {
   loading.value = true
   const pid = projectStore.currentProject?.id || ''
-  try { history.value = await ListHistory(pid, 100) } catch { history.value = [] }
+  try { history.value = await ListHistory(pid, 100); historyStore.setHistory(history.value) } catch { history.value = []; historyStore.setHistory([]) }
   finally { loading.value = false }
+}
+
+async function handleDeleteHistory(id: string) {
+  try {
+    await DeleteHistory(id)
+    historyStore.removeHistory(id)
+    history.value = history.value.filter(h => h.id !== id)
+  } catch (e: any) { message.error(e.message) }
+}
+
+function handleClearHistory() {
+  dialog.warning({
+    title: 'Clear History',
+    content: 'Are you sure you want to clear all history?',
+    positiveText: 'Clear',
+    negativeText: 'Cancel',
+    onPositiveClick: async () => {
+      try {
+        const pid = projectStore.currentProject?.id || ''
+        await ClearHistory(pid)
+        historyStore.clearHistory()
+        history.value = []
+      } catch (e: any) { message.error(e.message) }
+    },
+  })
 }
 
 function replay(item: any) {
@@ -46,6 +75,9 @@ onMounted(loadHistory)
       <h2 class="history-title">{{ $t('history.title') }}</h2>
       <NInput v-model:value="searchQuery" :placeholder="$t('history.search')" size="small" clearable class="search-input" />
       <NButton size="small" quaternary @click="loadHistory">{{ $t('history.refresh') }}</NButton>
+      <NButton size="small" quaternary type="error" @click="handleClearHistory" :disabled="history.length === 0">
+        <template #icon><NIcon><TrashOutline /></NIcon></template>Clear
+      </NButton>
     </div>
     <NSpin :show="loading">
       <div v-if="filteredHistory.length === 0" class="empty"><NEmpty :description="$t('history.empty')" /></div>
@@ -57,6 +89,9 @@ onMounted(loadHistory)
           <div class="history-duration">{{ item.duration_ms }}{{ $t('history.ms') }}</div>
           <NButton quaternary circle size="tiny" @click="replay(item)">
             <template #icon><NIcon><Play /></NIcon></template>
+          </NButton>
+          <NButton quaternary circle size="tiny" @click="handleDeleteHistory(item.id)">
+            <template #icon><NIcon size="14"><Trash /></NIcon></template>
           </NButton>
         </div>
       </div>
