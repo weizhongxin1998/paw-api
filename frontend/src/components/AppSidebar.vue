@@ -377,12 +377,7 @@ onMounted(loadProjects)
       <div v-show="activeSection === 'workspace'" class="panel-section">
         <div class="panel-header">
           <div class="panel-project-name">{{ projectStore.currentProject?.name || $t('project.noProject') }}</div>
-          <div class="panel-title-row">
-            <span class="panel-title">{{ $t('sidebar.collections') }}</span>
-            <NButton quaternary circle size="tiny" @click="startAdd" class="panel-add-btn">
-              <template #icon><NIcon size="14"><Add /></NIcon></template>
-            </NButton>
-          </div>
+          <span class="panel-title">{{ $t('sidebar.collections') }}</span>
         </div>
         <div class="panel-search">
           <NInput v-model:value="searchQuery" :placeholder="$t('history.search')" size="tiny" clearable>
@@ -393,6 +388,12 @@ onMounted(loadProjects)
         </div>
         <div class="panel-env"><EnvSelector @manage="showEnvManager = true" /></div>
         <div class="panel-tree-area">
+          <div class="tree-top-bar">
+            <span></span>
+            <NButton quaternary circle size="tiny" @click="startAdd" class="tree-add-btn">
+              <template #icon><NIcon size="14"><Add /></NIcon></template>
+            </NButton>
+          </div>
           <NTree
             :data="treeData"
             :default-expand-all="true"
@@ -449,9 +450,9 @@ onMounted(loadProjects)
 .panel-section { display: flex; flex-direction: column; height: 100%; }
 .panel-header { padding: 12px 12px 8px; border-bottom: 1px solid var(--border-color); }
 .panel-project-name { font-size: 14px; font-weight: 700; margin-bottom: 2px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.panel-title-row { display: flex; align-items: center; justify-content: space-between; }
 .panel-title { font-size: 11px; font-weight: 600; color: #888; text-transform: uppercase; letter-spacing: 0.5px; }
-.panel-add-btn { flex-shrink: 0; }
+.tree-top-bar { display: flex; align-items: center; justify-content: flex-end; padding: 2px 4px 0 0; }
+.tree-add-btn { flex-shrink: 0; }
 .panel-search { padding: 6px 8px; border-bottom: 1px solid var(--border-color); }
 .panel-env { padding: 6px 8px; border-bottom: 1px solid var(--border-color); }
 .panel-footer { padding: 6px 8px; border-top: 1px solid var(--border-color); }
