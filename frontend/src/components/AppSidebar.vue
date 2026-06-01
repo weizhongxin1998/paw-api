@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import { ref, computed, onMounted } from 'vue'
+import { ref, computed, onMounted, watch } from 'vue'
 import { NTree, NButton, NIcon, NInput, NModal, NForm, NFormItem, NSpace, NSelect, NTag, NDropdown, useMessage, useDialog } from 'naive-ui'
 import { Add, CodeSlash, FolderOpen, Time, DocumentText, Bug, Settings as SettingsIcon, Search, Download, Trash } from '@vicons/ionicons5'
 import { useRouter, useRoute } from 'vue-router'
@@ -131,6 +131,19 @@ function selectSection(id: string) {
   activeSection.value = id as any
   if (s.route && route.path !== s.route) router.push(s.route)
 }
+
+const routeSectionMap: Record<string, string> = {
+  '/workspace': 'workspace',
+  '/projects': 'project',
+  '/history': 'history',
+  '/docs': 'docs',
+  '/test-runner': 'tests',
+}
+
+watch(() => route.path, (path) => {
+  const section = routeSectionMap[path]
+  if (section) activeSection.value = section as any
+})
 
 async function loadProjects() {
   try {
