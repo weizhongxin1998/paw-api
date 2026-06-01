@@ -7,8 +7,8 @@ import { useProjectStore } from '../stores/project'
 import { useTabsStore } from '../stores/tabs'
 import { ListProjects, CreateProject } from '../../wailsjs/go/handlers/ProjectHandler'
 import { ListCollections } from '../../wailsjs/go/handlers/CollectionHandler'
-import { ListRequests } from '../../wailsjs/go/handlers/RequestHandler'
 import { ListEnvironments } from '../../wailsjs/go/handlers/EnvironmentHandler'
+import { ListRequests } from '../../wailsjs/go/handlers/RequestHandler'
 import { useEnvironmentStore } from '../stores/environment'
 import { ImportPostman, ImportSwagger, ImportCurl } from '../../wailsjs/go/handlers/ImporterHandler'
 import { ExportPostman, ExportSwagger } from '../../wailsjs/go/handlers/ExporterHandler'
@@ -58,12 +58,8 @@ async function loadAll() {
 
 async function selectProject(p: any) {
   projectStore.setCurrentProject(p)
-  try {
-    const cols = await ListCollections(p.id)
-    projectStore.setCollections(cols || [])
-  } catch {
-    projectStore.setCollections([])
-  }
+  localStorage.setItem('paw-current-project', p.id)
+  projectStore.setCollections([])
   try {
     const envs = await ListEnvironments(p.id)
     envStore.setEnvironments(envs)

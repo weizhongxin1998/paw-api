@@ -143,9 +143,15 @@ const routeSectionMap: Record<string, string> = {
   '/test-runner': 'tests',
 }
 
-watch(() => route.path, (path) => {
+watch(() => route.path, async (path) => {
   const section = routeSectionMap[path]
   if (section) activeSection.value = section as any
+  if (path === '/workspace' && projectStore.currentProject) {
+    const pid = projectStore.currentProject.id
+    if (projectStore.collections.length === 0 || allRequests.value.length === 0) {
+      await loadCollections(pid)
+    }
+  }
 })
 
 async function loadProjects() {
@@ -158,12 +164,15 @@ async function loadProjects() {
       if (!p) return
       projectStore.addProject(p)
       projectStore.setCurrentProject(p)
+      localStorage.setItem('paw-current-project', p.id)
       await loadCollections(p.id)
     } else {
-      const p = list[0]
-      if (!p) return
-      projectStore.setCurrentProject(p)
-      await loadCollections(p.id)
+      const savedId = localStorage.getItem('paw-current-project')
+      const saved = savedId ? list.find((p: any) => p.id === savedId) : null
+      const target = saved || list[0]
+      if (!target) return
+      projectStore.setCurrentProject(target)
+      await loadCollections(target.id)
     }
   } catch { console.error('Failed to load projects') }
 }
@@ -538,9 +547,9 @@ onMounted(loadProjects)
 .panel-list-item.active { background: var(--active-color); font-weight: 600; }
 .panel-settings { padding: 12px; display: flex; flex-direction: column; gap: 12px; }
 .setting-row { display: flex; align-items: center; justify-content: space-between; font-size: 13px; }
-.tree-node-label { display: flex; align-items: center; justify-content: space-between; width: 100%; }
-.tree-node-name { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; flex: 1; }
-.tree-node-actions { display: none; flex-shrink: 0; margin-left: 4px; }
+.tree-node-label { display: flex; align-items: center; width: 100%; padding-right: 8px; }
+.tree-node-name { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; flex: 1; min-width: 0; }
+.tree-node-actions { display: none; flex-shrink: 0; margin-left: auto; }
 .tree-node-label:hover .tree-node-actions { display: flex; }
 .tree-node-dots { background: none; border: none; cursor: pointer; font-size: 16px; line-height: 1; padding: 0 4px; color: #888; border-radius: 4px; letter-spacing: 1px; }
 .tree-node-dots:hover { background: #e8e8e8; color: #333; }
