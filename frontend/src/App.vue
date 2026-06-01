@@ -1,21 +1,33 @@
 <script lang="ts" setup>
-import HelloWorld from './components/HelloWorld.vue'</script>
+import { computed } from 'vue'
+import { NConfigProvider, NLayout, NLayoutContent, NMessageProvider, NDialogProvider, zhCN, enUS, dateZhCN, dateEnUS } from 'naive-ui'
+import { useI18n } from 'vue-i18n'
+import { useTheme } from './composables/useTheme'
+import AppSidebar from './components/AppSidebar.vue'
+
+const { theme, themeOverrides } = useTheme()
+const { locale } = useI18n()
+
+const naiveLocale = computed(() => locale.value === 'zh-CN' ? zhCN : enUS)
+const naiveDateLocale = computed(() => locale.value === 'zh-CN' ? dateZhCN : dateEnUS)
+</script>
 
 <template>
-  <img id="logo" alt="Wails logo" src="./assets/images/logo-universal.png"/>
-  <HelloWorld/>
+  <NConfigProvider :theme="theme" :theme-overrides="themeOverrides" :locale="naiveLocale" :date-locale="naiveDateLocale">
+    <NMessageProvider>
+      <NDialogProvider>
+        <NLayout class="app-layout" has-sider>
+          <AppSidebar />
+          <NLayoutContent class="main-content">
+            <router-view />
+          </NLayoutContent>
+        </NLayout>
+      </NDialogProvider>
+    </NMessageProvider>
+  </NConfigProvider>
 </template>
 
-<style>
-#logo {
-  display: block;
-  width: 50%;
-  height: 50%;
-  margin: auto;
-  padding: 10% 0 0;
-  background-position: center;
-  background-repeat: no-repeat;
-  background-size: 100% 100%;
-  background-origin: content-box;
-}
+<style scoped>
+.app-layout { height: 100vh; width: 100vw; }
+.main-content { display: flex; flex-direction: column; height: 100vh; overflow: hidden; }
 </style>

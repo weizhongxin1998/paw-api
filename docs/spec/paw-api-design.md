@@ -13,7 +13,8 @@
 | 前端框架 | Vue 3 + TypeScript | |
 | 状态管理 | Pinia | |
 | 数据存储 | SQLite | `modernc.org/sqlite`（纯 Go 实现，无 CGO） |
-| UI 组件 | TBD（确认设计后选择） | |
+| UI 组件 | Naive UI + Ionicons v5 | Vue 3 + TypeScript 原生支持，tree-shaking |
+| 图标集 | `@vicons/ionicons5` | 线条极简风格 |
 
 ## 3. 核心功能
 
