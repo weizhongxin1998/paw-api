@@ -423,6 +423,7 @@ onMounted(loadProjects)
     <div class="content-panel">
       <div v-show="activeSection === 'workspace'" class="panel-section">
         <div class="panel-header">
+          <div class="panel-project-name">{{ projectStore.currentProject?.name || $t('project.noProject') }}</div>
           <span class="panel-title">{{ $t('sidebar.collections') }}</span>
         </div>
         <div class="panel-search">
@@ -497,7 +498,8 @@ onMounted(loadProjects)
 .content-panel { flex: 1; display: flex; flex-direction: column; overflow: hidden; min-width: 0; }
 .panel-section { display: flex; flex-direction: column; height: 100%; }
 .panel-header { padding: 12px 12px 8px; border-bottom: 1px solid var(--border-color); }
-.panel-title { font-size: 13px; font-weight: 600; color: #888; text-transform: uppercase; letter-spacing: 0.5px; }
+.panel-project-name { font-size: 14px; font-weight: 700; margin-bottom: 2px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.panel-title { font-size: 11px; font-weight: 600; color: #888; text-transform: uppercase; letter-spacing: 0.5px; }
 .panel-search { padding: 6px 8px; border-bottom: 1px solid var(--border-color); }
 .panel-env { padding: 6px 8px; border-bottom: 1px solid var(--border-color); }
 .panel-footer { padding: 6px 8px; border-top: 1px solid var(--border-color); }
