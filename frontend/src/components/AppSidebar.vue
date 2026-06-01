@@ -29,8 +29,7 @@ const activeSection = ref<'workspace' | 'project' | 'history' | 'docs' | 'tests'
 const showAddModal = ref(false)
 const newCollectionName = ref('')
 const showEnvManager = ref(false)
-const showProjectModal = ref(false)
-const newProjectName = ref('')
+
 const searchQuery = ref('')
 const showImportModal = ref(false)
 const importFileContent = ref('')
@@ -161,11 +160,6 @@ async function loadCollections(projectId: string) {
   catch { projectStore.setCollections([]); allRequests.value = [] }
 }
 
-async function switchProject(projectId: string) {
-  const p = projectStore.projects.find(x => x.id === projectId)
-  if (p) { projectStore.setCurrentProject(p); await loadCollections(p.id) }
-}
-
 function startAdd() { newCollectionName.value = ''; showAddModal.value = true }
 
 async function confirmAdd() {
@@ -178,20 +172,6 @@ async function confirmAdd() {
     message.success(t('sidebar.created'))
     await loadCollections(projectStore.currentProject.id)
   } catch (e: any) { message.error(e.message || t('sidebar.failedCreate')) }
-}
-
-async function createProject() {
-  if (!newProjectName.value.trim()) return
-  try {
-    const p = await CreateProject(newProjectName.value.trim(), '')
-    projectStore.addProject(p)
-    projectStore.setCurrentProject(p)
-    projectStore.setCollections([])
-    allRequests.value = []
-    showProjectModal.value = false
-    newProjectName.value = ''
-    message.success(t('project.created'))
-  } catch (e: any) { message.error(e.message || t('project.failedCreate')) }
 }
 
 function toggleLocale() {
@@ -475,16 +455,6 @@ onMounted(loadProjects)
         </div>
       </div>
 
-      <div v-show="activeSection === 'project'" class="panel-section">
-        <div class="panel-header"><span class="panel-title">{{ $t('project.select') }}</span></div>
-        <div class="panel-list">
-          <div v-for="p in projectStore.projects" :key="p.id" class="panel-list-item" :class="{ active: projectStore.currentProject?.id === p.id }" @click="switchProject(p.id)">{{ p.name }}</div>
-        </div>
-        <div class="panel-footer">
-          <NButton size="tiny" quaternary @click="showProjectModal = true"><template #icon><NIcon><Add /></NIcon></template>{{ $t('project.newProject') }}</NButton>
-        </div>
-      </div>
-
       <div v-show="activeSection === 'settings'" class="panel-section">
         <div class="panel-header"><span class="panel-title">Settings</span></div>
         <div class="panel-settings">
@@ -510,41 +480,6 @@ onMounted(loadProjects)
     <NModal v-model:show="showAddModal" :title="$t('sidebar.newCollection')" preset="card" style="width:360px">
       <NForm><NFormItem :label="$t('sidebar.collectionName')"><NInput v-model:value="newCollectionName" :placeholder="$t('sidebar.collectionName')" /></NFormItem></NForm>
       <template #footer><NSpace justify="end"><NButton @click="showAddModal = false">{{ $t('sidebar.cancel') }}</NButton><NButton type="primary" @click="confirmAdd">{{ $t('sidebar.create') }}</NButton></NSpace></template>
-    </NModal>
-
-    <NModal v-model:show="showProjectModal" :title="$t('project.newProject')" preset="card" style="width:360px">
-      <NForm><NFormItem :label="$t('project.projectName')"><NInput v-model:value="newProjectName" :placeholder="$t('project.projectName')" /></NFormItem></NForm>
-      <template #footer><NSpace justify="end"><NButton @click="showProjectModal = false">{{ $t('common.cancel') }}</NButton><NButton type="primary" @click="createProject">{{ $t('project.create') }}</NButton></NSpace></template>
-    </NModal>
-
-    <NModal v-model:show="showRenameModal" title="Rename" preset="card" style="width:360px">
-      <NForm><NFormItem label="Name"><NInput v-model:value="renameValue" /></NFormItem></NForm>
-      <template #footer><NSpace justify="end"><NButton @click="showRenameModal = false">Cancel</NButton><NButton type="primary" @click="confirmRename">Rename</NButton></NSpace></template>
-    </NModal>
-
-    <NModal v-model:show="showMoveModal" title="Move to Collection" preset="card" style="width:400px">
-      <div class="move-list">
-        <div v-for="col in projectStore.collections" :key="col.id" class="move-item" @click="confirmMove(col.id)">
-          {{ col.name }}
-        </div>
-      </div>
-      <template #footer><NSpace justify="end"><NButton @click="showMoveModal = false">Cancel</NButton></NSpace></template>
-    </NModal>
-
-    <NModal v-model:show="showImportModal" title="Import" preset="card" style="width:500px">
-      <NSelect v-model:value="importFormat" :options="[{ label: 'Postman v2.1', value: 'postman' }, { label: 'OpenAPI/Swagger', value: 'swagger' }]" size="small" class="import-format" />
-      <NInput v-model:value="importFileContent" type="textarea" :rows="10" placeholder="Paste JSON content here..." class="import-textarea" />
-      <template #footer><NSpace justify="end"><NButton @click="showImportModal = false">Cancel</NButton><NButton type="primary" @click="handleImport">Import</NButton></NSpace></template>
-    </NModal>
-
-    <NModal v-model:show="showCurlModal" title="Import cURL" preset="card" style="width:500px">
-      <NInput v-model:value="curlCommand" type="textarea" :rows="4" placeholder="Paste cURL command..." class="import-textarea" />
-      <template #footer><NSpace justify="end"><NButton @click="showCurlModal = false">Cancel</NButton><NButton type="primary" @click="handleImportCurl">Import</NButton></NSpace></template>
-    </NModal>
-
-    <NModal v-model:show="showExportModal" title="Export" preset="card" style="width:360px">
-      <NSelect v-model:value="exportFormat" :options="[{ label: 'Postman v2.1', value: 'postman' }, { label: 'OpenAPI/Swagger', value: 'swagger' }]" size="small" />
-      <template #footer><NSpace justify="end"><NButton @click="showExportModal = false">Cancel</NButton><NButton type="primary" @click="handleExport">Export</NButton></NSpace></template>
     </NModal>
 
     <EnvManager v-model:show="showEnvManager" />
