@@ -11,6 +11,8 @@ import { t, setLocale as setI18nLocale } from '../i18n'
 import { CreateProject, ListProjects } from '../../wailsjs/go/handlers/ProjectHandler'
 import { CreateCollection, ListCollections, UpdateCollection, DeleteCollection } from '../../wailsjs/go/handlers/CollectionHandler'
 import { CreateRequest, DeleteRequest, UpdateRequest, ListRequests } from '../../wailsjs/go/handlers/RequestHandler'
+import { ListEnvironments } from '../../wailsjs/go/handlers/EnvironmentHandler'
+import { useEnvironmentStore } from '../stores/environment'
 import { ImportPostman, ImportSwagger, ImportCurl } from '../../wailsjs/go/handlers/ImporterHandler'
 import { ExportPostman, ExportSwagger } from '../../wailsjs/go/handlers/ExporterHandler'
 import EnvSelector from './EnvSelector.vue'
@@ -20,6 +22,7 @@ const router = useRouter()
 const route = useRoute()
 const projectStore = useProjectStore()
 const tabsStore = useTabsStore()
+const envStore = useEnvironmentStore()
 const { toggleColorMode, setThemeColor, themeColor, colorMode } = useTheme()
 const { locale } = useI18n()
 const message = useMessage()
@@ -171,6 +174,13 @@ async function loadCollections(projectId: string) {
     await loadAllRequests()
   }
   catch { projectStore.setCollections([]); allRequests.value = [] }
+  try {
+    const envs = await ListEnvironments(projectId)
+    envStore.setEnvironments(envs)
+    const active = envs.find((e: any) => e.is_active)
+    if (active) envStore.setActiveEnvironment(active)
+    else envStore.setActiveEnvironment(null)
+  } catch { envStore.setEnvironments([]); envStore.setActiveEnvironment(null) }
 }
 
 function startAdd() { newCollectionName.value = ''; showAddModal.value = true }

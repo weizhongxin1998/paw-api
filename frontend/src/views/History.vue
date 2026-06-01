@@ -4,8 +4,10 @@ import { NInput, NTag, NButton, NIcon, NEmpty, NSpin } from 'naive-ui'
 import { Play } from '@vicons/ionicons5'
 import { ListHistory } from '../../wailsjs/go/handlers/HistoryHandler'
 import { useTabsStore } from '../stores/tabs'
+import { useProjectStore } from '../stores/project'
 
 const tabsStore = useTabsStore()
+const projectStore = useProjectStore()
 const history = ref<any[]>([])
 const loading = ref(false)
 const searchQuery = ref('')
@@ -23,7 +25,8 @@ function methodTagType(method: string): 'success' | 'info' | 'warning' | 'error'
 
 async function loadHistory() {
   loading.value = true
-  try { history.value = await ListHistory('', 100) } catch { history.value = [] }
+  const pid = projectStore.currentProject?.id || ''
+  try { history.value = await ListHistory(pid, 100) } catch { history.value = [] }
   finally { loading.value = false }
 }
 
