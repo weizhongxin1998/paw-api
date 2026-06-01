@@ -1,10 +1,8 @@
 <script lang="ts" setup>
-import { useI18n } from 'vue-i18n'
 import { NTabs, NTab, NButton, NIcon } from 'naive-ui'
 import { Add } from '@vicons/ionicons5'
 import { useTabsStore } from '../stores/tabs'
 
-const { t } = useI18n()
 const tabsStore = useTabsStore()
 
 function handleTabChange(tabId: string) { tabsStore.setActiveTab(tabId) }
@@ -17,7 +15,7 @@ function closeTab(tabId: string) { tabsStore.removeTab(tabId) }
     <NTabs v-if="tabsStore.tabs.length > 0" :value="tabsStore.activeTabId ?? undefined" type="card" size="small" closable @update:value="handleTabChange" @close="closeTab" class="tab-tabs">
       <NTab v-for="tab in tabsStore.tabs" :key="tab.id" :name="tab.id" :tab="tab.title" />
     </NTabs>
-    <span v-else class="tab-placeholder">{{ t('request.noTabs') }}</span>
+    <span v-else class="tab-placeholder">{{ $t('request.noTabs') }}</span>
     <NButton quaternary size="tiny" @click="addNewTab" class="add-tab-btn">
       <template #icon><NIcon><Add /></NIcon></template>
     </NButton>

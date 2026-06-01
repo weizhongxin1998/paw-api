@@ -1,12 +1,11 @@
 <script lang="ts" setup>
 import { ref, onMounted, onUnmounted, nextTick } from 'vue'
-import { useI18n } from 'vue-i18n'
+import { t } from '../i18n'
 import { NInput, NButton, NIcon, NTag } from 'naive-ui'
 import { Send } from '@vicons/ionicons5'
 import { Connect, Send as WsSend, Disconnect, IsConnected } from '../../wailsjs/go/handlers/WebSocketHandler'
 import { EventsOn, EventsOff } from '../../wailsjs/runtime/runtime'
 
-const { t } = useI18n()
 const url = ref('ws://localhost:8080')
 const message = ref('')
 const messages = ref<Array<{ type: string; content: string; time: number }>>([])
@@ -55,11 +54,11 @@ onUnmounted(() => { EventsOff('ws-message') })
 <template>
   <div class="ws-view">
     <div class="ws-toolbar">
-      <NInput v-model:value="url" :placeholder="t('ws.placeholder')" size="small" class="url-input" />
-      <NButton v-if="!connected" size="small" type="primary" :loading="connecting" @click="doConnect">{{ t('ws.connect') }}</NButton>
-      <NButton v-else size="small" type="error" @click="doDisconnect">{{ t('ws.disconnect') }}</NButton>
-      <NTag v-if="connected" type="success" size="small">{{ t('ws.connected') }}</NTag>
-      <NTag v-else size="small">{{ t('ws.disconnected') }}</NTag>
+      <NInput v-model:value="url" :placeholder="$t('ws.placeholder')" size="small" class="url-input" />
+      <NButton v-if="!connected" size="small" type="primary" :loading="connecting" @click="doConnect">{{ $t('ws.connect') }}</NButton>
+      <NButton v-else size="small" type="error" @click="doDisconnect">{{ $t('ws.disconnect') }}</NButton>
+      <NTag v-if="connected" type="success" size="small">{{ $t('ws.connected') }}</NTag>
+      <NTag v-else size="small">{{ $t('ws.disconnected') }}</NTag>
     </div>
     <div class="ws-messages">
       <div v-for="(msg, i) in messages" :key="i" class="ws-msg" :class="msg.type">
@@ -70,10 +69,10 @@ onUnmounted(() => { EventsOff('ws-message') })
       <div ref="messagesEnd" />
     </div>
     <div class="ws-input-row">
-      <NInput v-model:value="message" :placeholder="t('ws.messagePlaceholder')" size="small" class="msg-input" :disabled="!connected" @keydown.enter.prevent="sendMessage" />
+      <NInput v-model:value="message" :placeholder="$t('ws.messagePlaceholder')" size="small" class="msg-input" :disabled="!connected" @keydown.enter.prevent="sendMessage" />
       <NButton size="small" type="primary" :disabled="!connected" @click="sendMessage">
         <template #icon><NIcon><Send /></NIcon></template>
-        {{ t('ws.send') }}
+        {{ $t('ws.send') }}
       </NButton>
     </div>
   </div>

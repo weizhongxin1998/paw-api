@@ -35,7 +35,7 @@ func (r *EnvironmentRepo) ListByProject(projectID string) ([]models.Environment,
 		return nil, err
 	}
 	defer rows.Close()
-	var envs []models.Environment
+	envs := make([]models.Environment, 0)
 	for rows.Next() {
 		var e models.Environment
 		if err := rows.Scan(&e.ID, &e.ProjectID, &e.Name, &e.Variables, &e.IsActive, &e.CreatedAt, &e.UpdatedAt); err != nil {

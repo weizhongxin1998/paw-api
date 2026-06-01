@@ -1,10 +1,8 @@
 <script lang="ts" setup>
 import { computed } from 'vue'
-import { useI18n } from 'vue-i18n'
 import { NTag, NInput, NTabs, NTabPane, NEmpty } from 'naive-ui'
 import { useRequestStore } from '../stores/request'
 
-const { t } = useI18n()
 const requestStore = useRequestStore()
 const response = computed(() => requestStore.lastResponse)
 const statusType = computed(() => {
@@ -30,14 +28,14 @@ function formatJSON(text: string): string {
       <span class="duration">{{ response.duration_ms }}ms</span>
     </div>
     <div v-if="!response" class="response-empty">
-      <NEmpty :description="t('response.empty')" />
+      <NEmpty :description="$t('response.empty')" />
     </div>
     <div v-else class="response-body">
       <NTabs type="line" size="small">
-        <NTabPane name="body" :tab="t('response.body')">
+        <NTabPane name="body" :tab="$t('response.body')">
           <NInput :value="formatJSON(response.body)" type="textarea" :rows="12" readonly class="resp-input" />
         </NTabPane>
-        <NTabPane name="headers" :tab="t('response.headers')">
+        <NTabPane name="headers" :tab="$t('response.headers')">
           <NInput :value="headersText" type="textarea" :rows="8" readonly class="resp-input" />
         </NTabPane>
       </NTabs>

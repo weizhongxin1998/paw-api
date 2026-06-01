@@ -1,5 +1,23 @@
 export default {
+  project: {
+    defaultName: 'Default Project',
+    select: 'Switch Project',
+    newProject: 'New Project',
+    projectName: 'Project name',
+    switchTo: 'Switch',
+    create: 'Create',
+    created: 'Project created',
+    noProject: 'No project',
+    failedCreate: 'Failed to create project',
+    loadFailed: 'Failed to load project',
+  },
   sidebar: {
+    workspaceLabel: 'Workspace',
+    projectLabel: 'Project',
+    historyLabel: 'History',
+    docsLabel: 'Docs',
+    testsLabel: 'Tests',
+    settingsLabel: 'Settings',
     title: 'Paw API',
     workspace: 'Workspace',
     history: 'History',

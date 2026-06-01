@@ -50,7 +50,7 @@ func (r *CollectionRepo) ListByProject(projectID string) ([]models.Collection, e
 		return nil, err
 	}
 	defer rows.Close()
-	var collections []models.Collection
+	collections := make([]models.Collection, 0)
 	for rows.Next() {
 		c, err := scanCollection(rows)
 		if err != nil {

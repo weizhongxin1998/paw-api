@@ -27,7 +27,7 @@ func (r *HistoryRepo) ListByProject(projectID string, limit int) ([]models.Histo
 		return nil, err
 	}
 	defer rows.Close()
-	var history []models.History
+	history := make([]models.History, 0)
 	for rows.Next() {
 		var h models.History
 		var requestID sql.NullString

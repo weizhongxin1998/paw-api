@@ -1,12 +1,10 @@
 <script lang="ts" setup>
 import { ref, onMounted, computed } from 'vue'
-import { useI18n } from 'vue-i18n'
 import { NInput, NTag, NButton, NIcon, NEmpty, NSpin, NSpace } from 'naive-ui'
 import { Play } from '@vicons/ionicons5'
 import { ListHistory } from '../../wailsjs/go/handlers/HistoryHandler'
 import { useTabsStore } from '../stores/tabs'
 
-const { t } = useI18n()
 const tabsStore = useTabsStore()
 const history = ref<any[]>([])
 const loading = ref(false)
@@ -42,18 +40,18 @@ onMounted(loadHistory)
 <template>
   <div class="history-view">
     <div class="history-toolbar">
-      <h2 class="history-title">{{ t('history.title') }}</h2>
-      <NInput v-model:value="searchQuery" :placeholder="t('history.search')" size="small" clearable class="search-input" />
-      <NButton size="small" quaternary @click="loadHistory">{{ t('history.refresh') }}</NButton>
+      <h2 class="history-title">{{ $t('history.title') }}</h2>
+      <NInput v-model:value="searchQuery" :placeholder="$t('history.search')" size="small" clearable class="search-input" />
+      <NButton size="small" quaternary @click="loadHistory">{{ $t('history.refresh') }}</NButton>
     </div>
     <NSpin :show="loading">
-      <div v-if="filteredHistory.length === 0" class="empty"><NEmpty :description="t('history.empty')" /></div>
+      <div v-if="filteredHistory.length === 0" class="empty"><NEmpty :description="$t('history.empty')" /></div>
       <div v-else class="history-list">
         <div v-for="item in filteredHistory" :key="item.id" class="history-item">
           <NTag :type="methodTagType(item.method)" size="small" class="method-tag">{{ item.method }}</NTag>
           <div class="history-url">{{ item.url }}</div>
           <div class="history-status">{{ item.response_status }}</div>
-          <div class="history-duration">{{ item.duration_ms }}{{ t('history.ms') }}</div>
+          <div class="history-duration">{{ item.duration_ms }}{{ $t('history.ms') }}</div>
           <NButton quaternary circle size="tiny" @click="replay(item)">
             <template #icon><NIcon><Play /></NIcon></template>
           </NButton>

@@ -1,6 +1,6 @@
 <script lang="ts" setup>
 import { ref, onMounted } from 'vue'
-import { useI18n } from 'vue-i18n'
+import { t } from '../i18n'
 import { NButton, NTag, NIcon, NCheckbox, NSpace, NSpin, NEmpty } from 'naive-ui'
 import { Play } from '@vicons/ionicons5'
 import { useProjectStore } from '../stores/project'
@@ -8,7 +8,6 @@ import { ListCollections } from '../../wailsjs/go/handlers/CollectionHandler'
 import { ListRequests } from '../../wailsjs/go/handlers/RequestHandler'
 import { SendRequest } from '../../wailsjs/go/handlers/RequestHandler'
 
-const { t } = useI18n()
 const projectStore = useProjectStore()
 const requests = ref<any[]>([])
 const selected = ref<Set<string>>(new Set())
@@ -50,17 +49,17 @@ onMounted(loadRequests)
 <template>
   <div class="test-runner">
     <div class="toolbar">
-      <h2 class="title">{{ t('testRunner.title') }}</h2>
+      <h2 class="title">{{ $t('testRunner.title') }}</h2>
       <NSpace>
-        <NButton size="small" @click="toggleAll">{{ selected.size === requests.length ? t('testRunner.deselectAll') : t('testRunner.selectAll') }}</NButton>
+        <NButton size="small" @click="toggleAll">{{ selected.size === requests.length ? $t('testRunner.deselectAll') : $t('testRunner.selectAll') }}</NButton>
         <NButton type="primary" size="small" :loading="running" :disabled="selected.size === 0" @click="runSelected">
           <template #icon><NIcon><Play /></NIcon></template>
-          {{ t('testRunner.run') }} {{ selected.size }} {{ t('testRunner.tests') }}
+          {{ $t('testRunner.run') }} {{ selected.size }} {{ $t('testRunner.tests') }}
         </NButton>
       </NSpace>
     </div>
     <NSpin :show="running">
-      <div v-if="requests.length === 0" class="empty"><NEmpty :description="t('testRunner.empty')" /></div>
+      <div v-if="requests.length === 0" class="empty"><NEmpty :description="$t('testRunner.empty')" /></div>
       <div v-else class="content">
         <div class="request-list">
           <div v-for="req in requests" :key="req.id" class="req-row" @click="toggleSelect(req.id)">
@@ -71,11 +70,11 @@ onMounted(loadRequests)
           </div>
         </div>
         <div v-if="results.length > 0" class="results-section">
-          <h3>{{ t('testRunner.results') }}</h3>
+          <h3>{{ $t('testRunner.results') }}</h3>
           <div v-for="(r, i) in results" :key="i" class="result-row" :class="{ passed: r.passed, failed: !r.passed }">
-            <NTag size="tiny" :type="r.passed ? 'success' : 'error'">{{ r.passed ? t('testRunner.pass') : t('testRunner.fail') }}</NTag>
+            <NTag size="tiny" :type="r.passed ? 'success' : 'error'">{{ r.passed ? $t('testRunner.pass') : $t('testRunner.fail') }}</NTag>
             <span class="result-name">{{ r.name }}</span>
-            <span class="result-status">{{ r.status || t('testRunner.err') }}</span>
+            <span class="result-status">{{ r.status || $t('testRunner.err') }}</span>
             <span class="result-duration">{{ r.duration }}ms</span>
             <span v-if="r.error" class="result-error">{{ r.error }}</span>
           </div>

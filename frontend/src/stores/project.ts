@@ -8,7 +8,15 @@ export const useProjectStore = defineStore('project', () => {
   const collections = ref<Collection[]>([])
   const selectedCollectionId = ref<string | null>(null)
 
-  function setCurrentProject(p: Project) {
+  function setProjects(list: Project[]) {
+    projects.value = list
+  }
+
+  function addProject(p: Project) {
+    projects.value.push(p)
+  }
+
+  function setCurrentProject(p: Project | null) {
     currentProject.value = p
   }
 
@@ -22,16 +30,12 @@ export const useProjectStore = defineStore('project', () => {
 
   function removeCollection(id: string) {
     collections.value = collections.value.filter(c => c.id !== id)
-    if (selectedCollectionId.value === id) {
-      selectedCollectionId.value = null
-    }
+    if (selectedCollectionId.value === id) selectedCollectionId.value = null
   }
 
   function updateCollection(c: Collection) {
     const idx = collections.value.findIndex(x => x.id === c.id)
-    if (idx !== -1) {
-      collections.value[idx] = c
-    }
+    if (idx !== -1) collections.value[idx] = c
   }
 
   function selectCollection(id: string | null) {
@@ -40,7 +44,7 @@ export const useProjectStore = defineStore('project', () => {
 
   return {
     projects, currentProject, collections, selectedCollectionId,
-    setCurrentProject, setCollections, addCollection, removeCollection,
-    updateCollection, selectCollection,
+    setProjects, addProject, setCurrentProject, setCollections,
+    addCollection, removeCollection, updateCollection, selectCollection,
   }
 })

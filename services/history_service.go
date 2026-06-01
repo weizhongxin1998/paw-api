@@ -16,16 +16,25 @@ func NewHistoryService() *HistoryService {
 	return &HistoryService{repo: &repositories.HistoryRepo{}}
 }
 
-func (s *HistoryService) Record(projectID, method, url, headers, body string) (*models.History, error) {
+func (s *HistoryService) Record(projectID, requestID, method, url, headers, body string, responseStatus int, responseBody, responseHeaders string, durationMs int) (*models.History, error) {
 	now := time.Now()
+	var rid *string
+	if requestID != "" {
+		rid = &requestID
+	}
 	h := &models.History{
-		ID:        uuid.New().String(),
-		ProjectID: projectID,
-		Method:    method,
-		URL:       url,
-		Headers:   headers,
-		Body:      body,
-		CreatedAt: now,
+		ID:              uuid.New().String(),
+		ProjectID:       projectID,
+		RequestID:       rid,
+		Method:          method,
+		URL:             url,
+		Headers:         headers,
+		Body:            body,
+		ResponseStatus:  responseStatus,
+		ResponseBody:    responseBody,
+		ResponseHeaders: responseHeaders,
+		DurationMs:      durationMs,
+		CreatedAt:       now,
 	}
 	return h, s.repo.Create(h)
 }

@@ -1,5 +1,35 @@
 export namespace handlers {
 	
+	export class RecordHistoryInput {
+	    ProjectID: string;
+	    RequestID: string;
+	    Method: string;
+	    URL: string;
+	    Headers: string;
+	    Body: string;
+	    ResponseStatus: number;
+	    ResponseBody: string;
+	    ResponseHeaders: string;
+	    DurationMs: number;
+	
+	    static createFrom(source: any = {}) {
+	        return new RecordHistoryInput(source);
+	    }
+	
+	    constructor(source: any = {}) {
+	        if ('string' === typeof source) source = JSON.parse(source);
+	        this.ProjectID = source["ProjectID"];
+	        this.RequestID = source["RequestID"];
+	        this.Method = source["Method"];
+	        this.URL = source["URL"];
+	        this.Headers = source["Headers"];
+	        this.Body = source["Body"];
+	        this.ResponseStatus = source["ResponseStatus"];
+	        this.ResponseBody = source["ResponseBody"];
+	        this.ResponseHeaders = source["ResponseHeaders"];
+	        this.DurationMs = source["DurationMs"];
+	    }
+	}
 	export class SendRequestInput {
 	    Method: string;
 	    URL: string;

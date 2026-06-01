@@ -53,7 +53,9 @@ None exist yet. No test framework, no CI. Frontend has no test scripts.
 
 ## Git
 
-`.gitignore` covers: `build/bin`, `node_modules`, `frontend/dist/`.
+- `.gitignore` covers: `build/bin`, `node_modules`, `frontend/dist/`.
+- **不允许自动 commit** — 每次提交前必须询问用户确认。
+- **Commit 消息使用中文**。
 
 ## Plan
 

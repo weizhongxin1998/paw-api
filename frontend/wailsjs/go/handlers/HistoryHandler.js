@@ -14,6 +14,6 @@ export function ListHistory(arg1, arg2) {
   return window['go']['handlers']['HistoryHandler']['ListHistory'](arg1, arg2);
 }
 
-export function RecordHistory(arg1, arg2, arg3, arg4, arg5) {
-  return window['go']['handlers']['HistoryHandler']['RecordHistory'](arg1, arg2, arg3, arg4, arg5);
+export function RecordHistory(arg1) {
+  return window['go']['handlers']['HistoryHandler']['RecordHistory'](arg1);
 }

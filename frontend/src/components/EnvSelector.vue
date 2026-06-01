@@ -1,12 +1,10 @@
 <script lang="ts" setup>
 import { computed } from 'vue'
-import { useI18n } from 'vue-i18n'
 import { NSelect, NButton, NIcon, NSpace } from 'naive-ui'
 import { Settings } from '@vicons/ionicons5'
 import { useEnvironmentStore } from '../stores/environment'
 import { useProjectStore } from '../stores/project'
 
-const { t } = useI18n()
 const envStore = useEnvironmentStore()
 const projectStore = useProjectStore()
 
@@ -36,7 +34,7 @@ async function handleChange(envId: string | null) {
     <NSelect
       :options="envOptions"
       :value="envStore.activeEnvironment?.id ?? null"
-      :placeholder="t('env.noEnv')"
+      :placeholder="$t('env.noEnv')"
       size="tiny"
       style="width: 140px"
       clearable

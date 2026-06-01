@@ -1,6 +1,6 @@
 <script lang="ts" setup>
 import { computed, ref } from 'vue'
-import { useI18n } from 'vue-i18n'
+import { t } from '../i18n'
 import { NInput, NSelect, NButton, NTabs, NTabPane, NIcon, useMessage } from 'naive-ui'
 import { Send } from '@vicons/ionicons5'
 import KeyValueEditor from './KeyValueEditor.vue'
@@ -9,14 +9,15 @@ import { useRequestStore } from '../stores/request'
 import { useEnvironmentStore } from '../stores/environment'
 import { useVariableResolver } from '../composables/useVariableResolver'
 import { useTabsStore } from '../stores/tabs'
+import { useProjectStore } from '../stores/project'
 import { SendRequest } from '../../wailsjs/go/handlers/RequestHandler'
 import { RecordHistory } from '../../wailsjs/go/handlers/HistoryHandler'
 
-const { t } = useI18n()
 const httpMethods = ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'HEAD', 'OPTIONS']
 const requestStore = useRequestStore()
 const envStore = useEnvironmentStore()
 const tabsStore = useTabsStore()
+const projectStore = useProjectStore()
 const { resolve } = useVariableResolver()
 const message = useMessage()
 
@@ -55,9 +56,20 @@ async function handleSend() {
     for (const k of Object.keys(resolvedHeaders)) resolvedHeaders[k] = resolve(resolvedHeaders[k], envStore.activeVariables)
     const resp = await SendRequest({ Method: method.value, URL: resolvedURL, Headers: resolvedHeaders, Body: resolvedBody })
     requestStore.setLastResponse(resp)
-    message.success(`${resp.status} ${resp.status_text} — ${resp.duration_ms}ms`)
-    if (resolvedURL.startsWith('http')) {
-      RecordHistory('', method.value, resolvedURL, JSON.stringify(buildHeadersMap()), resolvedBody).catch(() => {})
+    message.success(`${resp.status} ${resp.status_text} �?${resp.duration_ms}ms`)
+    if (resolvedURL.startsWith('http') && projectStore.currentProject) {
+      RecordHistory({
+        ProjectID: projectStore.currentProject.id,
+        RequestID: '',
+        Method: method.value,
+        URL: resolvedURL,
+        Headers: JSON.stringify(buildHeadersMap()),
+        Body: resolvedBody,
+        ResponseStatus: resp.status,
+        ResponseBody: resp.body,
+        ResponseHeaders: JSON.stringify(resp.headers),
+        DurationMs: resp.duration_ms,
+      }).catch(() => {})
     }
   } catch (e: any) { message.error(e.message || t('request.requestFailed'))
   } finally { sending.value = false }
@@ -68,37 +80,37 @@ async function handleSend() {
   <div v-if="data" class="request-editor">
     <div class="url-row">
       <NSelect :options="httpMethods.map(m => ({ label: m, value: m }))" v-model:value="method" style="width: 110px" size="small" />
-      <NInput v-model:value="url" :placeholder="t('request.placeholder')" size="small" class="url-input" />
+      <NInput v-model:value="url" :placeholder="$t('request.placeholder')" size="small" class="url-input" />
       <NButton type="primary" size="small" :loading="sending" @click="handleSend">
         <template #icon><NIcon><Send /></NIcon></template>
-        {{ t('request.send') }}
+        {{ $t('request.send') }}
       </NButton>
     </div>
     <NTabs type="line" size="small" class="editor-tabs">
-      <NTabPane name="params" :tab="t('request.params')">
-        <KeyValueEditor v-model="params" :key-placeholder="t('request.paramName')" :value-placeholder="t('request.value')" />
+      <NTabPane name="params" :tab="$t('request.params')">
+        <KeyValueEditor v-model="params" :key-placeholder="$t('request.paramName')" :value-placeholder="$t('request.value')" />
       </NTabPane>
-      <NTabPane name="headers" :tab="t('request.headers')">
+      <NTabPane name="headers" :tab="$t('request.headers')">
         <KeyValueEditor v-model="headers" />
       </NTabPane>
-      <NTabPane name="body" :tab="t('request.body')">
+      <NTabPane name="body" :tab="$t('request.body')">
         <div class="body-controls">
           <NSelect :options="[
-            { label: t('request.bodyNone'), value: 'none' },
-            { label: t('request.bodyJSON'), value: 'json' },
-            { label: t('request.bodyText'), value: 'text' },
-            { label: t('request.bodyForm'), value: 'form' },
+            { label: $t('request.bodyNone'), value: 'none' },
+            { label: $t('request.bodyJSON'), value: 'json' },
+            { label: $t('request.bodyText'), value: 'text' },
+            { label: $t('request.bodyForm'), value: 'form' },
           ]" v-model:value="bodyType" size="tiny" style="width: 120px; margin-bottom: 8px;" />
-          <NInput v-if="bodyType !== 'none'" v-model:value="body" type="textarea" :rows="6" :placeholder="t('request.bodyPlaceholder')" class="body-input" />
+          <NInput v-if="bodyType !== 'none'" v-model:value="body" type="textarea" :rows="6" :placeholder="$t('request.bodyPlaceholder')" class="body-input" />
         </div>
       </NTabPane>
-      <NTabPane name="auth" :tab="t('request.auth')">
-        <KeyValueEditor v-model="auth" :key-placeholder="t('request.authKey')" :value-placeholder="t('request.authValue')" />
+      <NTabPane name="auth" :tab="$t('request.auth')">
+        <KeyValueEditor v-model="auth" :key-placeholder="$t('request.authKey')" :value-placeholder="$t('request.authValue')" />
       </NTabPane>
     </NTabs>
   </div>
   <div v-else class="request-editor empty">
-    <p class="empty-text">{{ t('request.openRequest') }}</p>
+    <p class="empty-text">{{ $t('request.openRequest') }}</p>
   </div>
 </template>
 

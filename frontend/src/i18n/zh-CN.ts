@@ -1,5 +1,23 @@
 export default {
+  project: {
+    defaultName: '默认项目',
+    select: '切换项目',
+    newProject: '新建项目',
+    projectName: '项目名称',
+    switchTo: '切换',
+    create: '创建',
+    created: '项目已创建',
+    noProject: '未选择项目',
+    failedCreate: '创建项目失败',
+    loadFailed: '加载项目失败',
+  },
   sidebar: {
+    workspaceLabel: '工作区',
+    projectLabel: '项目',
+    historyLabel: '历史',
+    docsLabel: '文档',
+    testsLabel: '测试',
+    settingsLabel: '设置',
     title: 'Paw API',
     workspace: '工作区',
     history: '历史',

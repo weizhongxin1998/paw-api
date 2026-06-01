@@ -1,13 +1,11 @@
 <script lang="ts" setup>
 import { ref, onMounted } from 'vue'
-import { useI18n } from 'vue-i18n'
 import { NButton, NTag, NIcon, NEmpty } from 'naive-ui'
 import { Download } from '@vicons/ionicons5'
 import { useProjectStore } from '../stores/project'
 import { ListCollections } from '../../wailsjs/go/handlers/CollectionHandler'
 import { ListRequests } from '../../wailsjs/go/handlers/RequestHandler'
 
-const { t } = useI18n()
 const projectStore = useProjectStore()
 const docs = ref<Array<{ collection: any; requests: any[] }>>([])
 
@@ -63,13 +61,13 @@ onMounted(loadDocs)
 <template>
   <div class="docs-view">
     <div class="toolbar">
-      <h2 class="title">{{ t('docs.title') }}</h2>
+      <h2 class="title">{{ $t('docs.title') }}</h2>
       <NButton size="small" @click="exportHTML" :disabled="docs.length === 0">
         <template #icon><NIcon><Download /></NIcon></template>
-        {{ t('docs.export') }}
+        {{ $t('docs.export') }}
       </NButton>
     </div>
-    <div v-if="docs.length === 0" class="empty"><NEmpty :description="t('docs.empty')" /></div>
+    <div v-if="docs.length === 0" class="empty"><NEmpty :description="$t('docs.empty')" /></div>
     <div v-else class="doc-content">
       <div v-for="{ collection, requests } in docs" :key="collection.id" class="doc-section">
         <h3 class="collection-title">{{ collection.name }}</h3>
@@ -79,9 +77,9 @@ onMounted(loadDocs)
             <span class="endpoint-url">{{ req.url }}</span>
           </div>
           <p class="endpoint-name">{{ req.name }}</p>
-          <div v-if="req.params && req.params !== '{}'" class="doc-block"><span class="block-label">{{ t('docs.params') }}</span><pre>{{ formatJSON(req.params) }}</pre></div>
-          <div v-if="req.headers && req.headers !== '{}'" class="doc-block"><span class="block-label">{{ t('docs.headers') }}</span><pre>{{ formatJSON(req.headers) }}</pre></div>
-          <div v-if="req.body && req.body !== '{}'" class="doc-block"><span class="block-label">{{ t('docs.body') }}</span><pre>{{ formatJSON(req.body) }}</pre></div>
+          <div v-if="req.params && req.params !== '{}'" class="doc-block"><span class="block-label">{{ $t('docs.params') }}</span><pre>{{ formatJSON(req.params) }}</pre></div>
+          <div v-if="req.headers && req.headers !== '{}'" class="doc-block"><span class="block-label">{{ $t('docs.headers') }}</span><pre>{{ formatJSON(req.headers) }}</pre></div>
+          <div v-if="req.body && req.body !== '{}'" class="doc-block"><span class="block-label">{{ $t('docs.body') }}</span><pre>{{ formatJSON(req.body) }}</pre></div>
         </div>
       </div>
     </div>

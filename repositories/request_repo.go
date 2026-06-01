@@ -35,7 +35,7 @@ func (r *RequestRepo) ListByCollection(collectionID string) ([]models.Request, e
 		return nil, err
 	}
 	defer rows.Close()
-	var requests []models.Request
+	requests := make([]models.Request, 0)
 	for rows.Next() {
 		var req models.Request
 		if err := rows.Scan(&req.ID, &req.CollectionID, &req.Name, &req.Method, &req.URL, &req.Headers, &req.Params, &req.Body, &req.Auth, &req.Script, &req.SortOrder, &req.CreatedAt, &req.UpdatedAt); err != nil {

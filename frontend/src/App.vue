@@ -1,6 +1,6 @@
 <script lang="ts" setup>
 import { computed } from 'vue'
-import { NConfigProvider, NLayout, NLayoutContent, NMessageProvider, NDialogProvider, zhCN, enUS, dateZhCN, dateEnUS } from 'naive-ui'
+import { NConfigProvider, NLayout, NLayoutSider, NLayoutContent, NMessageProvider, NDialogProvider, zhCN, enUS, dateZhCN, dateEnUS } from 'naive-ui'
 import { useI18n } from 'vue-i18n'
 import { useTheme } from './composables/useTheme'
 import AppSidebar from './components/AppSidebar.vue'
@@ -16,8 +16,10 @@ const naiveDateLocale = computed(() => locale.value === 'zh-CN' ? dateZhCN : dat
   <NConfigProvider :theme="theme" :theme-overrides="themeOverrides" :locale="naiveLocale" :date-locale="naiveDateLocale">
     <NMessageProvider>
       <NDialogProvider>
-        <NLayout class="app-layout" has-sider>
-          <AppSidebar />
+        <NLayout class="app-layout" has-sider :key="locale">
+          <NLayoutSider bordered width="280" :native-scrollbar="false">
+            <AppSidebar />
+          </NLayoutSider>
           <NLayoutContent class="main-content">
             <router-view />
           </NLayoutContent>

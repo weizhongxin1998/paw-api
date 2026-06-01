@@ -1,6 +1,5 @@
 <script lang="ts" setup>
 import { ref, onMounted } from 'vue'
-import { useI18n } from 'vue-i18n'
 import { NModal, NButton, NInput, NIcon, NForm, NFormItem, NSpace, NTabPane, NTabs, useMessage } from 'naive-ui'
 import { Add, Trash } from '@vicons/ionicons5'
 import { useEnvironmentStore, type EnvVariable } from '../stores/environment'
@@ -12,8 +11,7 @@ import {
   SetActiveEnvironment,
 } from '../../wailsjs/go/handlers/EnvironmentHandler'
 import { useProjectStore } from '../stores/project'
-
-const { t } = useI18n()
+import { t } from '../i18n'
 const props = defineProps<{ show: boolean }>()
 const emit = defineEmits<{ (e: 'update:show', val: boolean): void }>()
 
@@ -89,49 +87,49 @@ onMounted(async () => {
 </script>
 
 <template>
-  <NModal :show="props.show" @update:show="emit('update:show', $event)" :title="t('env.manager')" preset="card" style="width: 520px">
+  <NModal :show="props.show" @update:show="emit('update:show', $event)" :title="$t('env.manager')" preset="card" style="width: 520px">
     <NTabs type="line">
-      <NTabPane name="list" :tab="t('env.environments')">
-        <div v-if="envStore.environments.length === 0" class="empty-hint">{{ t('env.noEnvs') }}</div>
+      <NTabPane name="list" :tab="$t('env.environments')">
+        <div v-if="envStore.environments.length === 0" class="empty-hint">{{ $t('env.noEnvs') }}</div>
         <div v-for="env in envStore.environments" :key="env.id" class="env-row">
           <div class="env-info" @click="editEnv(env)">
             <span class="env-name">{{ env.name }}</span>
-            <span v-if="envStore.activeEnvironment?.id === env.id" class="active-badge">{{ t('env.active') }}</span>
+            <span v-if="envStore.activeEnvironment?.id === env.id" class="active-badge">{{ $t('env.active') }}</span>
           </div>
           <NSpace>
-            <NButton size="tiny" quaternary @click.stop="setActive(env.id)">{{ t('env.activate') }}</NButton>
-            <NButton size="tiny" quaternary @click.stop="editEnv(env)">{{ t('env.edit') }}</NButton>
+            <NButton size="tiny" quaternary @click.stop="setActive(env.id)">{{ $t('env.activate') }}</NButton>
+            <NButton size="tiny" quaternary @click.stop="editEnv(env)">{{ $t('env.edit') }}</NButton>
             <NButton size="tiny" quaternary @click.stop="removeEnv(env.id)">
               <template #icon><NIcon><Trash /></NIcon></template>
             </NButton>
           </NSpace>
         </div>
       </NTabPane>
-      <NTabPane name="edit" :tab="t('common.edit')">
+      <NTabPane name="edit" :tab="$t('common.edit')">
         <NForm>
-          <NFormItem :label="t('env.name')">
-            <NInput v-model:value="envName" :placeholder="t('env.namePlaceholder')" />
+          <NFormItem :label="$t('env.name')">
+            <NInput v-model:value="envName" :placeholder="$t('env.namePlaceholder')" />
           </NFormItem>
-          <NFormItem :label="t('env.variables')">
+          <NFormItem :label="$t('env.variables')">
             <div class="var-list">
               <div v-for="(v, i) in variables" :key="i" class="var-row">
                 <input type="checkbox" v-model="v.enabled" class="var-checkbox" />
-                <NInput v-model:value="v.key" size="tiny" :placeholder="t('env.varKey')" class="var-input" />
-                <NInput v-model:value="v.value" size="tiny" :placeholder="t('env.varValue')" class="var-input" />
+                <NInput v-model:value="v.key" size="tiny" :placeholder="$t('env.varKey')" class="var-input" />
+                <NInput v-model:value="v.value" size="tiny" :placeholder="$t('env.varValue')" class="var-input" />
                 <NButton quaternary circle size="tiny" @click="removeVariable(i)">
                   <template #icon><NIcon><Trash /></NIcon></template>
                 </NButton>
               </div>
               <NButton size="tiny" quaternary @click="addVariable">
                 <template #icon><NIcon><Add /></NIcon></template>
-                {{ t('env.addVariable') }}
+                {{ $t('env.addVariable') }}
               </NButton>
             </div>
           </NFormItem>
         </NForm>
         <NSpace justify="end" style="margin-top: 12px;">
-          <NButton @click="resetForm">{{ t('env.reset') }}</NButton>
-          <NButton type="primary" @click="save">{{ t('env.save') }}</NButton>
+          <NButton @click="resetForm">{{ $t('env.reset') }}</NButton>
+          <NButton type="primary" @click="save">{{ $t('env.save') }}</NButton>
         </NSpace>
       </NTabPane>
     </NTabs>
