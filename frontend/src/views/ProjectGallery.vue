@@ -1,19 +1,31 @@
 <script lang="ts" setup>
 import { ref, onMounted } from 'vue'
-import { NCard, NIcon, NButton, NModal, NForm, NFormItem, NInput, NSpace, NEmpty, NSpin, NTag, useMessage } from 'naive-ui'
-import { FolderOpen, Add } from '@vicons/ionicons5'
+import { NCard, NIcon, NButton, NModal, NForm, NFormItem, NInput, NSpace, NEmpty, NSpin, NTag, NSelect, useMessage } from 'naive-ui'
+import { FolderOpen, Add, Download, CodeSlash } from '@vicons/ionicons5'
 import { useRouter } from 'vue-router'
 import { useProjectStore } from '../stores/project'
+import { useTabsStore } from '../stores/tabs'
 import { ListProjects, CreateProject } from '../../wailsjs/go/handlers/ProjectHandler'
 import { ListCollections } from '../../wailsjs/go/handlers/CollectionHandler'
 import { ListRequests } from '../../wailsjs/go/handlers/RequestHandler'
 import { ListEnvironments } from '../../wailsjs/go/handlers/EnvironmentHandler'
 import { useEnvironmentStore } from '../stores/environment'
+import { ImportPostman, ImportSwagger, ImportCurl } from '../../wailsjs/go/handlers/ImporterHandler'
+import { ExportPostman, ExportSwagger } from '../../wailsjs/go/handlers/ExporterHandler'
 
 const router = useRouter()
 const projectStore = useProjectStore()
+const tabsStore = useTabsStore()
 const envStore = useEnvironmentStore()
 const message = useMessage()
+
+const showImportModal = ref(false)
+const importFileContent = ref('')
+const importFormat = ref('postman')
+const showCurlModal = ref(false)
+const curlCommand = ref('')
+const showExportModal = ref(false)
+const exportFormat = ref('postman')
 
 const loading = ref(true)
 const showNewModal = ref(false)
@@ -82,6 +94,73 @@ async function createProject() {
   }
 }
 
+async function handleImport() {
+  try {
+    let result
+    if (importFormat.value === 'postman') {
+      result = await ImportPostman(importFileContent.value)
+    } else {
+      result = await ImportSwagger(importFileContent.value)
+    }
+    if (result) {
+      message.success(`Imported ${result.requests?.length || 0} requests`)
+    }
+    showImportModal.value = false
+    importFileContent.value = ''
+    await loadAll()
+  } catch (e: any) { message.error(e.message || 'Import failed') }
+}
+
+async function handleImportCurl() {
+  if (!curlCommand.value.trim()) return
+  try {
+    const result = await ImportCurl(curlCommand.value.trim())
+    if (result && projectStore.currentProject) {
+      const tabId = tabsStore.addHttpTab(undefined, result.name || 'cURL Import')
+      tabsStore.updateTabData({
+        method: result.method || 'GET',
+        url: result.url || '',
+        headers: safeParse(result.headers, []),
+        params: safeParse(result.params, []),
+        body: result.body || '',
+        bodyType: result.body ? 'json' : 'none',
+      })
+      message.success('cURL imported')
+      router.push('/workspace')
+    }
+    showCurlModal.value = false
+    curlCommand.value = ''
+  } catch (e: any) { message.error(e.message || 'Import failed') }
+}
+
+function safeParse(str: string, fallback: any): any {
+  if (!str) return fallback
+  try { return JSON.parse(str) } catch { return fallback }
+}
+
+async function handleExport() {
+  if (!projectStore.currentProject) return
+  try {
+    const cols = JSON.stringify(projectStore.collections || [])
+    const reqsJSON = JSON.stringify([])
+    let result: string
+    if (exportFormat.value === 'postman') {
+      result = await ExportPostman(cols, reqsJSON, projectStore.currentProject.name)
+    } else {
+      result = await ExportSwagger(cols, reqsJSON, projectStore.currentProject.name)
+    }
+    const blob = new Blob([result], { type: 'application/json' })
+    const url = URL.createObjectURL(blob)
+    const a = document.createElement('a')
+    a.href = url
+    a.download = `${projectStore.currentProject.name}.${exportFormat.value === 'postman' ? 'postman_collection.json' : 'swagger.json'}`
+    a.click()
+    URL.revokeObjectURL(url)
+    showExportModal.value = false
+    message.success('Exported')
+  } catch (e: any) { message.error(e.message || 'Export failed') }
+}
+
 onMounted(loadAll)
 </script>
 
@@ -89,10 +168,21 @@ onMounted(loadAll)
   <div class="gallery">
     <div class="gallery-header">
       <h2 class="gallery-title">{{ $t('project.select') }}</h2>
-      <NButton size="small" type="primary" @click="showNewModal = true">
-        <template #icon><NIcon><Add /></NIcon></template>
-        {{ $t('project.newProject') }}
-      </NButton>
+      <NSpace size="small">
+        <NButton size="tiny" quaternary @click="showImportModal = true">
+          <template #icon><NIcon size="14"><Download /></NIcon></template>Import
+        </NButton>
+        <NButton size="tiny" quaternary @click="showExportModal = true">
+          <template #icon><NIcon size="14"><Download /></NIcon></template>Export
+        </NButton>
+        <NButton size="tiny" quaternary @click="showCurlModal = true">
+          <template #icon><NIcon size="14"><CodeSlash /></NIcon></template>cURL
+        </NButton>
+        <NButton size="small" type="primary" @click="showNewModal = true">
+          <template #icon><NIcon><Add /></NIcon></template>
+          {{ $t('project.newProject') }}
+        </NButton>
+      </NSpace>
     </div>
 
     <NSpin :show="loading">
@@ -142,6 +232,22 @@ onMounted(loadAll)
           <NButton type="primary" @click="createProject">{{ $t('project.create') }}</NButton>
         </NSpace>
       </template>
+    </NModal>
+
+    <NModal v-model:show="showImportModal" title="Import" preset="card" style="width:500px">
+      <NSelect v-model:value="importFormat" :options="[{ label: 'Postman v2.1', value: 'postman' }, { label: 'OpenAPI/Swagger', value: 'swagger' }]" size="small" class="import-format" />
+      <NInput v-model:value="importFileContent" type="textarea" :rows="10" placeholder="Paste JSON content here..." class="import-textarea" />
+      <template #footer><NSpace justify="end"><NButton @click="showImportModal = false">Cancel</NButton><NButton type="primary" @click="handleImport">Import</NButton></NSpace></template>
+    </NModal>
+
+    <NModal v-model:show="showCurlModal" title="Import cURL" preset="card" style="width:500px">
+      <NInput v-model:value="curlCommand" type="textarea" :rows="4" placeholder="Paste cURL command..." class="import-textarea" />
+      <template #footer><NSpace justify="end"><NButton @click="showCurlModal = false">Cancel</NButton><NButton type="primary" @click="handleImportCurl">Import</NButton></NSpace></template>
+    </NModal>
+
+    <NModal v-model:show="showExportModal" title="Export" preset="card" style="width:360px">
+      <NSelect v-model:value="exportFormat" :options="[{ label: 'Postman v2.1', value: 'postman' }, { label: 'OpenAPI/Swagger', value: 'swagger' }]" size="small" />
+      <template #footer><NSpace justify="end"><NButton @click="showExportModal = false">Cancel</NButton><NButton type="primary" @click="handleExport">Export</NButton></NSpace></template>
     </NModal>
   </div>
 </template>
@@ -217,4 +323,6 @@ onMounted(loadAll)
   flex-wrap: wrap;
   justify-content: center;
 }
+.import-format { margin-bottom: 8px; }
+.import-textarea { font-family: 'Cascadia Code', 'Fira Code', 'Consolas', monospace; font-size: 13px; }
 </style>

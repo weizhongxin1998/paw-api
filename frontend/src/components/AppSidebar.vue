@@ -13,8 +13,6 @@ import { CreateCollection, ListCollections, UpdateCollection, DeleteCollection }
 import { CreateRequest, DeleteRequest, UpdateRequest, ListRequests } from '../../wailsjs/go/handlers/RequestHandler'
 import { ListEnvironments } from '../../wailsjs/go/handlers/EnvironmentHandler'
 import { useEnvironmentStore } from '../stores/environment'
-import { ImportPostman, ImportSwagger, ImportCurl } from '../../wailsjs/go/handlers/ImporterHandler'
-import { ExportPostman, ExportSwagger } from '../../wailsjs/go/handlers/ExporterHandler'
 import EnvSelector from './EnvSelector.vue'
 import EnvManager from './EnvManager.vue'
 
@@ -34,13 +32,7 @@ const newCollectionName = ref('')
 const showEnvManager = ref(false)
 
 const searchQuery = ref('')
-const showImportModal = ref(false)
-const importFileContent = ref('')
-const importFormat = ref('postman')
-const showCurlModal = ref(false)
-const curlCommand = ref('')
-const showExportModal = ref(false)
-const exportFormat = ref('postman')
+
 const showRenameModal = ref(false)
 const renameTarget = ref<{ id: string; name: string; type: 'collection' | 'request' } | null>(null)
 const renameValue = ref('')
@@ -367,68 +359,6 @@ async function confirmMove(targetColId: string) {
   } catch (e: any) { message.error(e.message) }
 }
 
-// Import
-async function handleImport() {
-  try {
-    let result
-    if (importFormat.value === 'postman') {
-      result = await ImportPostman(importFileContent.value)
-    } else {
-      result = await ImportSwagger(importFileContent.value)
-    }
-    if (result) {
-      message.success(`Imported ${result.requests?.length || 0} requests`)
-      if (projectStore.currentProject) await loadCollections(projectStore.currentProject.id)
-    }
-    showImportModal.value = false
-  } catch (e: any) { message.error(e.message || 'Import failed') }
-}
-
-async function handleImportCurl() {
-  if (!curlCommand.value.trim()) return
-  try {
-    const result = await ImportCurl(curlCommand.value.trim())
-    if (result && projectStore.currentProject) {
-      const tabId = tabsStore.addHttpTab(undefined, result.name || 'cURL Import')
-      tabsStore.updateTabData({
-        method: result.method || 'GET',
-        url: result.url || '',
-        headers: safeParse(result.headers, []),
-        params: safeParse(result.params, []),
-        body: result.body || '',
-        bodyType: result.body ? 'json' : 'none',
-      })
-      message.success('cURL imported')
-    }
-    showCurlModal.value = false
-    curlCommand.value = ''
-  } catch (e: any) { message.error(e.message || 'Import failed') }
-}
-
-// Export
-async function handleExport() {
-  if (!projectStore.currentProject) return
-  try {
-    const cols = JSON.stringify(projectStore.collections || [])
-    const reqs = JSON.stringify(allRequests.value || [])
-    let result: string
-    if (exportFormat.value === 'postman') {
-      result = await ExportPostman(cols, reqs, projectStore.currentProject.name)
-    } else {
-      result = await ExportSwagger(cols, reqs, projectStore.currentProject.name)
-    }
-    const blob = new Blob([result], { type: 'application/json' })
-    const url = URL.createObjectURL(blob)
-    const a = document.createElement('a')
-    a.href = url
-    a.download = `${projectStore.currentProject.name}.${exportFormat.value === 'postman' ? 'postman_collection.json' : 'swagger.json'}`
-    a.click()
-    URL.revokeObjectURL(url)
-    showExportModal.value = false
-    message.success('Exported')
-  } catch (e: any) { message.error(e.message || 'Export failed') }
-}
-
 onMounted(loadProjects)
 </script>
 
@@ -447,7 +377,12 @@ onMounted(loadProjects)
       <div v-show="activeSection === 'workspace'" class="panel-section">
         <div class="panel-header">
           <div class="panel-project-name">{{ projectStore.currentProject?.name || $t('project.noProject') }}</div>
-          <span class="panel-title">{{ $t('sidebar.collections') }}</span>
+          <div class="panel-title-row">
+            <span class="panel-title">{{ $t('sidebar.collections') }}</span>
+            <NButton quaternary circle size="tiny" @click="startAdd" class="panel-add-btn">
+              <template #icon><NIcon size="14"><Add /></NIcon></template>
+            </NButton>
+          </div>
         </div>
         <div class="panel-search">
           <NInput v-model:value="searchQuery" :placeholder="$t('history.search')" size="tiny" clearable>
@@ -468,14 +403,6 @@ onMounted(loadProjects)
             @drop="handleDrop"
             @contextmenu="(e: any, opt: any) => handleContextMenu(e, opt?.key)"
           />
-        </div>
-        <div class="panel-footer">
-          <NSpace size="small">
-            <NButton size="tiny" quaternary @click="startAdd"><template #icon><NIcon size="14"><Add /></NIcon></template>{{ $t('sidebar.newCollection') }}</NButton>
-            <NButton size="tiny" quaternary @click="showImportModal = true"><template #icon><NIcon size="14"><Download /></NIcon></template>Import</NButton>
-            <NButton size="tiny" quaternary @click="showExportModal = true"><template #icon><NIcon size="14"><Download /></NIcon></template>Export</NButton>
-            <NButton size="tiny" quaternary @click="showCurlModal = true"><template #icon><NIcon size="14"><CodeSlash /></NIcon></template>cURL</NButton>
-          </NSpace>
         </div>
       </div>
 
@@ -522,7 +449,9 @@ onMounted(loadProjects)
 .panel-section { display: flex; flex-direction: column; height: 100%; }
 .panel-header { padding: 12px 12px 8px; border-bottom: 1px solid var(--border-color); }
 .panel-project-name { font-size: 14px; font-weight: 700; margin-bottom: 2px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.panel-title-row { display: flex; align-items: center; justify-content: space-between; }
 .panel-title { font-size: 11px; font-weight: 600; color: #888; text-transform: uppercase; letter-spacing: 0.5px; }
+.panel-add-btn { flex-shrink: 0; }
 .panel-search { padding: 6px 8px; border-bottom: 1px solid var(--border-color); }
 .panel-env { padding: 6px 8px; border-bottom: 1px solid var(--border-color); }
 .panel-footer { padding: 6px 8px; border-top: 1px solid var(--border-color); }
