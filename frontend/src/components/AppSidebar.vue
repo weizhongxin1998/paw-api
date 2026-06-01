@@ -52,7 +52,7 @@ const contextMenuY = ref(0)
 
 const sections = [
   { id: 'workspace', labelKey: 'sidebar.workspaceLabel', icon: CodeSlash, route: '/workspace' },
-  { id: 'project', labelKey: 'sidebar.projectLabel', icon: FolderOpen, route: '' },
+  { id: 'project', labelKey: 'sidebar.projectLabel', icon: FolderOpen, route: '/projects' },
   { id: 'history', labelKey: 'sidebar.historyLabel', icon: Time, route: '/history' },
   { id: 'docs', labelKey: 'sidebar.docsLabel', icon: DocumentText, route: '/docs' },
   { id: 'tests', labelKey: 'sidebar.testsLabel', icon: Bug, route: '/test-runner' },
