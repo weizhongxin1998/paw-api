@@ -12,10 +12,12 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
+	"sync"
 	"time"
 )
 
 type Client struct {
+	mu sync.Mutex
 	hc *http.Client
 }
 
@@ -47,6 +49,13 @@ type Response struct {
 
 func NewClient() *Client {
 	jar, _ := cookiejar.New(nil)
+	return NewClientWithJar(jar)
+}
+
+func NewClientWithJar(jar http.CookieJar) *Client {
+	if jar == nil {
+		jar, _ = cookiejar.New(nil)
+	}
 	return &Client{
 		hc: &http.Client{
 			Timeout: 30 * time.Second,
@@ -156,6 +165,7 @@ func (c *Client) Do(req *Request) (*Response, error) {
 		httpReq.Header.Set(k, v)
 	}
 
+	c.mu.Lock()
 	if req.TimeoutMs > 0 {
 		c.hc.Timeout = time.Duration(req.TimeoutMs) * time.Millisecond
 	} else {
@@ -174,6 +184,7 @@ func (c *Client) Do(req *Request) (*Response, error) {
 			return nil
 		}
 	}
+	c.mu.Unlock()
 
 	start := time.Now()
 	httpResp, err := c.hc.Do(httpReq)

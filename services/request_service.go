@@ -21,16 +21,26 @@ import (
 )
 
 type RequestService struct {
-	repo *repositories.RequestRepo
+	repo   *repositories.RequestRepo
+	client *httpclient.Client
 }
 
 func NewRequestService() *RequestService {
-	return &RequestService{repo: &repositories.RequestRepo{}}
+	svc := &RequestService{repo: &repositories.RequestRepo{}}
+	svc.client = httpclient.NewClientWithJar(getSharedJar())
+	return svc
 }
 
 func (s *RequestService) Create(collectionID, name, method, url, headers, params, body, auth, script string, sortOrder int) (*models.Request, error) {
 	if name == "" {
 		return nil, errors.New("request name is required")
+	}
+	if sortOrder <= 0 {
+		maxOrder, err := s.repo.GetMaxSortOrder(collectionID)
+		if err != nil {
+			return nil, err
+		}
+		sortOrder = maxOrder + 1
 	}
 	now := time.Now()
 	r := &models.Request{
@@ -59,13 +69,20 @@ func (s *RequestService) ListByCollection(collectionID string) ([]models.Request
 	return s.repo.ListByCollection(collectionID)
 }
 
-func (s *RequestService) Update(id, name, method, url, headers, params, body, auth, script string, sortOrder int) (*models.Request, error) {
+func (s *RequestService) ListByProjectID(projectID string) ([]models.Request, error) {
+	return s.repo.ListByProjectID(projectID)
+}
+
+func (s *RequestService) Update(id, collectionID, name, method, url, headers, params, body, auth, script string, sortOrder int) (*models.Request, error) {
 	r, err := s.repo.GetByID(id)
 	if err != nil {
 		return nil, err
 	}
 	if r == nil {
 		return nil, errors.New("request not found")
+	}
+	if collectionID != "" {
+		r.CollectionID = collectionID
 	}
 	r.Name = name
 	r.Method = method
@@ -81,9 +98,8 @@ func (s *RequestService) Update(id, name, method, url, headers, params, body, au
 }
 
 func (s *RequestService) Send(method, url string, headers map[string]string, body string, bodyType string, bodyFiles []httpclient.BodyFile, authType string, authData map[string]string, timeoutMs int, followRedirect bool) (*httpclient.Response, error) {
-	headers = s.applyAuth(headers, authType, authData, url)
-	client := httpclient.NewClient()
-	return client.Do(&httpclient.Request{
+	headers = s.applyAuth(headers, authType, authData, url, body, bodyType)
+	return s.client.Do(&httpclient.Request{
 		Method:         method,
 		URL:            url,
 		Headers:        headers,
@@ -95,7 +111,7 @@ func (s *RequestService) Send(method, url string, headers map[string]string, bod
 	})
 }
 
-func (s *RequestService) applyAuth(headers map[string]string, authType string, authData map[string]string, requestURL string) map[string]string {
+func (s *RequestService) applyAuth(headers map[string]string, authType string, authData map[string]string, requestURL, body, bodyType string) map[string]string {
 	if headers == nil {
 		headers = make(map[string]string)
 	}
@@ -118,7 +134,7 @@ func (s *RequestService) applyAuth(headers map[string]string, authType string, a
 		user := authData["username"]
 		pass := authData["password"]
 		if user != "" && pass != "" {
-			headers = s.applyDigestAuth(headers, requestURL, user, pass, methodFromAuthData(authData))
+			headers = s.applyDigestAuth(headers, requestURL, user, pass, methodFromAuthData(authData), body, bodyType)
 		}
 
 	case "oauth2":
@@ -142,13 +158,16 @@ func methodFromAuthData(authData map[string]string) string {
 	return "GET"
 }
 
-func (s *RequestService) applyDigestAuth(headers map[string]string, rawURL, user, pass, method string) map[string]string {
+func (s *RequestService) applyDigestAuth(headers map[string]string, rawURL, user, pass, method, body, bodyType string) map[string]string {
 	u, err := url.Parse(rawURL)
 	if err != nil {
 		return headers
 	}
-	// First request without auth to get challenge
-	req, _ := http.NewRequest(method, rawURL, nil)
+	var probeBody io.Reader
+	if body != "" && bodyType != "none" {
+		probeBody = strings.NewReader(body)
+	}
+	req, _ := http.NewRequest(method, rawURL, probeBody)
 	for k, v := range headers {
 		req.Header.Set(k, v)
 	}

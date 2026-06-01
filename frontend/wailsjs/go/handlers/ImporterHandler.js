@@ -6,10 +6,10 @@ export function ImportCurl(arg1) {
   return window['go']['handlers']['ImporterHandler']['ImportCurl'](arg1);
 }
 
-export function ImportPostman(arg1) {
-  return window['go']['handlers']['ImporterHandler']['ImportPostman'](arg1);
+export function ImportPostman(arg1, arg2) {
+  return window['go']['handlers']['ImporterHandler']['ImportPostman'](arg1, arg2);
 }
 
-export function ImportSwagger(arg1) {
-  return window['go']['handlers']['ImporterHandler']['ImportSwagger'](arg1);
+export function ImportSwagger(arg1, arg2) {
+  return window['go']['handlers']['ImporterHandler']['ImportSwagger'](arg1, arg2);
 }

@@ -23,5 +23,13 @@ export const useHistoryStore = defineStore('history', () => {
     history.value = items
   }
 
-  return { history, setHistory }
+  function removeHistory(id: string) {
+    history.value = history.value.filter(h => h.id !== id)
+  }
+
+  function clearHistory() {
+    history.value = []
+  }
+
+  return { history, setHistory, removeHistory, clearHistory }
 })

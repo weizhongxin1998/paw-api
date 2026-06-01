@@ -14,8 +14,10 @@ export function GetRequest(arg1:string):Promise<models.Request>;
 
 export function ListRequests(arg1:string):Promise<Array<models.Request>>;
 
+export function ListRequestsByProject(arg1:string):Promise<Array<models.Request>>;
+
 export function RunAsserts(arg1:handlers.RunAssertsInput):Promise<handlers.RunAssertsResponse>;
 
 export function SendRequest(arg1:handlers.SendRequestInput):Promise<httpclient.Response>;
 
-export function UpdateRequest(arg1:string,arg2:string,arg3:string,arg4:string,arg5:string,arg6:string,arg7:string,arg8:string,arg9:string,arg10:number):Promise<models.Request>;
+export function UpdateRequest(arg1:string,arg2:string,arg3:string,arg4:string,arg5:string,arg6:string,arg7:string,arg8:string,arg9:string,arg10:string,arg11:number):Promise<models.Request>;

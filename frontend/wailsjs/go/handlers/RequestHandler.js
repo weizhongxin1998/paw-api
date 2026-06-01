@@ -22,6 +22,10 @@ export function ListRequests(arg1) {
   return window['go']['handlers']['RequestHandler']['ListRequests'](arg1);
 }
 
+export function ListRequestsByProject(arg1) {
+  return window['go']['handlers']['RequestHandler']['ListRequestsByProject'](arg1);
+}
+
 export function RunAsserts(arg1) {
   return window['go']['handlers']['RequestHandler']['RunAsserts'](arg1);
 }
@@ -30,6 +34,6 @@ export function SendRequest(arg1) {
   return window['go']['handlers']['RequestHandler']['SendRequest'](arg1);
 }
 
-export function UpdateRequest(arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9, arg10) {
-  return window['go']['handlers']['RequestHandler']['UpdateRequest'](arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9, arg10);
+export function UpdateRequest(arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9, arg10, arg11) {
+  return window['go']['handlers']['RequestHandler']['UpdateRequest'](arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9, arg10, arg11);
 }

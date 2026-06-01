@@ -19,6 +19,7 @@ export interface HttpTabData {
   authData: Record<string, string>
   timeoutMs: number
   followRedirect: boolean
+  collectionId?: string
 }
 
 export interface BodyFileItem {

@@ -169,6 +169,15 @@ export default {
     binary: 'Binary',
     filePath: '文件路径',
   },
+  contextMenu: {
+    renameCollection: '重命名集合',
+    renameRequest: '重命名',
+    newSubCollection: '新建子集合',
+    deleteCollection: '删除集合',
+    deleteRequest: '删除',
+    copyRequest: '复制请求',
+    moveToCollection: '移动到集合',
+  },
   codegen: {
     title: '代码',
     lang: '语言',
