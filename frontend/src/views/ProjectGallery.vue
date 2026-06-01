@@ -7,9 +7,12 @@ import { useProjectStore } from '../stores/project'
 import { ListProjects, CreateProject } from '../../wailsjs/go/handlers/ProjectHandler'
 import { ListCollections } from '../../wailsjs/go/handlers/CollectionHandler'
 import { ListRequests } from '../../wailsjs/go/handlers/RequestHandler'
+import { ListEnvironments } from '../../wailsjs/go/handlers/EnvironmentHandler'
+import { useEnvironmentStore } from '../stores/environment'
 
 const router = useRouter()
 const projectStore = useProjectStore()
+const envStore = useEnvironmentStore()
 const message = useMessage()
 
 const loading = ref(true)
@@ -48,6 +51,16 @@ async function selectProject(p: any) {
     projectStore.setCollections(cols || [])
   } catch {
     projectStore.setCollections([])
+  }
+  try {
+    const envs = await ListEnvironments(p.id)
+    envStore.setEnvironments(envs)
+    const active = envs.find((e: any) => e.is_active)
+    if (active) envStore.setActiveEnvironment(active)
+    else envStore.setActiveEnvironment(null)
+  } catch {
+    envStore.setEnvironments([])
+    envStore.setActiveEnvironment(null)
   }
   router.push('/workspace')
 }

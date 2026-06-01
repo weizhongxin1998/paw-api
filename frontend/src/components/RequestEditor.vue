@@ -10,7 +10,7 @@ import { useEnvironmentStore } from '../stores/environment'
 import { useVariableResolver } from '../composables/useVariableResolver'
 import { useTabsStore } from '../stores/tabs'
 import { useProjectStore } from '../stores/project'
-import { SendRequest } from '../../wailsjs/go/handlers/RequestHandler'
+import { SendRequest, CreateRequest, UpdateRequest } from '../../wailsjs/go/handlers/RequestHandler'
 import { RecordHistory } from '../../wailsjs/go/handlers/HistoryHandler'
 
 const httpMethods = ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'HEAD', 'OPTIONS']
@@ -33,7 +33,13 @@ const authType = computed({ get: () => data.value?.authType ?? 'none', set: (val
 const authData = computed({ get: () => data.value?.authData ?? {}, set: (val) => tabsStore.updateTabData({ authData: val }) })
 const timeoutMs = computed({ get: () => data.value?.timeoutMs ?? 30000, set: (val) => tabsStore.updateTabData({ timeoutMs: val }) })
 const followRedirect = computed({ get: () => data.value?.followRedirect ?? true, set: (val) => tabsStore.updateTabData({ followRedirect: val }) })
+const activeTab = computed(() => tabsStore.activeTab)
+const requestName = computed({
+  get: () => activeTab.value?.title ?? '',
+  set: (val) => { if (activeTab.value) tabsStore.updateTabTitle(activeTab.value.id, val) },
+})
 const sending = ref(false)
+const saving = ref(false)
 const showSettingsPopover = ref(false)
 
 const authOptions = [
@@ -87,6 +93,31 @@ function updateAuth(key: string, val: string) {
   tabsStore.updateTabData({ authData: next })
 }
 
+async function handleSave() {
+  const tab = tabsStore.activeTab
+  if (!tab || !projectStore.currentProject) return
+  saving.value = true
+  try {
+    const colId = projectStore.collections[0]?.id || ''
+    if (!colId) { message.warning('No collection to save to'); return }
+    const headersJSON = JSON.stringify(headers.value.filter(h => h.enabled))
+    const paramsJSON = JSON.stringify(params.value.filter(p => p.enabled))
+    const bodyJSON = JSON.stringify({ body_type: bodyType.value, content: body.value })
+    const authJSON = JSON.stringify({ type: authType.value, ...authData.value })
+    if (tab.requestId) {
+      await UpdateRequest(tab.requestId, requestName.value, method.value, url.value, headersJSON, paramsJSON, bodyJSON, authJSON, '', 0)
+      message.success('Saved')
+    } else {
+      const r = await CreateRequest(colId, requestName.value, method.value, url.value, headersJSON, paramsJSON, bodyJSON, authJSON, '', 0)
+      if (r) {
+        tab.requestId = r.id
+        message.success('Created')
+      }
+    }
+  } catch (e: any) { message.error(e.message || 'Save failed')
+  } finally { saving.value = false }
+}
+
 async function handleSend() {
   if (!url.value.trim()) { message.warning(t('request.urlRequired')); return }
   sending.value = true
@@ -138,6 +169,12 @@ async function handleSend() {
 
 <template>
   <div v-if="data" class="request-editor">
+    <div class="name-row">
+      <NInput v-model:value="requestName" placeholder="Request name" size="small" class="name-input" />
+      <NButton size="tiny" :loading="saving" @click="handleSave">
+        {{ activeTab?.requestId ? 'Save' : 'Create' }}
+      </NButton>
+    </div>
     <div class="url-row">
       <NSelect :options="httpMethods.map(m => ({ label: m, value: m }))" v-model:value="method" style="width: 110px" size="small" />
       <NInput v-model:value="url" :placeholder="$t('request.placeholder')" size="small" class="url-input" />
@@ -224,6 +261,8 @@ async function handleSend() {
 .request-editor { padding: 12px 16px; border-bottom: 1px solid var(--border-color); }
 .request-editor.empty { display: flex; align-items: center; justify-content: center; min-height: 120px; }
 .empty-text { color: #999; font-size: 14px; }
+.name-row { display: flex; gap: 8px; margin-bottom: 6px; }
+.name-input { flex: 1; }
 .url-row { display: flex; gap: 8px; margin-bottom: 8px; }
 .url-input { flex: 1; }
 .settings-btn { flex-shrink: 0; }
