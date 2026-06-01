@@ -29,6 +29,7 @@ const dialog = useDialog()
 const activeSection = ref<'workspace' | 'project' | 'history' | 'docs' | 'tests' | 'settings'>('workspace')
 const showAddModal = ref(false)
 const newCollectionName = ref('')
+const selectedParentId = ref<string | null>(null)
 const showEnvManager = ref(false)
 
 const searchQuery = ref('')
@@ -127,6 +128,11 @@ function selectSection(id: string) {
   if (s.route && route.path !== s.route) router.push(s.route)
 }
 
+const parentOptions = computed(() => {
+  const cols = projectStore.collections || []
+  return cols.map(c => ({ label: c.name, value: c.id }))
+})
+
 const routeSectionMap: Record<string, string> = {
   '/workspace': 'workspace',
   '/projects': 'project',
@@ -175,13 +181,17 @@ async function loadCollections(projectId: string) {
   } catch { envStore.setEnvironments([]); envStore.setActiveEnvironment(null) }
 }
 
-function startAdd() { newCollectionName.value = ''; showAddModal.value = true }
+function startAdd(parentId?: string) {
+  newCollectionName.value = ''
+  selectedParentId.value = parentId || null
+  showAddModal.value = true
+}
 
 async function confirmAdd() {
   if (!newCollectionName.value.trim()) return
   if (!projectStore.currentProject) { message.error(t('sidebar.noProject')); return }
   try {
-    const col = await CreateCollection(projectStore.currentProject.id, '', newCollectionName.value.trim(), 0)
+    const col = await CreateCollection(projectStore.currentProject.id, selectedParentId.value || '', newCollectionName.value.trim(), 0)
     projectStore.addCollection(col)
     showAddModal.value = false
     message.success(t('sidebar.created'))
@@ -390,7 +400,7 @@ onMounted(loadProjects)
         <div class="panel-tree-area">
           <div class="tree-top-bar">
             <span></span>
-            <NButton quaternary circle size="tiny" @click="startAdd" class="tree-add-btn">
+            <NButton quaternary circle size="tiny" @click="() => startAdd()" class="tree-add-btn">
               <template #icon><NIcon size="14"><Add /></NIcon></template>
             </NButton>
           </div>
@@ -420,6 +430,7 @@ onMounted(loadProjects)
     <!-- Context Menu -->
     <div v-if="showContextMenu" class="context-menu" :style="{ left: contextMenuX + 'px', top: contextMenuY + 'px' }">
       <div v-if="contextMenuColId" class="context-item" @click="startRename('collection', contextMenuColId!, '')">Rename Collection</div>
+      <div v-if="contextMenuColId" class="context-item" @click="() => startAdd(contextMenuColId ?? undefined)">New Sub-collection</div>
       <div v-if="contextMenuColId" class="context-item" @click="handleDelete('collection', contextMenuColId!)">Delete Collection</div>
       <div v-if="contextMenuReqId" class="context-item" @click="startRename('request', contextMenuReqId!, '')">Rename</div>
       <div v-if="contextMenuReqId" class="context-item" @click="copyRequest(contextMenuReqId!)">Copy Request</div>
@@ -430,7 +441,20 @@ onMounted(loadProjects)
 
     <!-- Modals -->
     <NModal v-model:show="showAddModal" :title="$t('sidebar.newCollection')" preset="card" style="width:360px">
-      <NForm><NFormItem :label="$t('sidebar.collectionName')"><NInput v-model:value="newCollectionName" :placeholder="$t('sidebar.collectionName')" /></NFormItem></NForm>
+      <NForm>
+        <NFormItem :label="$t('sidebar.collectionName')">
+          <NInput v-model:value="newCollectionName" :placeholder="$t('sidebar.collectionName')" />
+        </NFormItem>
+        <NFormItem label="Parent">
+          <NSelect
+            v-model:value="selectedParentId"
+            :options="parentOptions"
+            size="small"
+            clearable
+            :placeholder="'None (root level)'"
+          />
+        </NFormItem>
+      </NForm>
       <template #footer><NSpace justify="end"><NButton @click="showAddModal = false">{{ $t('sidebar.cancel') }}</NButton><NButton type="primary" @click="confirmAdd">{{ $t('sidebar.create') }}</NButton></NSpace></template>
     </NModal>
 
