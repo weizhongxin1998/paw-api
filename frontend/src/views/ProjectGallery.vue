@@ -41,9 +41,14 @@ async function loadAll() {
   }
 }
 
-function selectProject(p: any) {
+async function selectProject(p: any) {
   projectStore.setCurrentProject(p)
-  projectStore.setCollections([])
+  try {
+    const cols = await ListCollections(p.id)
+    projectStore.setCollections(cols || [])
+  } catch {
+    projectStore.setCollections([])
+  }
   router.push('/workspace')
 }
 
