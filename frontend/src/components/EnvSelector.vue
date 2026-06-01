@@ -4,6 +4,7 @@ import { NSelect, NButton, NIcon, NSpace } from 'naive-ui'
 import { Settings } from '@vicons/ionicons5'
 import { useEnvironmentStore } from '../stores/environment'
 import { useProjectStore } from '../stores/project'
+import { SetActiveEnvironment } from '../../wailsjs/go/handlers/EnvironmentHandler'
 
 const envStore = useEnvironmentStore()
 const projectStore = useProjectStore()
@@ -20,7 +21,6 @@ const envOptions = computed(() => envStore.environments.map(e => ({
 async function handleChange(envId: string | null) {
   if (!envId || !projectStore.currentProject) return
   try {
-    const { SetActiveEnvironment } = await import('../../wailsjs/go/handlers/EnvironmentHandler')
     const env = await SetActiveEnvironment(envId, projectStore.currentProject.id)
     envStore.setActiveEnvironment(env)
   } catch (e: any) {

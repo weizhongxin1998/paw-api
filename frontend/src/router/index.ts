@@ -7,7 +7,6 @@ const routes = [
   { path: '/history', name: 'History', component: () => import('../views/History.vue') },
   { path: '/docs', name: 'Docs', component: () => import('../views/Docs.vue') },
   { path: '/test-runner', name: 'TestRunner', component: () => import('../views/TestRunner.vue') },
-  { path: '/websocket', name: 'WebSocket', component: () => import('../views/WebSocketTester.vue') },
 ]
 
 export const router = createRouter({

@@ -1,6 +1,6 @@
 <script lang="ts" setup>
 import { ref, onMounted, computed } from 'vue'
-import { NInput, NTag, NButton, NIcon, NEmpty, NSpin, NSpace } from 'naive-ui'
+import { NInput, NTag, NButton, NIcon, NEmpty, NSpin } from 'naive-ui'
 import { Play } from '@vicons/ionicons5'
 import { ListHistory } from '../../wailsjs/go/handlers/HistoryHandler'
 import { useTabsStore } from '../stores/tabs'
@@ -28,8 +28,8 @@ async function loadHistory() {
 }
 
 function replay(item: any) {
-  tabsStore.addTab(undefined, `${item.method} ${item.url.slice(0, 40)}`)
-  tabsStore.updateTabData({ method: item.method, url: item.url, headers: parseJSON(item.headers, []), body: item.body || '', bodyType: item.body ? 'json' : 'none' })
+  tabsStore.addHttpTab(undefined, `${item.method} ${item.url.slice(0, 40)}`)
+  tabsStore.updateHttpData({ method: item.method, url: item.url, headers: parseJSON(item.headers, []), body: item.body || '', bodyType: item.body ? 'json' : 'none' })
 }
 
 function parseJSON(str: string, fallback: any): any { try { return JSON.parse(str) } catch { return fallback } }

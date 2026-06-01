@@ -10,12 +10,20 @@ export function DeleteRequest(arg1) {
   return window['go']['handlers']['RequestHandler']['DeleteRequest'](arg1);
 }
 
+export function GenerateCode(arg1, arg2) {
+  return window['go']['handlers']['RequestHandler']['GenerateCode'](arg1, arg2);
+}
+
 export function GetRequest(arg1) {
   return window['go']['handlers']['RequestHandler']['GetRequest'](arg1);
 }
 
 export function ListRequests(arg1) {
   return window['go']['handlers']['RequestHandler']['ListRequests'](arg1);
+}
+
+export function RunAsserts(arg1) {
+  return window['go']['handlers']['RequestHandler']['RunAsserts'](arg1);
 }
 
 export function SendRequest(arg1) {

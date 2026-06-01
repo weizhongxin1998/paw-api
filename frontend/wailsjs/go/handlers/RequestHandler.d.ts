@@ -8,9 +8,13 @@ export function CreateRequest(arg1:string,arg2:string,arg3:string,arg4:string,ar
 
 export function DeleteRequest(arg1:string):Promise<void>;
 
+export function GenerateCode(arg1:handlers.CodegenInput,arg2:string):Promise<string>;
+
 export function GetRequest(arg1:string):Promise<models.Request>;
 
 export function ListRequests(arg1:string):Promise<Array<models.Request>>;
+
+export function RunAsserts(arg1:handlers.RunAssertsInput):Promise<handlers.RunAssertsResponse>;
 
 export function SendRequest(arg1:handlers.SendRequestInput):Promise<httpclient.Response>;
 

@@ -34,6 +34,9 @@ func main() {
 			app.EnvironmentHandler,
 			app.HistoryHandler,
 			app.WebSocketHandler,
+			app.CookieHandler,
+			app.ImporterHandler,
+			app.ExporterHandler,
 		},
 	})
 

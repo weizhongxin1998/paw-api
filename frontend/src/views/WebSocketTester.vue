@@ -1,67 +1,76 @@
 <script lang="ts" setup>
-import { ref, onMounted, onUnmounted, nextTick } from 'vue'
-import { t } from '../i18n'
+import { computed, onMounted, onUnmounted, nextTick, ref } from 'vue'
 import { NInput, NButton, NIcon, NTag } from 'naive-ui'
 import { Send } from '@vicons/ionicons5'
-import { Connect, Send as WsSend, Disconnect, IsConnected } from '../../wailsjs/go/handlers/WebSocketHandler'
+import { Connect, Send as WsSend, Disconnect } from '../../wailsjs/go/handlers/WebSocketHandler'
 import { EventsOn, EventsOff } from '../../wailsjs/runtime/runtime'
+import { useTabsStore, type WsMessage } from '../stores/tabs'
 
-const url = ref('ws://localhost:8080')
-const message = ref('')
-const messages = ref<Array<{ type: string; content: string; time: number }>>([])
-const connected = ref(false)
-const connecting = ref(false)
+const tabsStore = useTabsStore()
+const tab = computed(() => tabsStore.activeTab)
+const wsData = computed(() => tab.value?.wsData)
+const inputMsg = ref('')
 const messagesEnd = ref<HTMLDivElement | null>(null)
+const connecting = ref(false)
+
+function onWSMessage(raw: string) {
+  try {
+    const msg: WsMessage = JSON.parse(raw)
+    if (!tab.value || !wsData.value) return
+    tabsStore.updateWsData({ messages: [...wsData.value.messages, msg] })
+    nextTick(() => messagesEnd.value?.scrollIntoView({ behavior: 'smooth' }))
+  } catch {}
+}
 
 async function doConnect() {
-  if (!url.value.trim()) return
+  const data = wsData.value
+  if (!data || !data.url.trim()) return
   connecting.value = true
   try {
-    await Connect(url.value.trim())
-    connected.value = true
-    messages.value.push({ type: 'system', content: t('ws.systemConnected'), time: Date.now() })
+    await Connect(data.url.trim())
+    tabsStore.updateWsData({ connected: true, messages: [...data.messages, { type: 'system', content: 'Connected', time: Date.now() }] })
   } catch (e: any) {
-    messages.value.push({ type: 'system', content: `${t('ws.error')}: ${e.message || e}`, time: Date.now() })
+    tabsStore.updateWsData({ messages: [...data.messages, { type: 'system', content: `Error: ${e.message || e}`, time: Date.now() }] })
   } finally { connecting.value = false }
 }
 
 async function doDisconnect() {
+  const data = wsData.value
+  if (!data) return
   await Disconnect()
-  connected.value = false
-  messages.value.push({ type: 'system', content: t('ws.systemDisconnected'), time: Date.now() })
+  tabsStore.updateWsData({ connected: false, messages: [...data.messages, { type: 'system', content: 'Disconnected', time: Date.now() }] })
 }
 
 async function sendMessage() {
-  if (!message.value.trim()) return
+  const data = wsData.value
+  if (!data || !inputMsg.value.trim()) return
   try {
-    await WsSend(message.value.trim())
-    message.value = ''
+    await WsSend(inputMsg.value.trim())
+    inputMsg.value = ''
   } catch (e: any) {
-    messages.value.push({ type: 'system', content: `${t('ws.sendError')}: ${e.message || e}`, time: Date.now() })
+    tabsStore.updateWsData({ messages: [...data.messages, { type: 'system', content: `Send error: ${e.message || e}`, time: Date.now() }] })
   }
 }
 
-function onWSMessage(raw: string) {
-  try { const msg = JSON.parse(raw); messages.value.push(msg); nextTick(() => messagesEnd.value?.scrollIntoView({ behavior: 'smooth' })) } catch {}
+function formatTime(ts: number): string {
+  return new Date(ts).toLocaleTimeString()
 }
 
-function formatTime(ts: number): string { return new Date(ts).toLocaleTimeString() }
-
-onMounted(async () => { connected.value = await IsConnected(); EventsOn('ws-message', onWSMessage) })
+onMounted(() => { EventsOn('ws-message', onWSMessage) })
 onUnmounted(() => { EventsOff('ws-message') })
 </script>
 
 <template>
-  <div class="ws-view">
+  <div v-if="wsData" class="ws-view">
     <div class="ws-toolbar">
-      <NInput v-model:value="url" :placeholder="$t('ws.placeholder')" size="small" class="url-input" />
-      <NButton v-if="!connected" size="small" type="primary" :loading="connecting" @click="doConnect">{{ $t('ws.connect') }}</NButton>
-      <NButton v-else size="small" type="error" @click="doDisconnect">{{ $t('ws.disconnect') }}</NButton>
-      <NTag v-if="connected" type="success" size="small">{{ $t('ws.connected') }}</NTag>
-      <NTag v-else size="small">{{ $t('ws.disconnected') }}</NTag>
+      <NInput v-model:value="wsData.url" placeholder="ws://localhost:8080/ws" size="small" class="url-input" />
+      <NButton v-if="!wsData.connected" size="small" type="primary" :loading="connecting" @click="doConnect">Connect</NButton>
+      <NButton v-else size="small" type="error" @click="doDisconnect">Disconnect</NButton>
+      <NTag v-if="wsData.connected" type="success" size="small">Connected</NTag>
+      <NTag v-else size="small">Disconnected</NTag>
     </div>
     <div class="ws-messages">
-      <div v-for="(msg, i) in messages" :key="i" class="ws-msg" :class="msg.type">
+      <div v-for="(msg, i) in wsData.messages" :key="i" class="ws-msg" :class="msg.type">
         <span class="msg-time">{{ formatTime(msg.time) }}</span>
         <span v-if="msg.type === 'system'" class="msg-system">{{ msg.content }}</span>
         <span v-else class="msg-content">{{ msg.content }}</span>
@@ -69,20 +78,20 @@ onUnmounted(() => { EventsOff('ws-message') })
       <div ref="messagesEnd" />
     </div>
     <div class="ws-input-row">
-      <NInput v-model:value="message" :placeholder="$t('ws.messagePlaceholder')" size="small" class="msg-input" :disabled="!connected" @keydown.enter.prevent="sendMessage" />
-      <NButton size="small" type="primary" :disabled="!connected" @click="sendMessage">
+      <NInput v-model:value="inputMsg" placeholder="Type a message..." size="small" class="msg-input" :disabled="!wsData.connected" @keydown.enter.prevent="sendMessage" />
+      <NButton size="small" type="primary" :disabled="!wsData.connected" @click="sendMessage">
         <template #icon><NIcon><Send /></NIcon></template>
-        {{ $t('ws.send') }}
+        Send
       </NButton>
     </div>
   </div>
 </template>
 
 <style scoped>
-.ws-view { display: flex; flex-direction: column; height: 100%; padding: 12px 16px; }
+.ws-view { display: flex; flex-direction: column; padding: 12px 16px; border-bottom: 1px solid var(--border-color); }
 .ws-toolbar { display: flex; align-items: center; gap: 8px; margin-bottom: 8px; }
 .url-input { flex: 1; }
-.ws-messages { flex: 1; overflow-y: auto; background: var(--tab-bar-bg); border: 1px solid var(--border-color); border-radius: 4px; padding: 8px; margin-bottom: 8px; font-family: monospace; font-size: 13px; }
+.ws-messages { height: 200px; overflow-y: auto; background: var(--tab-bar-bg); border: 1px solid var(--border-color); border-radius: 4px; padding: 8px; margin-bottom: 8px; font-family: monospace; font-size: 13px; }
 .ws-msg { padding: 2px 0; display: flex; gap: 8px; }
 .msg-time { color: #999; font-size: 11px; white-space: nowrap; min-width: 70px; }
 .msg-content { color: #333; word-break: break-all; }

@@ -7,21 +7,48 @@ export interface KeyValuePair {
   enabled: boolean
 }
 
-export interface TabData {
+export interface HttpTabData {
   method: string
   url: string
   params: KeyValuePair[]
   headers: KeyValuePair[]
   body: string
   bodyType: string
-  auth: KeyValuePair[]
+  bodyFiles: BodyFileItem[]
+  authType: string
+  authData: Record<string, string>
+  timeoutMs: number
+  followRedirect: boolean
 }
+
+export interface BodyFileItem {
+  key: string
+  value: string
+  file_path: string
+  enabled: boolean
+}
+
+export interface WsMessage {
+  type: 'sent' | 'received' | 'system'
+  content: string
+  time: number
+}
+
+export interface WsTabData {
+  url: string
+  messages: WsMessage[]
+  connected: boolean
+}
+
+export type TabType = 'http' | 'websocket'
 
 export interface Tab {
   id: string
   title: string
+  type: TabType
   requestId: string | null
-  data: TabData
+  httpData?: HttpTabData
+  wsData?: WsTabData
 }
 
 export const useTabsStore = defineStore('tabs', () => {
@@ -29,29 +56,31 @@ export const useTabsStore = defineStore('tabs', () => {
   const activeTabId = ref<string | null>(null)
 
   const activeTab = computed<Tab | undefined>(() => tabs.value.find(t => t.id === activeTabId.value))
-  const activeTabData = computed<TabData | undefined>(() => activeTab.value?.data)
+  const activeTabData = computed<HttpTabData | undefined>(() => activeTab.value?.httpData)
 
-  function createEmptyData(): TabData {
+  function createHttpData(): HttpTabData {
     return {
-      method: 'GET',
-      url: '',
-      params: [],
+      method: 'GET', url: '', params: [], body: '', bodyType: 'none', bodyFiles: [],
+      authType: 'none', authData: {},
+      timeoutMs: 30000, followRedirect: true,
       headers: [{ key: 'Content-Type', value: 'application/json', enabled: true }],
-      body: '',
-      bodyType: 'none',
-      auth: [],
     }
   }
 
-  function addTab(requestId?: string, title?: string): string {
+  function createWsData(): WsTabData {
+    return { url: '', messages: [], connected: false }
+  }
+
+  function addHttpTab(requestId?: string, title?: string): string {
     const id = crypto.randomUUID()
-    const tab: Tab = {
-      id,
-      title: title || 'New Request',
-      requestId: requestId || null,
-      data: createEmptyData(),
-    }
-    tabs.value.push(tab)
+    tabs.value.push({ id, title: title || 'New Request', type: 'http', requestId: requestId || null, httpData: createHttpData() })
+    activeTabId.value = id
+    return id
+  }
+
+  function addWsTab(): string {
+    const id = crypto.randomUUID()
+    tabs.value.push({ id, title: 'WebSocket', type: 'websocket', requestId: null, wsData: createWsData() })
     activeTabId.value = id
     return id
   }
@@ -69,11 +98,18 @@ export const useTabsStore = defineStore('tabs', () => {
     activeTabId.value = tabId
   }
 
-  function updateTabData(data: Partial<TabData>) {
+  function updateHttpData(data: Partial<HttpTabData>) {
     const tab = tabs.value.find(t => t.id === activeTabId.value)
-    if (tab) {
-      Object.assign(tab.data, data)
-    }
+    if (tab && tab.httpData) Object.assign(tab.httpData, data)
+  }
+
+  function updateTabData(data: Partial<HttpTabData>) {
+    updateHttpData(data)
+  }
+
+  function updateWsData(data: Partial<WsTabData>) {
+    const tab = tabs.value.find(t => t.id === activeTabId.value)
+    if (tab && tab.wsData) Object.assign(tab.wsData, data)
   }
 
   function updateTabTitle(tabId: string, title: string) {
@@ -83,6 +119,7 @@ export const useTabsStore = defineStore('tabs', () => {
 
   return {
     tabs, activeTabId, activeTab, activeTabData,
-    addTab, removeTab, setActiveTab, updateTabData, updateTabTitle,
+    addHttpTab, addWsTab, removeTab, setActiveTab,
+    updateHttpData, updateTabData, updateWsData, updateTabTitle,
   }
 })

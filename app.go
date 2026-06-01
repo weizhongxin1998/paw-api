@@ -14,6 +14,9 @@ type App struct {
 	EnvironmentHandler *handlers.EnvironmentHandler
 	HistoryHandler     *handlers.HistoryHandler
 	WebSocketHandler   *handlers.WebSocketHandler
+	CookieHandler      *handlers.CookieHandler
+	ImporterHandler    *handlers.ImporterHandler
+	ExporterHandler    *handlers.ExporterHandler
 }
 
 func NewApp() *App {
@@ -24,6 +27,9 @@ func NewApp() *App {
 		EnvironmentHandler: handlers.NewEnvironmentHandler(),
 		HistoryHandler:     handlers.NewHistoryHandler(),
 		WebSocketHandler:   handlers.NewWebSocketHandler(),
+		CookieHandler:      handlers.NewCookieHandler(),
+		ImporterHandler:    handlers.NewImporterHandler(),
+		ExporterHandler:    handlers.NewExporterHandler(),
 	}
 }
 
