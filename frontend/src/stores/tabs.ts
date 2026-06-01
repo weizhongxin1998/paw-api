@@ -117,9 +117,14 @@ export const useTabsStore = defineStore('tabs', () => {
     if (tab) tab.title = title
   }
 
+  function getTabByRequestId(requestId: string): Tab | undefined {
+    return tabs.value.find(t => t.requestId === requestId)
+  }
+
   return {
     tabs, activeTabId, activeTab, activeTabData,
     addHttpTab, addWsTab, removeTab, setActiveTab,
     updateHttpData, updateTabData, updateWsData, updateTabTitle,
+    getTabByRequestId,
   }
 })

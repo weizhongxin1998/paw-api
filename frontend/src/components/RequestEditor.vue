@@ -114,6 +114,7 @@ async function handleSave() {
         message.success('Created')
       }
     }
+    projectStore.triggerRefresh()
   } catch (e: any) { message.error(e.message || 'Save failed')
   } finally { saving.value = false }
 }

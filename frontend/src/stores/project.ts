@@ -7,6 +7,7 @@ export const useProjectStore = defineStore('project', () => {
   const currentProject = ref<Project | null>(null)
   const collections = ref<Collection[]>([])
   const selectedCollectionId = ref<string | null>(null)
+  const refreshKey = ref(0)
 
   function setProjects(list: Project[]) {
     projects.value = list
@@ -42,9 +43,14 @@ export const useProjectStore = defineStore('project', () => {
     selectedCollectionId.value = id
   }
 
+  function triggerRefresh() {
+    refreshKey.value++
+  }
+
   return {
-    projects, currentProject, collections, selectedCollectionId,
+    projects, currentProject, collections, selectedCollectionId, refreshKey,
     setProjects, addProject, setCurrentProject, setCollections,
     addCollection, removeCollection, updateCollection, selectCollection,
+    triggerRefresh,
   }
 })

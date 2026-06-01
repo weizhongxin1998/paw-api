@@ -154,6 +154,12 @@ watch(() => route.path, async (path) => {
   }
 })
 
+watch(() => projectStore.refreshKey, () => {
+  if (projectStore.currentProject) {
+    loadCollections(projectStore.currentProject.id)
+  }
+})
+
 async function loadProjects() {
   try {
     const list = await ListProjects()
@@ -237,6 +243,11 @@ function handleTreeSelect(keys: any) {
     const reqId = key.slice(4)
     const req = allRequests.value.find(r => r.id === reqId)
     if (req) {
+      const existing = tabsStore.getTabByRequestId(reqId)
+      if (existing) {
+        tabsStore.setActiveTab(existing.id)
+        return
+      }
       const tabId = tabsStore.addHttpTab(req.id, req.name)
       tabsStore.updateTabData({
         method: req.method,
