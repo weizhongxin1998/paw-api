@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import { ref, computed, onMounted, watch } from 'vue'
+import { ref, computed, onMounted, watch, h } from 'vue'
 import { NTree, NButton, NIcon, NInput, NModal, NForm, NFormItem, NSpace, NSelect, NTag, NDropdown, useMessage, useDialog } from 'naive-ui'
 import { Add, CodeSlash, FolderOpen, Time, DocumentText, Bug, Settings as SettingsIcon, Search, Download, Trash } from '@vicons/ionicons5'
 import { useRouter, useRoute } from 'vue-router'
@@ -34,6 +34,8 @@ const showEnvManager = ref(false)
 
 const searchQuery = ref('')
 
+const collectionMenuId = ref<string | null>(null)
+const collectionMenuPos = ref({ x: 0, y: 0 })
 const showRenameModal = ref(false)
 const renameTarget = ref<{ id: string; name: string; type: 'collection' | 'request' } | null>(null)
 const renameValue = ref('')
@@ -369,6 +371,49 @@ async function confirmMove(targetColId: string) {
   } catch (e: any) { message.error(e.message) }
 }
 
+function renderLabel(info: { option: any }) {
+  const opt = info.option
+  if (opt.isLeaf || opt.disabled || opt.key === 'collections-header') {
+    return opt.label
+  }
+  return h('div', { class: 'tree-node-label' }, [
+    h('span', { class: 'tree-node-name' }, opt.label),
+    h('span', { class: 'tree-node-actions' }, [
+      h('button', {
+        class: 'tree-node-dots',
+        onClick: (e: MouseEvent) => {
+          e.stopPropagation()
+          collectionMenuId.value = opt.key
+          collectionMenuPos.value = { x: e.clientX, y: e.clientY }
+        },
+      }, '···'),
+    ]),
+  ])
+}
+
+const colMenuOptions = [
+  { label: 'New Request', key: 'new-request' },
+]
+
+function handleColMenuSelect(key: string) {
+  const colId = collectionMenuId.value
+  collectionMenuId.value = null
+  if (key === 'new-request' && colId) {
+    createRequestInCollection(colId)
+  }
+}
+
+async function createRequestInCollection(colId: string) {
+  try {
+    const r = await CreateRequest(colId, 'New Request', 'GET', '', '[]', '[]', '{}', '{}', '', 0)
+    if (r) {
+      const tabId = tabsStore.addHttpTab(r.id, r.name)
+      message.success('Request created')
+      if (projectStore.currentProject) await loadCollections(projectStore.currentProject.id)
+    }
+  } catch (e: any) { message.error(e.message || 'Failed to create request') }
+}
+
 onMounted(loadProjects)
 </script>
 
@@ -410,6 +455,7 @@ onMounted(loadProjects)
             block-line
             selectable
             draggable
+            :render-label="renderLabel"
             @update:selected-keys="handleTreeSelect"
             @drop="handleDrop"
             @contextmenu="(e: any, opt: any) => handleContextMenu(e, opt?.key)"
@@ -428,6 +474,11 @@ onMounted(loadProjects)
     </div>
 
     <!-- Context Menu -->
+    <div v-if="collectionMenuId" class="collection-menu" :style="{ left: collectionMenuPos.x + 'px', top: collectionMenuPos.y + 'px' }">
+      <div v-for="opt in colMenuOptions" :key="opt.key" class="collection-menu-item" @click="handleColMenuSelect(opt.key)">{{ opt.label }}</div>
+    </div>
+    <div v-if="collectionMenuId" class="context-overlay" @click="collectionMenuId = null" @contextmenu.prevent="collectionMenuId = null" />
+
     <div v-if="showContextMenu" class="context-menu" :style="{ left: contextMenuX + 'px', top: contextMenuY + 'px' }">
       <div v-if="contextMenuColId" class="context-item" @click="startRename('collection', contextMenuColId!, '')">Rename Collection</div>
       <div v-if="contextMenuColId" class="context-item" @click="() => startAdd(contextMenuColId ?? undefined)">New Sub-collection</div>
@@ -487,6 +538,15 @@ onMounted(loadProjects)
 .panel-list-item.active { background: var(--active-color); font-weight: 600; }
 .panel-settings { padding: 12px; display: flex; flex-direction: column; gap: 12px; }
 .setting-row { display: flex; align-items: center; justify-content: space-between; font-size: 13px; }
+.tree-node-label { display: flex; align-items: center; justify-content: space-between; width: 100%; }
+.tree-node-name { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; flex: 1; }
+.tree-node-actions { display: none; flex-shrink: 0; margin-left: 4px; }
+.tree-node-label:hover .tree-node-actions { display: flex; }
+.tree-node-dots { background: none; border: none; cursor: pointer; font-size: 16px; line-height: 1; padding: 0 4px; color: #888; border-radius: 4px; letter-spacing: 1px; }
+.tree-node-dots:hover { background: #e8e8e8; color: #333; }
+.collection-menu { position: fixed; z-index: 9999; background: #fff; border: 1px solid #ddd; border-radius: 6px; box-shadow: 0 4px 12px rgba(0,0,0,0.15); padding: 4px 0; min-width: 140px; }
+.collection-menu-item { padding: 6px 12px; font-size: 13px; cursor: pointer; }
+.collection-menu-item:hover { background: #f0f0f0; }
 .context-menu { position: fixed; z-index: 9999; background: #fff; border: 1px solid #ddd; border-radius: 6px; box-shadow: 0 4px 12px rgba(0,0,0,0.15); padding: 4px 0; min-width: 160px; }
 .context-item { padding: 6px 12px; font-size: 13px; cursor: pointer; }
 .context-item:hover { background: #f0f0f0; }
