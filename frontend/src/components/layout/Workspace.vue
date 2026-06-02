@@ -1,14 +1,18 @@
 <template>
-  <div class="workspace" @keydown="onGlobalKeydown" tabindex="0">
-    <n-empty v-if="!activeTab" description="点击左侧集合中的请求开始调试" class="empty-state" />
+  <div class="workspace">
+    <div v-if="!activeTab" class="empty-state">
+      <div class="empty-icon">📦</div>
+      <h2>Paw API</h2>
+      <p>点击左侧集合中的请求开始调试</p>
+    </div>
+
     <div v-else class="workspace-editor">
       <div class="tabs-bar">
-        <div v-if="tabs.length === 0" class="no-tabs">无打开 Tab</div>
         <div
           v-for="(tab, idx) in tabs"
           :key="tab.id"
           class="tab"
-          :class="{ active: tab.id === activeTabId, 'drag-over': dragOverId === tab.id, dirty: tab.isDirty }"
+          :class="{ active: tab.id === activeTabId, dirty: tab.isDirty }"
           draggable="true"
           @click="selectTab(tab.id)"
           @contextmenu.prevent="onTabContextMenu($event, tab, idx)"
@@ -49,27 +53,23 @@
       <ResponsePanel :response="response" />
     </div>
 
-    <n-dropdown
-      placement="bottom-start"
-      trigger="manual"
-      :x="ctxMenuX"
-      :y="ctxMenuY"
-      :options="ctxMenuOptions"
-      :show="ctxMenuShow"
-      :on-clickoutside="onCtxMenuClose"
-      @select="onCtxMenuSelect"
-    />
+    <div v-if="ctxMenuShow" class="ctx-overlay" @click="ctxMenuShow = false">
+      <div class="ctx-menu" :style="{ left: ctxMenuX + 'px', top: ctxMenuY + 'px' }" @click.stop>
+        <div class="ctx-item" @click="onCtxAction('close')">关闭</div>
+        <div class="ctx-item" @click="onCtxAction('close-others')">关闭其他</div>
+        <div class="ctx-item" @click="onCtxAction('close-right')">关闭右侧</div>
+        <div class="ctx-item" @click="onCtxAction('close-all')">关闭全部</div>
+      </div>
+    </div>
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref, computed, watch } from 'vue'
-import { NEmpty, NDropdown, NDialog, useMessage } from 'naive-ui'
+import { ref, onMounted, onUnmounted } from 'vue'
 import UrlBar from '../request/UrlBar.vue'
 import RequestPanel from '../request/RequestPanel.vue'
 import ResponsePanel from '../response/ResponsePanel.vue'
 import type { HttpResponse } from '../../types/response'
-import type { DropdownOption } from 'naive-ui'
 import { SendRequest, UpdateRequest } from '../../../wailsjs/go/main/App'
 import { models } from '../../../wailsjs/go/models'
 import { useEnvStore } from '../../stores/env'
@@ -94,7 +94,6 @@ const props = defineProps<{
 }>()
 
 const envStore = useEnvStore()
-const message = useMessage()
 
 const activeTab = ref<Tab | null>(null)
 const activeTabId = ref<string | null>(null)
@@ -113,52 +112,38 @@ const currentAuthData = ref('{"type":"none"}')
 let sessionCounter = 0
 
 function markDirty() {
-  if (activeTab.value) {
-    activeTab.value.isDirty = true
-  }
+  if (activeTab.value) activeTab.value.isDirty = true
 }
 
-function onMethodChange(v: string) {
-  currentMethod.value = v
-  if (activeTab.value) { activeTab.value.method = v; markDirty() }
+function onMethodChange(v: string) { currentMethod.value = v; markDirty() }
+function onUrlChange(v: string) { currentUrl.value = v; markDirty() }
+function onHeadersChange(v: string) { currentHeaders.value = v; markDirty() }
+function onParamsChange(v: string) { currentParams.value = v; markDirty() }
+function onBodyTypeChange(v: string) { currentBodyType.value = v; markDirty() }
+function onBodyDataChange(v: string) { currentBodyData.value = v; markDirty() }
+function onAuthDataChange(v: string) { currentAuthData.value = v; markDirty() }
+
+function syncToActiveTab() {
+  if (!activeTab.value) return
+  activeTab.value.method = currentMethod.value
+  activeTab.value.url = currentUrl.value
+  activeTab.value.headers = currentHeaders.value
+  activeTab.value.params = currentParams.value
+  activeTab.value.bodyType = currentBodyType.value
+  activeTab.value.bodyData = currentBodyData.value
+  activeTab.value.authData = currentAuthData.value
 }
 
-function onUrlChange(v: string) {
-  currentUrl.value = v
-  if (activeTab.value) { activeTab.value.url = v; markDirty() }
-}
+async function onSend() {
+  if (isSending.value) return
+  isSending.value = true
+  syncToActiveTab()
 
-function onHeadersChange(v: string) {
-  currentHeaders.value = v
-  if (activeTab.value) { activeTab.value.headers = v; markDirty() }
-}
-
-function onParamsChange(v: string) {
-  currentParams.value = v
-  if (activeTab.value) { activeTab.value.params = v; markDirty() }
-}
-
-function onBodyTypeChange(v: string) {
-  currentBodyType.value = v
-  if (activeTab.value) { activeTab.value.bodyType = v; markDirty() }
-}
-
-function onBodyDataChange(v: string) {
-  currentBodyData.value = v
-  if (activeTab.value) { activeTab.value.bodyData = v; markDirty() }
-}
-
-function onAuthDataChange(v: string) {
-  currentAuthData.value = v
-  if (activeTab.value) { activeTab.value.authData = v; markDirty() }
-}
-
-function buildRequest(): models.Request {
-  const t = activeTab.value
-  return models.Request.createFrom({
-    id: t?.requestId || 0,
-    collection_id: t?.collectionId || 0,
-    name: t?.name || '',
+  const envId = envStore.activeEnvId ?? 0
+  const reqModel = {
+    id: activeTab.value?.requestId || 0,
+    collection_id: activeTab.value?.collectionId || 0,
+    name: activeTab.value?.name || '',
     description: '',
     method: currentMethod.value,
     url: currentUrl.value,
@@ -168,32 +153,12 @@ function buildRequest(): models.Request {
     body: currentBodyData.value,
     auth: currentAuthData.value,
     sort_order: 0,
-  })
-}
+  }
 
-async function onSend() {
-  if (!activeTab.value) return
-  isSending.value = true
-  const sessionId = ++sessionCounter
-  const req = buildRequest()
-  const envId = envStore.activeEnvId ?? 0
   try {
-    const resp = await SendRequest(sessionId, req, envId)
-    response.value = {
-      status: resp.status,
-      time: resp.time,
-      size: resp.size,
-      headers: resp.headers || {},
-      cookies: (resp.cookies || []).map((c: any) => ({
-        name: c.name || '',
-        value: c.value || '',
-        domain: c.domain || '',
-        path: c.path || '',
-      })),
-      body: resp.body || '',
-      rawRequest: resp.raw_request || '',
-      curlCommand: resp.curl_command || '',
-    }
+    const sid = ++sessionCounter
+    const resp = await SendRequest(sid, reqModel as any, envId)
+    response.value = resp as any
   } catch (e: any) {
     response.value = {
       status: 0,
@@ -201,7 +166,7 @@ async function onSend() {
       size: 0,
       headers: {},
       cookies: [],
-      body: e?.message || String(e),
+      body: 'Error: ' + (e?.message || e),
       rawRequest: '',
       curlCommand: '',
     }
@@ -210,31 +175,30 @@ async function onSend() {
   }
 }
 
-function onGlobalKeydown(e: KeyboardEvent) {
-  if ((e.ctrlKey || e.metaKey) && e.key === 's') {
-    e.preventDefault()
-    onSaveRequest()
+async function onSave() {
+  if (!activeTab.value) return
+  syncToActiveTab()
+  const reqModel = {
+    id: activeTab.value.requestId || 0,
+    collection_id: activeTab.value.collectionId || 0,
+    name: activeTab.value.name,
+    description: '',
+    method: currentMethod.value,
+    url: currentUrl.value,
+    headers: currentHeaders.value,
+    params: currentParams.value,
+    body_type: currentBodyType.value,
+    body: currentBodyData.value,
+    auth: currentAuthData.value,
+    sort_order: 0,
   }
-}
-
-async function onSaveRequest() {
-  if (!activeTab.value || !activeTab.value.requestId) {
-    message.warning('无法保存：请求数据不完整')
-    return
-  }
-  const req = buildRequest()
   try {
-    await UpdateRequest(req)
-    if (activeTab.value) {
-      activeTab.value.isDirty = false
-    }
-    message.success('已保存')
+    await UpdateRequest(reqModel as any)
+    if (activeTab.value) activeTab.value.isDirty = false
   } catch (e: any) {
-    message.error('保存失败: ' + (e?.message || String(e)))
+    alert('保存失败: ' + (e?.message || e))
   }
 }
-
-// ---- Tab management ----
 
 function selectTab(id: string) {
   activeTabId.value = id
@@ -247,16 +211,12 @@ function selectTab(id: string) {
     currentBodyType.value = activeTab.value.bodyType
     currentBodyData.value = activeTab.value.bodyData
     currentAuthData.value = activeTab.value.authData
-    response.value = null
   }
 }
 
 function onCloseTab(tab: Tab) {
-  if (tab.isDirty) {
-    showCloseConfirm(() => closeTab(tab.id))
-  } else {
-    closeTab(tab.id)
-  }
+  if (tab.isDirty && !confirm('未保存的修改将丢失，确定关闭？')) return
+  closeTab(tab.id)
 }
 
 function closeTab(id: string) {
@@ -264,8 +224,7 @@ function closeTab(id: string) {
   tabs.value = tabs.value.filter(t => t.id !== id)
   if (activeTabId.value === id) {
     if (tabs.value.length > 0) {
-      const nextIdx = Math.min(idx, tabs.value.length - 1)
-      selectTab(tabs.value[nextIdx].id)
+      selectTab(tabs.value[Math.min(idx, tabs.value.length - 1)].id)
     } else {
       activeTabId.value = null
       activeTab.value = null
@@ -275,157 +234,89 @@ function closeTab(id: string) {
 
 function closeOthers(tabId: string) {
   const dirtyOthers = tabs.value.some(t => t.id !== tabId && t.isDirty)
-  if (dirtyOthers) {
-    showCloseConfirm(() => {
-      tabs.value = tabs.value.filter(t => t.id === tabId)
-      selectTab(tabId)
-    })
-  } else {
-    tabs.value = tabs.value.filter(t => t.id === tabId)
-    selectTab(tabId)
-  }
+  if (dirtyOthers && !confirm('未保存的修改将丢失，确定关闭？')) return
+  tabs.value = tabs.value.filter(t => t.id === tabId)
+  selectTab(tabId)
 }
 
 function closeRight(idx: number) {
   const dirtyRight = tabs.value.slice(idx + 1).some(t => t.isDirty)
-  if (dirtyRight) {
-    showCloseConfirm(() => {
-      tabs.value = tabs.value.slice(0, idx + 1)
-      if (activeTabId.value && !tabs.value.find(t => t.id === activeTabId.value)) {
-        selectTab(tabs.value[tabs.value.length - 1].id)
-      }
-    })
-  } else {
-    tabs.value = tabs.value.slice(0, idx + 1)
-    if (activeTabId.value && !tabs.value.find(t => t.id === activeTabId.value)) {
-      selectTab(tabs.value[tabs.value.length - 1].id)
-    }
-  }
+  if (dirtyRight && !confirm('未保存的修改将丢失，确定关闭？')) return
+  tabs.value = tabs.value.slice(0, idx + 1)
+  if (activeTabId.value && !tabs.value.find(t => t.id === activeTabId.value))
+    selectTab(tabs.value[tabs.value.length - 1].id)
 }
 
 function closeAll() {
-  const dirtyAny = tabs.value.some(t => t.isDirty)
-  if (dirtyAny) {
-    showCloseConfirm(() => {
-      tabs.value = []
-      activeTabId.value = null
-      activeTab.value = null
-    })
-  } else {
-    tabs.value = []
-    activeTabId.value = null
-    activeTab.value = null
-  }
+  const dirty = tabs.value.some(t => t.isDirty)
+  if (dirty && !confirm('未保存的修改将丢失，确定关闭？')) return
+  tabs.value = []
+  activeTabId.value = null
+  activeTab.value = null
 }
 
-// ---- Close confirmation ----
-
-function showCloseConfirm(onOk: () => void) {
-  const dialog = (NDialog as any).warning ?? (NDialog as any).create
-  if (typeof dialog !== 'function') {
-    onOk()
-    return
-  }
-  dialog({
-    title: '确认关闭',
-    content: '未保存的修改将丢失，确定关闭？',
-    positiveText: '确定',
-    negativeText: '取消',
-    onPositiveClick: () => { onOk() },
-  })
-}
-
-// ---- Context menu ----
-
+// Context menu
 const ctxMenuShow = ref(false)
 const ctxMenuX = ref(0)
 const ctxMenuY = ref(0)
-const ctxMenuTarget = ref<{ tab: Tab; idx: number } | null>(null)
-
-const ctxMenuOptions = computed<DropdownOption[]>(() => [
-  { label: '关闭', key: 'close' },
-  { label: '关闭其他', key: 'close-others' },
-  { label: '关闭右侧', key: 'close-right' },
-  { label: '关闭全部', key: 'close-all' },
-])
+let ctxTarget: { tab: Tab; idx: number } | null = null
 
 function onTabContextMenu(e: MouseEvent, tab: Tab, idx: number) {
-  ctxMenuTarget.value = { tab, idx }
+  ctxTarget = { tab, idx }
   ctxMenuX.value = e.clientX
   ctxMenuY.value = e.clientY
   ctxMenuShow.value = true
 }
 
-function onCtxMenuClose() {
+function onCtxAction(action: string) {
+  if (!ctxTarget) return
   ctxMenuShow.value = false
-  ctxMenuTarget.value = null
-}
-
-function onCtxMenuSelect(key: string) {
-  const t = ctxMenuTarget.value
-  if (!t) return
-  switch (key) {
-    case 'close': onCloseTab(t.tab); break
-    case 'close-others': closeOthers(t.tab.id); break
-    case 'close-right': closeRight(t.idx); break
+  switch (action) {
+    case 'close': onCloseTab(ctxTarget.tab); break
+    case 'close-others': closeOthers(ctxTarget.tab.id); break
+    case 'close-right': closeRight(ctxTarget.idx); break
     case 'close-all': closeAll(); break
   }
-  ctxMenuShow.value = false
-  ctxMenuTarget.value = null
 }
 
-// ---- Drag and drop ----
-
+// Drag
 const dragIdx = ref<number | null>(null)
 const dragOverId = ref<string | null>(null)
 
 function onDragStart(e: DragEvent, idx: number) {
   dragIdx.value = idx
-  if (e.dataTransfer) {
-    e.dataTransfer.effectAllowed = 'move'
-    e.dataTransfer.setData('text/plain', String(idx))
-  }
+  e.dataTransfer!.effectAllowed = 'move'
 }
-
-function onDragOver(_e: DragEvent, tabId: string) {
-  dragOverId.value = tabId
-}
-
-function onDragLeave(tabId: string) {
-  if (dragOverId.value === tabId) {
-    dragOverId.value = null
-  }
-}
-
+function onDragOver(_e: DragEvent, tabId: string) { dragOverId.value = tabId }
+function onDragLeave(id: string) { if (dragOverId.value === id) dragOverId.value = null }
 function onDrop(_e: DragEvent, targetIdx: number) {
   dragOverId.value = null
-  if (dragIdx.value == null || dragIdx.value === targetIdx) {
-    dragIdx.value = null
-    return
-  }
+  if (dragIdx.value == null || dragIdx.value === targetIdx) return
   const arr = [...tabs.value]
   const [moved] = arr.splice(dragIdx.value, 1)
   arr.splice(targetIdx, 0, moved)
   tabs.value = arr
-  dragIdx.value = null
 }
+function onDragEnd() { dragIdx.value = null; dragOverId.value = null }
 
-function onDragEnd() {
-  dragIdx.value = null
-  dragOverId.value = null
-}
-
-// ---- Expose for other components ----
-
+// Exposed
 function openTab(tab: Tab) {
   const existing = tabs.value.find(t => t.id === tab.id)
-  if (existing) {
-    selectTab(existing.id)
-    return
-  }
+  if (existing) { selectTab(existing.id); return }
   tabs.value.push(tab)
   selectTab(tab.id)
 }
+
+// Keyboard shortcuts
+function onKeydown(e: KeyboardEvent) {
+  if ((e.ctrlKey || e.metaKey) && e.key === 's') {
+    e.preventDefault()
+    onSave()
+  }
+}
+
+onMounted(() => document.addEventListener('keydown', onKeydown))
+onUnmounted(() => document.removeEventListener('keydown', onKeydown))
 
 defineExpose({ openTab, tabs, activeTabId, selectTab })
 </script>
@@ -434,21 +325,26 @@ defineExpose({ openTab, tabs, activeTabId, selectTab })
 .workspace {
   flex: 1;
   display: flex;
-  align-items: center;
-  justify-content: center;
   background: #fff;
   min-width: 0;
-  outline: none;
+  overflow: hidden;
 }
 .empty-state {
   flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  color: #aaa;
 }
+.empty-icon { font-size: 48px; margin-bottom: 12px; opacity: 0.3; }
+.empty-state h2 { font-size: 18px; color: #555; margin: 0 0 6px; font-weight: 500; }
+.empty-state p { font-size: 13px; color: #999; margin: 0; }
 .workspace-editor {
   flex: 1;
   display: flex;
   flex-direction: column;
   min-height: 0;
-  height: 100%;
 }
 .tabs-bar {
   display: flex;
@@ -460,11 +356,6 @@ defineExpose({ openTab, tabs, activeTabId, selectTab })
   gap: 2px;
   overflow-x: auto;
   flex-shrink: 0;
-}
-.no-tabs {
-  padding: 6px 10px;
-  color: #aaa;
-  font-size: 11px;
 }
 .tab {
   padding: 5px 12px;
@@ -480,28 +371,11 @@ defineExpose({ openTab, tabs, activeTabId, selectTab })
   white-space: nowrap;
   user-select: none;
 }
-.tab.active {
-  background: #fff;
-  border-bottom: 2px solid #18a058;
-}
-.tab.dirty {
-  font-style: italic;
-}
-.tab.drag-over {
-  background: #d0e8ff;
-  border-color: #18a058;
-}
-.tab:hover {
-  background: #d9d9d9;
-}
-.tab.active:hover {
-  background: #fff;
-}
+.tab.active { background: #fff; border-bottom: 2px solid #18a058; }
+.tab:hover { background: #d9d9d9; }
+.tab.active:hover { background: #fff; }
 .tab-method {
-  font-size: 9px;
-  font-weight: 700;
-  padding: 0 4px;
-  border-radius: 2px;
+  font-size: 9px; font-weight: 700; padding: 0 4px; border-radius: 2px;
 }
 .tab-method.get { background: #d4edda; color: #155724; }
 .tab-method.post { background: #fff3cd; color: #856404; }
@@ -512,4 +386,12 @@ defineExpose({ openTab, tabs, activeTabId, selectTab })
 .tab-dirty { width: 6px; height: 6px; background: #bbb; border-radius: 50%; }
 .tab-close { color: #aaa; font-size: 13px; margin-left: 4px; }
 .tab-close:hover { color: #d03050; }
+
+.ctx-overlay { position: fixed; inset: 0; z-index: 1000; }
+.ctx-menu {
+  position: fixed; background: #fff; border: 1px solid #e0e0e0; border-radius: 8px;
+  box-shadow: 0 3px 12px rgba(0,0,0,0.12); padding: 4px 0; min-width: 140px; z-index: 1001;
+}
+.ctx-item { padding: 6px 14px; cursor: pointer; font-size: 12px; color: #333; }
+.ctx-item:hover { background: #f0f0f0; }
 </style>
