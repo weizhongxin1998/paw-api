@@ -1,11 +1,12 @@
 <template>
   <div class="body">
     <Sidebar
+      ref="sidebarRef"
       :project-id="projectId"
       @open-request="onOpenFromCollection"
       @history-replay="onHistoryReplay"
-      @panel-change="onPanelChange"
       @open-docs="docsModalShow = true"
+      @tree-action="onTreeAction"
     />
     <Workspace ref="workspaceRef" :project-id="projectId" />
     <DocsPreviewModal
@@ -20,6 +21,7 @@ import { ref, computed } from 'vue'
 import Sidebar from './Sidebar.vue'
 import Workspace from './Workspace.vue'
 import DocsPreviewModal from '../modals/DocsPreviewModal.vue'
+import { useCollectionStore } from '../../stores/collection'
 import { GetRequest } from '../../../wailsjs/go/main/App'
 import { models } from '../../../wailsjs/go/models'
 import type { TreeItem } from '../../types/collection'
@@ -29,10 +31,58 @@ const props = defineProps<{
 }>()
 
 const workspaceRef = ref<InstanceType<typeof Workspace> | null>(null)
+const sidebarRef = ref<InstanceType<typeof Sidebar> | null>(null)
 const docsModalShow = ref(false)
 const currentProjectId = computed(() => props.projectId)
+const collectionStore = useCollectionStore()
 
 function onPanelChange(_: string) {}
+
+async function onTreeAction(action: string, node: TreeItem) {
+  if (!props.projectId) return
+  switch (action) {
+    case 'rename': {
+      const name = prompt('新名称:', node.name)
+      if (name && name !== node.name) {
+        await collectionStore.renameCollection(node.id, name)
+        await sidebarRef.value?.refreshTree()
+      }
+      break
+    }
+    case 'delete': {
+      if (confirm(`确定删除 "${node.name}"?`)) {
+        if (node.type === 'folder')
+          await collectionStore.removeCollection(node.id)
+        else
+          await collectionStore.removeRequest(node.id)
+        await sidebarRef.value?.refreshTree()
+      }
+      break
+    }
+    case 'duplicate': {
+      await collectionStore.duplicateRequest(node.id)
+      await sidebarRef.value?.refreshTree()
+      break
+    }
+    case 'new-folder': {
+      const name = prompt('文件夹名称:')
+      if (name) {
+        await collectionStore.createCollection(props.projectId, node.id, name)
+        await sidebarRef.value?.refreshTree()
+      }
+      break
+    }
+    case 'new-request': {
+      const name = prompt('请求名称:')
+      const method = prompt('方法 (GET/POST/PUT/DELETE):', 'GET')
+      if (name && method) {
+        await collectionStore.createRequest(node.id, name, method)
+        await sidebarRef.value?.refreshTree()
+      }
+      break
+    }
+  }
+}
 
 let tabCounter = 0
 function newTabId(): string {
