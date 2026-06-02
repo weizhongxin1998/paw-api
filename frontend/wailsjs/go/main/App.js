@@ -58,6 +58,14 @@ export function ExportPostman(arg1) {
   return window['go']['main']['App']['ExportPostman'](arg1);
 }
 
+export function GenerateDocsHTML(arg1) {
+  return window['go']['main']['App']['GenerateDocsHTML'](arg1);
+}
+
+export function GenerateDocsMarkdown(arg1) {
+  return window['go']['main']['App']['GenerateDocsMarkdown'](arg1);
+}
+
 export function GetAllSettings() {
   return window['go']['main']['App']['GetAllSettings']();
 }
@@ -144,4 +152,16 @@ export function UpdateProject(arg1, arg2, arg3) {
 
 export function UpdateRequest(arg1) {
   return window['go']['main']['App']['UpdateRequest'](arg1);
+}
+
+export function WSConnect(arg1, arg2) {
+  return window['go']['main']['App']['WSConnect'](arg1, arg2);
+}
+
+export function WSDisconnect(arg1) {
+  return window['go']['main']['App']['WSDisconnect'](arg1);
+}
+
+export function WSSend(arg1, arg2) {
+  return window['go']['main']['App']['WSSend'](arg1, arg2);
 }

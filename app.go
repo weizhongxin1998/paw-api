@@ -28,6 +28,8 @@ type App struct {
 	importH      *handlers.ImportHandler
 	exportH      *handlers.ExportHandler
 	variableH    *handlers.VariableHandler
+	wsH          *handlers.WebSocketHandler
+	docsH        *handlers.DocsHandler
 }
 
 func NewApp() *App {
@@ -80,6 +82,14 @@ func (a *App) startup(ctx context.Context) {
 	a.importH = handlers.NewImportHandler(importSvc)
 	a.exportH = handlers.NewExportHandler(exportSvc)
 	a.variableH = handlers.NewVariableHandler(variableSvc)
+
+	a.wsH = handlers.NewWebSocketHandler()
+
+	docsSvc := services.NewDocsService(collectionRepo, requestRepo)
+	a.docsH = handlers.NewDocsHandler(docsSvc)
+
+	// Set context for WebSocket handler events
+	a.wsH.SetContext(ctx)
 
 	// Load settings into http client
 	settings, err := settingsSvc.GetAll()
@@ -248,4 +258,28 @@ func (a *App) ResolveVariable(text string, envID int64) (string, error) {
 
 func (a *App) ResolveVariableMap(m map[string]string, envID int64) (map[string]string, error) {
 	return a.variableH.ResolveMap(m, envID)
+}
+
+// ========== WebSocket Handlers ==========
+
+func (a *App) WSConnect(url string, headersJSON string) error {
+	return a.wsH.Connect(url, headersJSON)
+}
+
+func (a *App) WSSend(url string, message string) error {
+	return a.wsH.Send(url, message)
+}
+
+func (a *App) WSDisconnect(url string) error {
+	return a.wsH.Disconnect(url)
+}
+
+// ========== Docs Handlers ==========
+
+func (a *App) GenerateDocsMarkdown(projectID int64) (string, error) {
+	return a.docsH.GenerateMarkdown(projectID)
+}
+
+func (a *App) GenerateDocsHTML(projectID int64) (string, error) {
+	return a.docsH.GenerateHTML(projectID)
 }

@@ -3,8 +3,15 @@
     <Sidebar
       @open-request="onOpenFromCollection"
       @history-replay="onHistoryReplay"
+      @panel-change="onPanelChange"
+      @open-docs="docsModalShow = true"
     />
-    <Workspace ref="workspaceRef" />
+    <WebSocketPanel v-if="activePanel === 'websocket'" />
+    <Workspace v-else ref="workspaceRef" />
+    <DocsPreviewModal
+      v-model:show="docsModalShow"
+      :project-id="currentProjectId"
+    />
   </div>
 </template>
 
@@ -12,11 +19,20 @@
 import { ref } from 'vue'
 import Sidebar from './Sidebar.vue'
 import Workspace from './Workspace.vue'
+import WebSocketPanel from '../websocket/WebSocketPanel.vue'
+import DocsPreviewModal from '../modals/DocsPreviewModal.vue'
 import { GetRequest } from '../../../wailsjs/go/main/App'
 import { models } from '../../../wailsjs/go/models'
 import type { TreeItem } from '../../types/collection'
 
 const workspaceRef = ref<InstanceType<typeof Workspace> | null>(null)
+const activePanel = ref<'collection' | 'history' | 'websocket'>('collection')
+const docsModalShow = ref(false)
+const currentProjectId = ref<number | null>(null)
+
+function onPanelChange(panel: 'collection' | 'history' | 'websocket') {
+  activePanel.value = panel
+}
 
 let tabCounter = 0
 function newTabId(): string {

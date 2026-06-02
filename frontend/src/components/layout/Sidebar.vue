@@ -11,6 +11,11 @@
         size="small"
         @click="activePanel = 'history'"
       >History</n-button>
+      <n-button
+        :type="activePanel === 'websocket' ? 'primary' : 'default'"
+        size="small"
+        @click="activePanel = 'websocket'"
+      >WS</n-button>
     </div>
 
     <CollectionTree
@@ -20,32 +25,43 @@
       @ctx-menu="onContextMenu"
     />
     <HistoryPanel
-      v-else
+      v-else-if="activePanel === 'history'"
       @open-tab="onHistoryReplay"
       ref="historyPanelRef"
     />
+    <div v-else class="ws-placeholder">
+      <n-empty description="WebSocket mode active" size="small" />
+    </div>
 
     <div v-if="activePanel === 'collection'" class="sidebar-footer">
       <n-button text size="tiny" @click="onNewCollection">+ 新建集合</n-button>
+      <n-button text size="tiny" @click="onOpenDocs">Docs</n-button>
     </div>
   </div>
 </template>
 
 <script setup lang="ts">
 import { ref } from 'vue'
-import { NButton } from 'naive-ui'
+import { NButton, NEmpty } from 'naive-ui'
 import CollectionTree from '../collection/CollectionTree.vue'
 import HistoryPanel from '../history/HistoryPanel.vue'
 import type { TreeItem } from '../../types/collection'
 
-const activePanel = ref<'collection' | 'history'>('collection')
+const activePanel = ref<'collection' | 'history' | 'websocket'>('collection')
 const tree = ref<TreeItem[]>([])
 const historyPanelRef = ref<InstanceType<typeof HistoryPanel> | null>(null)
 
 const emit = defineEmits<{
   (e: 'open-request', node: TreeItem): void
   (e: 'history-replay', item: any): void
+  (e: 'panel-change', panel: 'collection' | 'history' | 'websocket'): void
+  (e: 'open-docs'): void
 }>()
+
+const emitPanelChange = () => {
+  emit('panel-change', activePanel.value)
+}
+emitPanelChange()
 
 function onOpenRequest(node: TreeItem) {
   emit('open-request', node)
@@ -61,6 +77,10 @@ function onNewCollection() {
 
 function onHistoryReplay(item: any) {
   emit('history-replay', item)
+}
+
+function onOpenDocs() {
+  emit('open-docs')
 }
 </script>
 
@@ -82,5 +102,13 @@ function onHistoryReplay(item: any) {
 .sidebar-footer {
   padding: 6px 10px;
   border-top: 1px solid #e8e8e8;
+  display: flex;
+  justify-content: space-between;
+}
+.ws-placeholder {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 </style>

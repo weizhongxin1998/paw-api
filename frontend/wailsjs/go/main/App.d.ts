@@ -31,6 +31,10 @@ export function DeleteRequest(arg1:number):Promise<void>;
 
 export function ExportPostman(arg1:number):Promise<string>;
 
+export function GenerateDocsHTML(arg1:number):Promise<string>;
+
+export function GenerateDocsMarkdown(arg1:number):Promise<string>;
+
 export function GetAllSettings():Promise<Record<string, string>>;
 
 export function GetCollectionTree(arg1:number):Promise<Array<models.TreeItem>>;
@@ -74,3 +78,9 @@ export function SetSetting(arg1:string,arg2:string):Promise<void>;
 export function UpdateProject(arg1:number,arg2:string,arg3:string):Promise<models.Project>;
 
 export function UpdateRequest(arg1:models.Request):Promise<void>;
+
+export function WSConnect(arg1:string,arg2:string):Promise<void>;
+
+export function WSDisconnect(arg1:string):Promise<void>;
+
+export function WSSend(arg1:string,arg2:string):Promise<void>;
