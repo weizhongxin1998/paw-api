@@ -53,25 +53,27 @@
       <ResponsePanel :response="response" />
     </div>
 
-    <div v-if="ctxMenuShow" class="ctx-overlay" @click="ctxMenuShow = false">
-      <div class="ctx-menu" :style="{ left: ctxMenuX + 'px', top: ctxMenuY + 'px' }" @click.stop>
-        <div class="ctx-item" @click="onCtxAction('close')">关闭</div>
-        <div class="ctx-item" @click="onCtxAction('close-others')">关闭其他</div>
-        <div class="ctx-item" @click="onCtxAction('close-right')">关闭右侧</div>
-        <div class="ctx-item" @click="onCtxAction('close-all')">关闭全部</div>
-      </div>
-    </div>
+    <n-dropdown
+      placement="bottom-start"
+      trigger="manual"
+      :x="ctxMenuX"
+      :y="ctxMenuY"
+      :options="ctxMenuOptions"
+      :show="ctxMenuShow"
+      :on-clickoutside="() => { ctxMenuShow = false }"
+      @select="onCtxMenuSelect"
+    />
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, onUnmounted } from 'vue'
+import { ref, computed, onMounted, onUnmounted } from 'vue'
+import { NDropdown, useDialog } from 'naive-ui'
 import UrlBar from '../request/UrlBar.vue'
 import RequestPanel from '../request/RequestPanel.vue'
 import ResponsePanel from '../response/ResponsePanel.vue'
 import type { HttpResponse } from '../../types/response'
 import { SendRequest, UpdateRequest } from '../../../wailsjs/go/main/App'
-import { models } from '../../../wailsjs/go/models'
 import { useEnvStore } from '../../stores/env'
 
 interface Tab {
@@ -94,6 +96,7 @@ const props = defineProps<{
 }>()
 
 const envStore = useEnvStore()
+const dialog = useDialog()
 
 const activeTab = ref<Tab | null>(null)
 const activeTabId = ref<string | null>(null)
@@ -196,7 +199,11 @@ async function onSave() {
     await UpdateRequest(reqModel as any)
     if (activeTab.value) activeTab.value.isDirty = false
   } catch (e: any) {
-    alert('保存失败: ' + (e?.message || e))
+    dialog.warning({
+      title: '保存失败',
+      content: e?.message || String(e),
+      positiveText: '确定',
+    })
   }
 }
 
@@ -215,8 +222,17 @@ function selectTab(id: string) {
 }
 
 function onCloseTab(tab: Tab) {
-  if (tab.isDirty && !confirm('未保存的修改将丢失，确定关闭？')) return
-  closeTab(tab.id)
+  if (tab.isDirty) {
+    dialog.warning({
+      title: '确认关闭',
+      content: '未保存的修改将丢失，确定关闭？',
+      positiveText: '确定',
+      negativeText: '取消',
+      onPositiveClick: () => closeTab(tab.id),
+    })
+  } else {
+    closeTab(tab.id)
+  }
 }
 
 function closeTab(id: string) {
@@ -234,25 +250,61 @@ function closeTab(id: string) {
 
 function closeOthers(tabId: string) {
   const dirtyOthers = tabs.value.some(t => t.id !== tabId && t.isDirty)
-  if (dirtyOthers && !confirm('未保存的修改将丢失，确定关闭？')) return
-  tabs.value = tabs.value.filter(t => t.id === tabId)
-  selectTab(tabId)
+  const doClose = () => {
+    tabs.value = tabs.value.filter(t => t.id === tabId)
+    selectTab(tabId)
+  }
+  if (dirtyOthers) {
+    dialog.warning({
+      title: '确认关闭',
+      content: '未保存的修改将丢失，确定关闭？',
+      positiveText: '确定',
+      negativeText: '取消',
+      onPositiveClick: doClose,
+    })
+  } else {
+    doClose()
+  }
 }
 
 function closeRight(idx: number) {
   const dirtyRight = tabs.value.slice(idx + 1).some(t => t.isDirty)
-  if (dirtyRight && !confirm('未保存的修改将丢失，确定关闭？')) return
-  tabs.value = tabs.value.slice(0, idx + 1)
-  if (activeTabId.value && !tabs.value.find(t => t.id === activeTabId.value))
-    selectTab(tabs.value[tabs.value.length - 1].id)
+  const doClose = () => {
+    tabs.value = tabs.value.slice(0, idx + 1)
+    if (activeTabId.value && !tabs.value.find(t => t.id === activeTabId.value))
+      selectTab(tabs.value[tabs.value.length - 1].id)
+  }
+  if (dirtyRight) {
+    dialog.warning({
+      title: '确认关闭',
+      content: '未保存的修改将丢失，确定关闭？',
+      positiveText: '确定',
+      negativeText: '取消',
+      onPositiveClick: doClose,
+    })
+  } else {
+    doClose()
+  }
 }
 
 function closeAll() {
   const dirty = tabs.value.some(t => t.isDirty)
-  if (dirty && !confirm('未保存的修改将丢失，确定关闭？')) return
-  tabs.value = []
-  activeTabId.value = null
-  activeTab.value = null
+  const doClose = () => {
+    tabs.value = []
+    activeTabId.value = null
+    activeTab.value = null
+  }
+  if (dirty) {
+    dialog.warning({
+      title: '确认关闭',
+      content: '未保存的修改将丢失，确定关闭？',
+      positiveText: '确定',
+      negativeText: '取消',
+      onPositiveClick: doClose,
+    })
+  } else {
+    doClose()
+  }
 }
 
 // Context menu
@@ -261,6 +313,13 @@ const ctxMenuX = ref(0)
 const ctxMenuY = ref(0)
 let ctxTarget: { tab: Tab; idx: number } | null = null
 
+const ctxMenuOptions = computed(() => [
+  { label: '关闭', key: 'close' },
+  { label: '关闭其他', key: 'close-others' },
+  { label: '关闭右侧', key: 'close-right' },
+  { label: '关闭全部', key: 'close-all' },
+])
+
 function onTabContextMenu(e: MouseEvent, tab: Tab, idx: number) {
   ctxTarget = { tab, idx }
   ctxMenuX.value = e.clientX
@@ -268,10 +327,10 @@ function onTabContextMenu(e: MouseEvent, tab: Tab, idx: number) {
   ctxMenuShow.value = true
 }
 
-function onCtxAction(action: string) {
-  if (!ctxTarget) return
+function onCtxMenuSelect(key: string) {
   ctxMenuShow.value = false
-  switch (action) {
+  if (!ctxTarget) return
+  switch (key) {
     case 'close': onCloseTab(ctxTarget.tab); break
     case 'close-others': closeOthers(ctxTarget.tab.id); break
     case 'close-right': closeRight(ctxTarget.idx); break
@@ -386,12 +445,4 @@ defineExpose({ openTab, tabs, activeTabId, selectTab })
 .tab-dirty { width: 6px; height: 6px; background: #bbb; border-radius: 50%; }
 .tab-close { color: #aaa; font-size: 13px; margin-left: 4px; }
 .tab-close:hover { color: #d03050; }
-
-.ctx-overlay { position: fixed; inset: 0; z-index: 1000; }
-.ctx-menu {
-  position: fixed; background: #fff; border: 1px solid #e0e0e0; border-radius: 8px;
-  box-shadow: 0 3px 12px rgba(0,0,0,0.12); padding: 4px 0; min-width: 140px; z-index: 1001;
-}
-.ctx-item { padding: 6px 14px; cursor: pointer; font-size: 12px; color: #333; }
-.ctx-item:hover { background: #f0f0f0; }
 </style>
