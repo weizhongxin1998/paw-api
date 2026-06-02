@@ -387,6 +387,7 @@ Project
 
 > 前端设计详见 [paw-api-frontend.md](./paw-api-frontend.md)
 > 后端设计详见 [paw-api-backend.md](./paw-api-backend.md)
+> 详细实施计划详见 [paw-api-implementation-plan.md](./paw-api-implementation-plan.md)
 
 | Phase | 内容 | 依赖 |
 |---|---|---|

@@ -1,11 +1,3 @@
 build/bin
 node_modules
 frontend/dist
-
-.env
-.env.local
-.idea/
-.vscode/
-*.log
-.DS_Store
-Thumbs.db
