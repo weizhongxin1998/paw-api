@@ -1,14 +1,22 @@
 <template>
   <div class="workspace">
     <div v-if="!activeTab && !historyItem" class="empty-state">
-      <div class="empty-icon">📦</div>
+      <div class="empty-logo">
+        <svg width="48" height="48" viewBox="0 0 48 48" fill="none" stroke="currentColor" stroke-width="1.5" opacity="0.4">
+          <rect x="4" y="8" width="40" height="32" rx="4" />
+          <line x1="4" y1="18" x2="44" y2="18" />
+          <circle cx="10" cy="13" r="1.5" fill="currentColor" stroke="none" />
+          <circle cx="15" cy="13" r="1.5" fill="currentColor" stroke="none" />
+          <circle cx="20" cy="13" r="1.5" fill="currentColor" stroke="none" />
+        </svg>
+      </div>
       <h2>Paw API</h2>
-      <p>点击左侧集合中的请求开始调试</p>
+      <p>点击左侧集合中的请求<br/>或按 <kbd>Ctrl + N</kbd> 新建标签</p>
     </div>
 
     <div v-if="historyItem" class="workspace-editor">
       <div class="tabs-bar">
-        <span class="tabs-msg">选择一条历史记录查看详情，或双击在新 Tab 中回放</span>
+        <span class="tabs-msg">历史记录详情 · 双击可回放至新标签</span>
       </div>
       <div class="history-detail">
         <div class="hist-detail-row"><span class="hist-detail-label">方法</span><span class="method-badge" :class="historyItem.method?.toLowerCase()">{{ historyItem.method }}</span></div>
@@ -53,7 +61,7 @@
           <span class="tab-method" :class="tab.method?.toLowerCase()">{{ tab.method }}</span>
           <span class="tab-name">{{ tab.name }}</span>
           <span v-if="tab.isDirty" class="tab-dirty"></span>
-          <span class="tab-close" @click.stop="onCloseTab(tab)">x</span>
+          <span class="tab-close" @click.stop="onCloseTab(tab)">&times;</span>
         </div>
         <span class="tab-plus" @click="addNewTab">+</span>
       </div>
@@ -86,7 +94,9 @@
         v-if="response"
         class="resize-handle"
         @mousedown="onResizeStart"
-      ></div>
+      >
+        <div class="resize-line"></div>
+      </div>
 
       <ResponsePanel
         v-if="response"
@@ -164,9 +174,7 @@ let tabIdCounter = 0
 function markDirty() {
   if (!activeTab.value) return
   activeTab.value.isDirty = true
-  if (activeTab.value.isPreview) {
-    activeTab.value.isPreview = false
-  }
+  if (activeTab.value.isPreview) activeTab.value.isPreview = false
 }
 
 function onMethodChange(v: string) { currentMethod.value = v; markDirty() }
@@ -193,32 +201,17 @@ function syncToActiveTab() {
 function addNewTab() {
   const id = 'tab-' + (++tabIdCounter) + '-' + Date.now()
   const tab: Tab = {
-    id,
-    requestId: 0,
-    method: 'GET',
-    name: '新建请求',
-    url: '',
-    pathVars: '[]',
-    isDirty: true,
-    isPreview: false,
-    headers: '[]',
-    params: '[]',
-    bodyType: 'none',
-    bodyData: '{}',
-    authData: '{"type":"none"}',
-    collectionId: 0,
+    id, requestId: 0, method: 'GET', name: '新建请求', url: '',
+    pathVars: '[]', isDirty: true, isPreview: false,
+    headers: '[]', params: '[]', bodyType: 'none', bodyData: '{}',
+    authData: '{"type":"none"}', collectionId: 0,
   }
   tabs.value.push(tab)
   selectTab(tab.id)
 }
 
-function showHistoryDetail(item: any) {
-  historyItem.value = item
-}
-
-function clearHistoryDetail() {
-  historyItem.value = null
-}
+function showHistoryDetail(item: any) { historyItem.value = item }
+function clearHistoryDetail() { historyItem.value = null }
 
 function statusClass(code: number): string {
   if (code < 300) return 'status-2xx'
@@ -228,11 +221,7 @@ function statusClass(code: number): string {
 }
 
 function formatJson(raw: string): string {
-  try {
-    return JSON.stringify(JSON.parse(raw), null, 2)
-  } catch {
-    return raw
-  }
+  try { return JSON.stringify(JSON.parse(raw), null, 2) } catch { return raw }
 }
 
 async function onSend() {
@@ -240,7 +229,6 @@ async function onSend() {
   isSending.value = true
   syncToActiveTab()
 
-  // Resolve path variables in URL
   let resolvedUrl = currentUrl.value
   try {
     const pv = JSON.parse(currentPathVars.value || '[]') as { key: string; value: string }[]
@@ -275,14 +263,8 @@ async function onSend() {
     if (responseHeight.value < 150) responseHeight.value = 200
   } catch (e: any) {
     response.value = {
-      status: 0,
-      time: 0,
-      size: 0,
-      headers: {},
-      cookies: [],
-      body: 'Error: ' + (e?.message || e),
-      rawRequest: '',
-      curlCommand: '',
+      status: 0, time: 0, size: 0, headers: {}, cookies: [],
+      body: 'Error: ' + (e?.message || e), rawRequest: '', curlCommand: '',
     }
   } finally {
     isSending.value = false
@@ -295,26 +277,17 @@ async function onSave() {
   const reqModel = {
     id: activeTab.value.requestId || 0,
     collection_id: activeTab.value.collectionId || 0,
-    name: activeTab.value.name,
-    description: '',
-    method: currentMethod.value,
-    url: currentUrl.value,
-    headers: currentHeaders.value,
-    params: currentParams.value,
-    body_type: currentBodyType.value,
-    body: currentBodyData.value,
-    auth: currentAuthData.value,
-    sort_order: 0,
+    name: activeTab.value.name, description: '',
+    method: currentMethod.value, url: currentUrl.value,
+    headers: currentHeaders.value, params: currentParams.value,
+    body_type: currentBodyType.value, body: currentBodyData.value,
+    auth: currentAuthData.value, sort_order: 0,
   }
   try {
     await UpdateRequest(reqModel as any)
     if (activeTab.value) activeTab.value.isDirty = false
   } catch (e: any) {
-    dialog.warning({
-      title: '保存失败',
-      content: e?.message || String(e),
-      positiveText: '确定',
-    })
+    dialog.warning({ title: '保存失败', content: e?.message || String(e), positiveText: '确定' })
   }
 }
 
@@ -338,8 +311,7 @@ function onCloseTab(tab: Tab) {
     dialog.warning({
       title: '确认关闭',
       content: '未保存的修改将丢失，确定关闭？',
-      positiveText: '确定',
-      negativeText: '取消',
+      positiveText: '确定', negativeText: '取消',
       onPositiveClick: () => closeTab(tab.id),
     })
   } else {
@@ -354,29 +326,17 @@ function closeTab(id: string) {
     if (tabs.value.length > 0) {
       selectTab(tabs.value[Math.min(idx, tabs.value.length - 1)].id)
     } else {
-      activeTabId.value = null
-      activeTab.value = null
+      activeTabId.value = null; activeTab.value = null
     }
   }
 }
 
 function closeOthers(tabId: string) {
   const dirtyOthers = tabs.value.some(t => t.id !== tabId && t.isDirty)
-  const doClose = () => {
-    tabs.value = tabs.value.filter(t => t.id === tabId)
-    selectTab(tabId)
-  }
+  const doClose = () => { tabs.value = tabs.value.filter(t => t.id === tabId); selectTab(tabId) }
   if (dirtyOthers) {
-    dialog.warning({
-      title: '确认关闭',
-      content: '未保存的修改将丢失，确定关闭？',
-      positiveText: '确定',
-      negativeText: '取消',
-      onPositiveClick: doClose,
-    })
-  } else {
-    doClose()
-  }
+    dialog.warning({ title: '确认关闭', content: '未保存的修改将丢失，确定关闭？', positiveText: '确定', negativeText: '取消', onPositiveClick: doClose })
+  } else { doClose() }
 }
 
 function closeRight(idx: number) {
@@ -387,36 +347,16 @@ function closeRight(idx: number) {
       selectTab(tabs.value[tabs.value.length - 1].id)
   }
   if (dirtyRight) {
-    dialog.warning({
-      title: '确认关闭',
-      content: '未保存的修改将丢失，确定关闭？',
-      positiveText: '确定',
-      negativeText: '取消',
-      onPositiveClick: doClose,
-    })
-  } else {
-    doClose()
-  }
+    dialog.warning({ title: '确认关闭', content: '未保存的修改将丢失，确定关闭？', positiveText: '确定', negativeText: '取消', onPositiveClick: doClose })
+  } else { doClose() }
 }
 
 function closeAll() {
   const dirty = tabs.value.some(t => t.isDirty)
-  const doClose = () => {
-    tabs.value = []
-    activeTabId.value = null
-    activeTab.value = null
-  }
+  const doClose = () => { tabs.value = []; activeTabId.value = null; activeTab.value = null }
   if (dirty) {
-    dialog.warning({
-      title: '确认关闭',
-      content: '未保存的修改将丢失，确定关闭？',
-      positiveText: '确定',
-      negativeText: '取消',
-      onPositiveClick: doClose,
-    })
-  } else {
-    doClose()
-  }
+    dialog.warning({ title: '确认关闭', content: '未保存的修改将丢失，确定关闭？', positiveText: '确定', negativeText: '取消', onPositiveClick: doClose })
+  } else { doClose() }
 }
 
 const ctxMenuShow = ref(false)
@@ -452,10 +392,7 @@ function onCtxMenuSelect(key: string) {
 const dragIdx = ref<number | null>(null)
 const dragOverId = ref<string | null>(null)
 
-function onDragStart(e: DragEvent, idx: number) {
-  dragIdx.value = idx
-  e.dataTransfer!.effectAllowed = 'move'
-}
+function onDragStart(e: DragEvent, idx: number) { dragIdx.value = idx; e.dataTransfer!.effectAllowed = 'move' }
 function onDragOver(_e: DragEvent, tabId: string) { dragOverId.value = tabId }
 function onDragLeave(id: string) { if (dragOverId.value === id) dragOverId.value = null }
 function onDrop(_e: DragEvent, targetIdx: number) {
@@ -486,9 +423,7 @@ function previewTab(tab: Tab) {
   const existing = tabs.value.find(t => t.requestId > 0 && t.requestId === tab.requestId)
   if (existing) { selectTab(existing.id); return }
   const oldPreview = tabs.value.findIndex(t => t.isPreview)
-  if (oldPreview !== -1) {
-    tabs.value.splice(oldPreview, 1)
-  }
+  if (oldPreview !== -1) tabs.value.splice(oldPreview, 1)
   tab.isPreview = true
   tabs.value.push(tab)
   selectTab(tab.id)
@@ -533,7 +468,7 @@ defineExpose({ openTab, previewTab, tabs, activeTabId, selectTab, showHistoryDet
 .workspace {
   flex: 1;
   display: flex;
-  background: #fff;
+  background: var(--bg-base);
   min-width: 0;
   overflow: hidden;
 }
@@ -543,11 +478,23 @@ defineExpose({ openTab, previewTab, tabs, activeTabId, selectTab, showHistoryDet
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  color: var(--gray-400);
+  color: var(--text-muted);
+  gap: 4px;
 }
-.empty-icon { font-size: 48px; margin-bottom: 12px; opacity: 0.2; }
-.empty-state h2 { font-size: 18px; color: var(--gray-600); margin: 0 0 6px; font-weight: 500; }
-.empty-state p { font-size: 13px; color: var(--gray-400); margin: 0; }
+.empty-logo { margin-bottom: 8px; }
+.empty-state h2 {
+  font-size: var(--fs-lg); color: var(--text-secondary); margin: 0;
+  font-weight: 600; letter-spacing: 1px; text-transform: uppercase;
+}
+.empty-state p {
+  font-size: var(--fs-sm); color: var(--text-muted); margin: 0;
+  text-align: center; line-height: 1.7;
+}
+.empty-state kbd {
+  background: var(--bg-elevated); border: 1px solid var(--border-primary);
+  padding: 1px 5px; border-radius: 2px; font-size: var(--fs-xs);
+  font-family: var(--font-mono); color: var(--text-secondary);
+}
 .workspace-editor {
   flex: 1;
   display: flex;
@@ -556,128 +503,124 @@ defineExpose({ openTab, previewTab, tabs, activeTabId, selectTab, showHistoryDet
 }
 .tabs-bar {
   display: flex;
-  background: var(--gray-50);
-  border-bottom: 1px solid var(--gray-200);
-  height: 34px;
+  background: var(--bg-surface);
+  border-bottom: 1px solid var(--border-primary);
+  height: 32px;
   align-items: flex-end;
-  padding: 0 6px;
-  gap: 3px;
+  padding: 0 4px;
+  gap: 2px;
   overflow-x: auto;
   flex-shrink: 0;
 }
 .tabs-msg {
-  font-size: 12px;
-  color: var(--gray-400);
-  padding: 6px 12px;
+  font-size: var(--fs-sm);
+  color: var(--text-muted);
+  padding: 5px 12px;
+  font-family: var(--font-mono);
 }
 .tab {
-  padding: 5px 12px;
-  font-size: 12px;
-  background: var(--gray-200);
-  border: 1px solid var(--gray-200);
+  padding: 4px 10px;
+  font-size: var(--fs-sm);
+  background: var(--bg-elevated);
+  border: 1px solid var(--border-primary);
   border-bottom: none;
   border-radius: var(--radius-sm) var(--radius-sm) 0 0;
   cursor: pointer;
   display: flex;
   align-items: center;
-  gap: 5px;
+  gap: 4px;
   white-space: nowrap;
   user-select: none;
-  color: var(--gray-500);
+  color: var(--text-muted);
+  font-family: var(--font-mono);
   transition: all var(--transition);
+  max-width: 200px;
 }
-.tab.active { background: #fff; border-color: var(--gray-200); border-bottom: 2px solid var(--green); color: var(--gray-700); }
-.tab.preview { font-style: italic; color: var(--gray-400); }
-.tab:hover:not(.active) { background: var(--gray-300); }
-.tab.active:hover { background: #fff; }
+.tab.active { background: var(--bg-base); border-color: var(--border-primary); border-bottom: 2px solid var(--accent); color: var(--text-primary); }
+.tab.preview { font-style: italic; }
+.tab:hover:not(.active) { background: var(--bg-hover); color: var(--text-secondary); }
 .tab-method {
-  font-size: 9px; font-weight: 700; padding: 1px 4px; border-radius: 3px; letter-spacing: 0.2px;
+  font-size: var(--fs-2xs); font-weight: 700; padding: 1px 3px; border-radius: 2px; letter-spacing: 0.3px; flex-shrink: 0;
 }
-.tab-method.get { background: var(--green-soft); color: var(--green); }
+.tab-method.get { background: var(--accent-soft); color: var(--accent); }
 .tab-method.post { background: var(--amber-soft); color: var(--amber); }
 .tab-method.put { background: var(--blue-soft); color: var(--blue); }
 .tab-method.delete { background: var(--red-soft); color: var(--red); }
 .tab-method.patch { background: var(--purple-soft); color: var(--purple); }
-.tab-name { font-size: 12px; }
-.tab-dirty { width: 6px; height: 6px; background: var(--gray-300); border-radius: 50%; }
-.tab-close { color: var(--gray-400); font-size: 13px; margin-left: 2px; padding: 0 2px; border-radius: 2px; transition: all var(--transition); }
-.tab-close:hover { color: #fff; background: var(--red); }
+.tab-method.head, .tab-method.options { background: var(--bg-hover); color: var(--text-secondary); }
+.tab-name { font-size: var(--fs-sm); overflow: hidden; text-overflow: ellipsis; }
+.tab-dirty { width: 5px; height: 5px; background: var(--accent); border-radius: 50%; flex-shrink: 0; }
+.tab-close { color: var(--text-muted); font-size: var(--fs-md); margin-left: 1px; padding: 0 2px; border-radius: 2px; transition: all var(--transition); }
+.tab-close:hover { color: var(--red); background: var(--red-soft); }
 .tab-plus {
-  padding: 4px 8px; font-size: 16px; cursor: pointer; color: var(--green);
-  user-select: none; border-radius: var(--radius-sm); transition: all var(--transition);
+  padding: 2px 7px; font-size: var(--fs-md); cursor: pointer; color: var(--accent);
+  user-select: none; border-radius: var(--radius-sm); transition: all var(--transition); flex-shrink: 0;
 }
-.tab-plus:hover { background: var(--green-soft); }
+.tab-plus:hover { background: var(--accent-soft); }
 .resize-handle {
-  height: 4px; cursor: ns-resize; flex-shrink: 0;
-  background: var(--gray-200); transition: background var(--transition);
+  height: 6px; cursor: ns-resize; flex-shrink: 0;
+  display: flex; align-items: center; justify-content: center;
+  background: var(--bg-surface);
+  border-top: 1px solid var(--border-primary);
+  transition: background var(--transition);
 }
-.resize-handle:hover { background: var(--green); height: 4px; }
+.resize-handle:hover { background: var(--bg-elevated); }
+.resize-line {
+  width: 30px; height: 2px; border-radius: 1px;
+  background: var(--border-hover); transition: all var(--transition);
+}
+.resize-handle:hover .resize-line { background: var(--accent); width: 50px; }
 
 .history-detail {
   flex: 1;
   overflow-y: auto;
-  padding: 16px 20px;
-  font-size: 13px;
-  background: var(--gray-50);
+  padding: 16px 18px;
+  font-size: var(--fs-sm);
+  background: var(--bg-base);
 }
 .hist-detail-row {
   display: flex;
   align-items: center;
-  gap: 12px;
-  padding: 7px 0;
-  border-bottom: 1px solid var(--gray-100);
+  gap: 10px;
+  padding: 6px 0;
+  border-bottom: 1px solid var(--border-primary);
 }
 .hist-detail-label {
-  color: var(--gray-500);
-  width: 80px;
+  color: var(--text-muted);
+  width: 60px;
   flex-shrink: 0;
-  font-size: 11px;
+  font-size: var(--fs-xs);
   text-transform: uppercase;
-  letter-spacing: 0.3px;
+  letter-spacing: 0.5px;
+  font-weight: 500;
 }
 .hist-detail-value {
   word-break: break-all;
-  color: var(--gray-700);
-  font-size: 13px;
+  color: var(--text-primary);
+  font-size: var(--fs-sm);
+  font-family: var(--font-mono);
 }
-.hist-detail-value.status-2xx { color: var(--green); font-weight: 600; }
+.hist-detail-value.status-2xx { color: var(--accent); font-weight: 600; }
 .hist-detail-value.status-3xx { color: var(--blue); font-weight: 600; }
 .hist-detail-value.status-4xx { color: var(--amber); font-weight: 600; }
 .hist-detail-value.status-5xx { color: var(--red); font-weight: 600; }
 .method-badge {
-  font-size: 10px;
-  font-weight: 700;
-  padding: 2px 6px;
-  border-radius: 3px;
+  font-size: var(--fs-2xs); font-weight: 700; padding: 2px 5px; border-radius: 2px; letter-spacing: 0.3px;
 }
-.method-badge.get { background: var(--green-soft); color: var(--green); }
+.method-badge.get { background: var(--accent-soft); color: var(--accent); }
 .method-badge.post { background: var(--amber-soft); color: var(--amber); }
 .method-badge.put { background: var(--blue-soft); color: var(--blue); }
 .method-badge.delete { background: var(--red-soft); color: var(--red); }
-.hist-detail-section {
-  margin-top: 14px;
-}
+.method-badge.patch { background: var(--purple-soft); color: var(--purple); }
+.hist-detail-section { margin-top: 12px; }
 .hist-detail-section h4 {
-  margin: 0 0 8px;
-  font-size: 11px;
-  color: var(--gray-500);
-  font-weight: 600;
-  text-transform: uppercase;
-  letter-spacing: 0.3px;
+  margin: 0 0 6px; font-size: var(--fs-xs); color: var(--text-muted);
+  font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px;
 }
 .hist-detail-pre {
-  background: #fff;
-  border: 1px solid var(--gray-200);
-  border-radius: var(--radius);
-  padding: 12px;
-  font-size: 12px;
-  font-family: 'SF Mono', Consolas, monospace;
-  white-space: pre-wrap;
-  word-break: break-all;
-  max-height: 200px;
-  overflow-y: auto;
-  margin: 0;
-  color: var(--gray-700);
-  line-height: 1.6;
+  background: var(--bg-surface); border: 1px solid var(--border-primary); border-radius: var(--radius);
+  padding: 10px; font-size: var(--fs-sm); font-family: var(--font-mono);
+  white-space: pre-wrap; word-break: break-all; max-height: 180px;
+  overflow-y: auto; margin: 0; color: var(--text-primary); line-height: 1.6;
 }
 </style>

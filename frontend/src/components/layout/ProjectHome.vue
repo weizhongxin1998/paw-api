@@ -1,9 +1,30 @@
 <template>
   <div class="project-home">
+    <div class="home-bg-grid"></div>
     <div class="home-header">
-      <h1 class="home-title">Paw API</h1>
+      <div class="home-brand">
+        <svg class="brand-mark" width="32" height="32" viewBox="0 0 32 32" fill="none" stroke="currentColor" stroke-width="1.8">
+          <rect x="2" y="5" width="28" height="22" rx="3" />
+          <line x1="2" y1="12" x2="30" y2="12" />
+          <circle cx="7" cy="8.5" r="1.2" fill="currentColor" stroke="none" />
+          <circle cx="11" cy="8.5" r="1.2" fill="currentColor" stroke="none" />
+          <circle cx="15" cy="8.5" r="1.2" fill="currentColor" stroke="none" />
+          <path d="M10 19l3 3 6-6" stroke-linecap="round" stroke-linejoin="round" />
+        </svg>
+        <h1 class="home-title">PAW API</h1>
+        <span class="home-version">v1.0</span>
+      </div>
       <div class="home-actions">
-        <button class="btn-import" @click="showImport = true">导入</button>
+        <button class="btn-theme" @click="emit('toggle-theme')" :title="props.themeMode === 'dark' ? '日间模式' : '夜间模式'">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <circle v-if="props.themeMode === 'dark'" cx="12" cy="12" r="5"/><line v-if="props.themeMode === 'dark'" x1="12" y1="1" x2="12" y2="3"/><line v-if="props.themeMode === 'dark'" x1="12" y1="21" x2="12" y2="23"/><line v-if="props.themeMode === 'dark'" x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line v-if="props.themeMode === 'dark'" x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line v-if="props.themeMode === 'dark'" x1="1" y1="12" x2="3" y2="12"/><line v-if="props.themeMode === 'dark'" x1="21" y1="12" x2="23" y2="12"/><line v-if="props.themeMode === 'dark'" x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line v-if="props.themeMode === 'dark'" x1="18.36" y1="5.64" x2="19.78" y2="4.22"/>
+            <path v-else d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>
+          </svg>
+        </button>
+        <button class="btn-import" @click="showImport = true">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+          导入
+        </button>
         <button class="btn-new" @click="showCreate = true">+ 新建项目</button>
       </div>
     </div>
@@ -14,20 +35,39 @@
         :key="p.id"
         class="project-card"
         @click="enterProject(p.id)"
+        @keydown.enter="enterProject(p.id)"
       >
-        <div class="card-icon">📁</div>
+        <div class="card-header">
+          <span class="card-icon">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M22 19a2 2 0 01-2 2H4a2 2 0 01-2-2V5a2 2 0 012-2h5l2 3h9a2 2 0 012 2z"/></svg>
+          </span>
+          <span class="card-arrow">&rarr;</span>
+        </div>
         <div class="card-body">
           <div class="card-name">{{ p.name }}</div>
           <div class="card-desc" v-if="p.description">{{ p.description }}</div>
-          <div class="card-stats">
-            <span>{{ p.stats?.request_count ?? 0 }} 接口</span>
-            <span>{{ p.stats?.collection_count ?? 0 }} 集合</span>
-          </div>
+        </div>
+        <div class="card-stats">
+          <span class="stat">
+            <span class="stat-num">{{ p.stats?.request_count ?? 0 }}</span>
+            <span class="stat-label">接口</span>
+          </span>
+          <span class="stat-divider"></span>
+          <span class="stat">
+            <span class="stat-num">{{ p.stats?.collection_count ?? 0 }}</span>
+            <span class="stat-label">集合</span>
+          </span>
         </div>
       </div>
 
       <div v-if="projectList.length === 0" class="empty-state">
-        <div class="empty-icon">📦</div>
+        <svg class="empty-icon" width="48" height="48" viewBox="0 0 48 48" fill="none" stroke="currentColor" stroke-width="1.2">
+          <rect x="6" y="10" width="36" height="28" rx="3" />
+          <line x1="6" y1="18" x2="42" y2="18" />
+          <circle cx="13" cy="14" r="1.5" fill="currentColor" stroke="none" />
+          <circle cx="18" cy="14" r="1.5" fill="currentColor" stroke="none" />
+          <circle cx="23" cy="14" r="1.5" fill="currentColor" stroke="none" />
+        </svg>
         <h2>还没有项目</h2>
         <p>创建第一个项目，开始调试 API</p>
         <button class="btn-new" @click="showCreate = true">+ 新建项目</button>
@@ -61,8 +101,11 @@ interface ProjectCard {
   stats: { request_count: number; collection_count: number } | null
 }
 
+const props = defineProps<{ themeMode: 'dark' | 'light' }>()
+
 const emit = defineEmits<{
   (e: 'enter-project', id: number): void
+  (e: 'toggle-theme'): void
 }>()
 
 const projectList = ref<ProjectCard[]>([])
@@ -77,20 +120,11 @@ async function loadProjects() {
     const items: ProjectCard[] = []
     for (const p of projects || []) {
       let stats = null
-      try {
-        stats = await GetProjectStats(p.id)
-      } catch { /* ignore */ }
-      items.push({
-        id: p.id,
-        name: p.name,
-        description: p.description,
-        stats,
-      })
+      try { stats = await GetProjectStats(p.id) } catch { /* ignore */ }
+      items.push({ id: p.id, name: p.name, description: p.description, stats })
     }
     projectList.value = items
-  } catch {
-    projectList.value = []
-  }
+  } catch { projectList.value = [] }
 }
 
 async function onCreate() {
@@ -104,9 +138,7 @@ async function onCreate() {
   enterProject(p.id)
 }
 
-function enterProject(id: number) {
-  emit('enter-project', id)
-}
+function enterProject(id: number) { emit('enter-project', id) }
 
 onMounted(loadProjects)
 </script>
@@ -116,106 +148,165 @@ onMounted(loadProjects)
   height: 100vh;
   display: flex;
   flex-direction: column;
-  background: linear-gradient(180deg, #f8fafb 0%, var(--gray-50) 100%);
+  background: var(--bg-base);
+  position: relative;
+  overflow: hidden;
+}
+.home-bg-grid {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background-image:
+    linear-gradient(var(--border-primary) 0.5px, transparent 0.5px),
+    linear-gradient(90deg, var(--border-primary) 0.5px, transparent 0.5px);
+  background-size: 40px 40px;
+  opacity: 0.35;
+  mask-image: radial-gradient(ellipse 80% 80% at 50% 0%, black 30%, transparent 70%);
 }
 .home-header {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 24px 40px 0;
+  padding: 28px 40px 0;
+  position: relative;
 }
-.home-title {
-  font-size: 22px;
-  font-weight: 700;
-  color: #333;
-  margin: 0;
-}
-.home-actions {
+.home-brand {
   display: flex;
+  align-items: center;
   gap: 10px;
 }
+.brand-mark { color: var(--accent); }
+.home-title {
+  font-size: var(--fs-xl);
+  font-weight: 700;
+  color: var(--text-primary);
+  letter-spacing: 3px;
+  margin: 0;
+  font-family: var(--font-mono);
+}
+.home-version {
+  font-size: var(--fs-xs);
+  color: var(--text-muted);
+  background: var(--bg-elevated);
+  padding: 2px 6px;
+  border-radius: 2px;
+  border: 1px solid var(--border-primary);
+  font-family: var(--font-mono);
+}
+.home-actions { display: flex; gap: 8px; align-items: center; }
+.btn-theme {
+  padding: 7px 10px;
+  background: transparent;
+  color: var(--text-muted);
+  border: 1px solid var(--border-primary);
+  border-radius: var(--radius);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all var(--transition);
+}
+.btn-theme:hover { border-color: var(--accent); color: var(--accent); background: var(--accent-soft); }
 .btn-new {
-  padding: 8px 20px;
-  background: #18a058;
-  color: #fff;
+  padding: 7px 18px;
+  background: var(--accent);
+  color: #000;
   border: none;
-  border-radius: 6px;
-  font-size: 14px;
+  border-radius: var(--radius);
+  font-size: var(--fs-sm);
   font-weight: 600;
   cursor: pointer;
+  font-family: var(--font-mono);
+  transition: all var(--transition);
 }
-.btn-new:hover { background: #0c7a43; }
+.btn-new:hover { background: var(--accent-hover); }
 .btn-import {
-  padding: 8px 20px;
-  background: #fff;
-  color: #555;
-  border: 1px solid #ddd;
-  border-radius: 6px;
-  font-size: 14px;
+  padding: 7px 14px;
+  background: transparent;
+  color: var(--text-secondary);
+  border: 1px solid var(--border-primary);
+  border-radius: var(--radius);
+  font-size: var(--fs-sm);
   cursor: pointer;
+  font-family: var(--font-mono);
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  transition: all var(--transition);
 }
-.btn-import:hover { background: #f8f8f8; }
+.btn-import:hover { border-color: var(--border-hover); color: var(--text-primary); background: var(--bg-elevated); }
 .project-grid {
   flex: 1;
   display: flex;
   flex-wrap: wrap;
   align-content: flex-start;
-  gap: 20px;
-  padding: 28px 40px;
+  gap: 16px;
+  padding: 32px 40px;
   overflow-y: auto;
+  position: relative;
 }
 .project-card {
-  width: 200px;
-  height: 160px;
-  background: #fff;
-  border-radius: 10px;
+  width: 220px;
+  min-height: 150px;
+  background: var(--bg-surface);
+  border: 1px solid var(--border-primary);
+  border-radius: var(--radius);
   cursor: pointer;
-  border: 1px solid #e8e8e8;
   display: flex;
   flex-direction: column;
-  align-items: center;
-  justify-content: center;
   padding: 16px;
-  transition: box-shadow 0.15s, border-color 0.15s;
+  position: relative;
+  transition: all var(--transition-slow);
 }
 .project-card:hover {
-  box-shadow: var(--shadow-lg);
-  border-color: var(--green);
-  transform: translateY(-2px);
+  border-color: var(--accent);
+  box-shadow: 0 0 0 1px var(--accent), 0 4px 20px var(--accent-glow);
+  transform: translateY(-1px);
 }
-.card-icon {
-  font-size: 36px;
-  margin-bottom: 10px;
-  opacity: 0.7;
+.card-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 12px;
 }
-.card-body {
-  text-align: center;
-  width: 100%;
+.card-icon { color: var(--accent); opacity: 0.6; }
+.card-arrow {
+  font-size: var(--fs-md);
+  color: var(--text-muted);
+  opacity: 0;
+  transform: translateX(-4px);
+  transition: all var(--transition);
 }
+.project-card:hover .card-arrow { opacity: 0.5; transform: translateX(0); }
+.card-body { flex: 1; }
 .card-name {
-  font-size: 14px;
+  font-size: var(--fs-base);
   font-weight: 600;
-  color: #333;
+  color: var(--text-primary);
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+  font-family: var(--font-mono);
 }
 .card-desc {
-  font-size: 12px;
-  color: #999;
-  margin-top: 4px;
+  font-size: var(--fs-sm);
+  color: var(--text-muted);
+  margin-top: 3px;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
 .card-stats {
   display: flex;
-  justify-content: center;
-  gap: 16px;
-  margin-top: 10px;
-  font-size: 12px;
-  color: #888;
+  align-items: center;
+  gap: 8px;
+  padding-top: 10px;
+  border-top: 1px solid var(--border-primary);
 }
+.stat { display: flex; align-items: baseline; gap: 3px; }
+.stat-num { font-size: var(--fs-lg); font-weight: 700; color: var(--accent); font-family: var(--font-mono); }
+.stat-label { font-size: var(--fs-xs); color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px; }
+.stat-divider { width: 1px; height: 16px; background: var(--border-primary); }
 .empty-state {
   width: 100%;
   flex: 1;
@@ -223,40 +314,45 @@ onMounted(loadProjects)
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  color: #888;
+  gap: 6px;
 }
-.empty-icon { font-size: 56px; margin-bottom: 16px; opacity: 0.25; }
-.empty-state h2 { font-size: 20px; color: #555; margin: 0 0 8px; }
-.empty-state p { font-size: 14px; color: #999; margin: 0 0 24px; }
+.empty-icon { color: var(--text-muted); opacity: 0.3; margin-bottom: 8px; }
+.empty-state h2 { font-size: var(--fs-xl); color: var(--text-secondary); margin: 0; font-weight: 600; }
+.empty-state p { font-size: var(--fs-base); color: var(--text-muted); margin: 0 0 16px; }
 
 .modal-overlay {
   position: fixed; inset: 0;
-  background: rgba(0,0,0,0.35);
+  background: rgba(0,0,0,0.6);
   display: flex; align-items: center; justify-content: center;
   z-index: 300;
 }
 .modal-box {
-  background: #fff; border-radius: 10px;
-  padding: 26px; width: 400px;
-  box-shadow: 0 8px 30px rgba(0,0,0,0.18);
+  background: var(--bg-surface); border: 1px solid var(--border-primary);
+  border-radius: var(--radius-lg); padding: 22px; width: 380px;
+  box-shadow: 0 12px 40px rgba(0,0,0,0.5);
 }
-.modal-box h3 { margin: 0 0 18px; font-size: 16px; }
-.modal-box label { display: block; font-size: 13px; color: #888; margin-bottom: 4px; }
+.modal-box h3 { margin: 0 0 16px; font-size: var(--fs-md); font-weight: 600; color: var(--text-primary); }
+.modal-box label { display: block; font-size: var(--fs-xs); color: var(--text-muted); margin-bottom: 3px; letter-spacing: 0.5px; text-transform: uppercase; }
 .modal-box input {
-  width: 100%; padding: 8px 12px; border: 1px solid #ddd; border-radius: 6px;
-  font-size: 14px; outline: none; margin-bottom: 12px; box-sizing: border-box;
+  width: 100%; padding: 7px 10px; border: 1px solid var(--border-primary); border-radius: var(--radius);
+  font-size: var(--fs-sm); outline: none; background: var(--bg-base); color: var(--text-primary);
+  margin-bottom: 10px; box-sizing: border-box; font-family: var(--font-mono);
+  transition: border-color var(--transition);
 }
-.modal-box input:focus { border-color: #18a058; }
-.modal-acts { display: flex; justify-content: flex-end; gap: 10px; margin-top: 6px; }
+.modal-box input:focus { border-color: var(--accent); }
+.modal-acts { display: flex; justify-content: flex-end; gap: 8px; margin-top: 18px; }
 .btn-cancel {
-  padding: 7px 20px; border: 1px solid #ddd; border-radius: 6px;
-  font-size: 13px; cursor: pointer; background: #fff; color: #555;
+  padding: 6px 16px; border: 1px solid var(--border-primary); border-radius: var(--radius);
+  font-size: var(--fs-sm); cursor: pointer; background: var(--bg-base); color: var(--text-secondary);
+  font-family: var(--font-mono); transition: all var(--transition);
 }
+.btn-cancel:hover { border-color: var(--border-hover); color: var(--text-primary); }
 .btn-save {
-  padding: 7px 20px; background: #18a058; color: #fff;
-  border: 1px solid #18a058; border-radius: 6px;
-  font-size: 13px; cursor: pointer;
+  padding: 6px 16px; background: var(--accent); color: #000;
+  border: 1px solid var(--accent); border-radius: var(--radius);
+  font-size: var(--fs-sm); cursor: pointer; font-weight: 600; font-family: var(--font-mono);
+  transition: all var(--transition);
 }
-.btn-save:disabled { background: #aaa; border-color: #aaa; cursor: not-allowed; }
-.btn-save:hover:not(:disabled) { background: #0c7a43; }
+.btn-save:disabled { background: var(--bg-elevated); border-color: var(--border-primary); color: var(--text-muted); cursor: not-allowed; }
+.btn-save:hover:not(:disabled) { background: var(--accent-hover); }
 </style>

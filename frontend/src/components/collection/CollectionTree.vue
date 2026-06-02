@@ -32,33 +32,20 @@ const emit = defineEmits<{
   (e: 'action', action: string, node: TreeItem): void
 }>()
 
-function onClick(node: TreeItem) {
-  if (node.type === 'request') {
-    emit('open-request', node)
-  }
-}
-
-function onDblClick(node: TreeItem) {
-  emit('dbl-click', node)
-}
-
-function onCtxMenu(node: TreeItem, event: MouseEvent) {
-  emit('ctx-menu', node, event)
-}
-
-function onAction(action: string, node: TreeItem) {
-  emit('action', action, node)
-}
+function onClick(node: TreeItem) { if (node.type === 'request') emit('open-request', node) }
+function onDblClick(node: TreeItem) { emit('dbl-click', node) }
+function onCtxMenu(node: TreeItem, event: MouseEvent) { emit('ctx-menu', node, event) }
+function onAction(action: string, node: TreeItem) { emit('action', action, node) }
 </script>
 
 <style scoped>
 .collection-tree {
   flex: 1;
   overflow-y: auto;
-  padding: 4px 0;
+  padding: 2px 0;
 }
 .tree-empty {
-  padding: 24px;
+  padding: 20px;
   text-align: center;
 }
 </style>

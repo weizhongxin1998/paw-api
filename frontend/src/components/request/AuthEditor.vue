@@ -77,9 +77,7 @@ function parseAuth(raw: string) {
     apiKey.value = obj.key || ''
     apiValue.value = obj.value || ''
     apiAddTo.value = obj.addTo || 'header'
-  } catch {
-    authType.value = 'none'
-  }
+  } catch { authType.value = 'none' }
 }
 
 function syncAuth() {
@@ -96,31 +94,34 @@ watch([authType, token, username, password, apiKey, apiValue, apiAddTo], syncAut
 
 <style scoped>
 .auth-editor {
-  padding: 14px;
+  padding: 12px;
 }
 .type-select {
-  margin-bottom: 14px;
+  margin-bottom: 12px;
+  width: 200px;
 }
-.auth-empty {
-  padding: 24px;
-}
+.auth-empty { padding: 20px; }
 .auth-form {
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: 7px;
 }
 .auth-form label {
-  font-size: 11px;
-  color: var(--gray-500);
+  font-size: var(--fs-xs);
+  color: var(--text-muted);
   text-transform: uppercase;
-  letter-spacing: 0.3px;
+  letter-spacing: 0.5px;
+  font-family: var(--font-mono);
+  font-weight: 500;
 }
 .hint-suffix {
-  font-size: 11px;
-  color: var(--gray-400);
+  font-size: var(--fs-xs);
+  color: var(--text-muted);
+  font-family: var(--font-mono);
 }
 .hint {
-  color: var(--gray-400);
-  font-size: 13px;
+  color: var(--text-muted);
+  font-size: var(--fs-sm);
+  font-family: var(--font-mono);
 }
 </style>
