@@ -25,12 +25,15 @@
     />
 
     <div v-else-if="bodyType === 'raw'" class="raw-editor">
-      <n-select
-        v-model:value="rawSubType"
-        :options="rawSubOptions"
-        size="tiny"
-        class="sub-type-select"
-      />
+      <div class="raw-header">
+        <n-select
+          v-model:value="rawSubType"
+          :options="rawSubOptions"
+          size="tiny"
+          class="sub-type-select"
+        />
+        <n-button v-if="rawSubType === 'json'" size="tiny" @click="beautify">Beautify</n-button>
+      </div>
       <n-input
         type="textarea"
         :value="rawContent"
@@ -39,7 +42,6 @@
         class="raw-input"
         @update:value="onRawChange"
       />
-      <n-button v-if="rawSubType === 'json'" size="tiny" @click="beautify">Beautify</n-button>
     </div>
 
     <div v-else-if="bodyType === 'binary'" class="body-empty">
@@ -54,7 +56,7 @@
 import { ref, watch } from 'vue'
 import { NSelect, NInput, NButton } from 'naive-ui'
 import KeyValueTable from '../shared/KeyValueTable.vue'
-import type { KvItem, RequestBody } from '../../types/request'
+import type { KvItem } from '../../types/request'
 
 const props = defineProps<{
   bodyType: string
@@ -132,39 +134,38 @@ function onSelectFile() {
 }
 .type-select {
   margin-bottom: 8px;
+  width: 200px;
 }
 .body-empty {
   display: flex;
   align-items: center;
   gap: 8px;
-  padding: 20px;
+  padding: 16px;
 }
 .hint {
-  color: #aaa;
-  font-size: 13px;
-}
-.raw-input {
-  font-family: 'SF Mono', 'Consolas', monospace;
-  font-size: 13px;
+  color: var(--text-muted);
+  font-size: 11px;
+  font-family: var(--font-mono);
 }
 .file-name {
-  color: #2080f0;
-  font-size: 13px;
+  color: var(--blue);
+  font-size: 11px;
 }
 .raw-editor {
   display: flex;
   flex-direction: column;
   gap: 8px;
 }
+.raw-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
 .sub-type-select {
   width: 120px;
 }
 .raw-input {
-  font-family: 'SF Mono', 'Consolas', monospace;
-  font-size: 12px;
-}
-.file-name {
-  color: #2080f0;
+  font-family: var(--font-mono);
   font-size: 12px;
 }
 </style>

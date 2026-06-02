@@ -21,9 +21,12 @@
           <span v-else>{{ seg.text }}</span>
         </template>
       </div>
-      <div v-if="hoveredVar && resolvedVarText" class="var-tooltip">{{ resolvedVarText }}</div>
+      <div v-if="hoveredVar && resolvedVarText" class="var-tooltip" v-text="varTooltipText"></div>
     </div>
-    <button class="send-btn" @click="$emit('send')">Send</button>
+    <button class="send-btn" @click="$emit('send')" :disabled="isSendingExternal">
+      <span v-if="isSendingExternal" class="sending-dot"></span>
+      {{ isSendingExternal ? 'SEND' : 'SEND' }}
+    </button>
   </div>
 </template>
 
@@ -55,6 +58,13 @@ const hoveredVar = ref<string | null>(null)
 const resolvedVarText = ref('')
 let resolveTimer: ReturnType<typeof setTimeout> | null = null
 
+const isSendingExternal = ref(false)
+
+const varTooltipText = computed(() => {
+  if (!hoveredVar.value || !resolvedVarText.value) return ''
+  return '{{' + hoveredVar.value + '}} = ' + resolvedVarText.value
+})
+
 const method = computed({
   get: () => props.modelMethod,
   set: (v) => emit('update:modelMethod', v),
@@ -76,9 +86,7 @@ const relativeURL = computed(() => {
 
 const editingURL = ref('')
 
-const urlDisplay = computed(() => {
-  return relativeURL.value
-})
+const urlDisplay = computed(() => relativeURL.value)
 
 const urlSegments = computed<UrlSegment[]>(() => {
   const val = urlDisplay.value || ''
@@ -110,11 +118,6 @@ function fullURL(relative: string): string {
   return p + r
 }
 
-const url = computed({
-  get: () => props.modelUrl,
-  set: (v) => emit('update:modelUrl', v),
-})
-
 async function startEdit() {
   editingURL.value = relativeURL.value
   isEditing.value = true
@@ -145,7 +148,7 @@ function onVarHover(e: MouseEvent) {
       try {
         resolvedVarText.value = await ResolveVariable(varName, envId)
       } catch {
-        resolvedVarText.value = '解析失败'
+        resolvedVarText.value = '(解析失败)'
       }
     }, 200)
   }
@@ -164,32 +167,31 @@ function onVarLeave(e: MouseEvent) {
 <style scoped>
 .url-bar {
   display: flex;
-  padding: 8px 10px;
-  border-bottom: 1px solid var(--gray-200);
+  padding: 6px 8px;
   gap: 0;
+  background: var(--bg-base);
 }
 .method-select {
-  width: 84px;
-  padding: 7px 8px;
-  border: 1px solid var(--gray-300);
+  width: 80px;
+  padding: 6px 8px;
+  border: 1px solid var(--border-primary);
   border-right: none;
   border-radius: var(--radius) 0 0 var(--radius);
-  font-family: 'SF Mono', 'Consolas', monospace;
-  font-size: 12px;
-  font-weight: 600;
-  background: var(--gray-50);
+  font-family: var(--font-mono);
+  font-size: 11px;
+  font-weight: 700;
+  background: var(--bg-elevated);
   cursor: pointer;
   outline: none;
-  color: var(--gray-700);
+  color: var(--accent);
   appearance: none;
   -webkit-appearance: none;
   text-align: center;
   text-align-last: center;
   transition: border-color var(--transition);
+  letter-spacing: 0.5px;
 }
-.method-select:focus {
-  border-color: var(--green);
-}
+.method-select:focus { border-color: var(--accent); }
 .url-input-wrapper {
   flex: 1;
   position: relative;
@@ -199,13 +201,13 @@ function onVarLeave(e: MouseEvent) {
 .url-prefix {
   display: flex;
   align-items: center;
-  padding: 0 10px;
-  background: var(--green-soft);
-  color: var(--green);
-  font-family: 'SF Mono', 'Consolas', monospace;
-  font-size: 12px;
+  padding: 0 9px;
+  background: var(--accent-soft);
+  color: var(--accent);
+  font-family: var(--font-mono);
+  font-size: 11px;
   font-weight: 500;
-  border: 1px solid var(--gray-300);
+  border: 1px solid var(--border-primary);
   border-left: none;
   border-right: none;
   white-space: nowrap;
@@ -213,83 +215,88 @@ function onVarLeave(e: MouseEvent) {
 }
 .url-input-editing {
   flex: 1;
-  padding: 7px 10px;
-  border: 1px solid var(--gray-300);
+  padding: 6px 9px;
+  border: 1px solid var(--border-primary);
   border-left: none;
   border-right: none;
-  font-family: 'SF Mono', 'Consolas', monospace;
-  font-size: 12px;
+  font-family: var(--font-mono);
+  font-size: 11px;
   outline: none;
   box-sizing: border-box;
   min-width: 0;
-  color: var(--gray-700);
+  color: var(--text-primary);
+  background: var(--bg-surface);
   transition: border-color var(--transition);
 }
-.url-input-editing.hasPrefix {
-  border-left: none;
-}
-.url-input-editing:focus {
-  border-color: var(--green);
-}
+.url-input-editing:focus { border-color: var(--accent); }
 .url-display {
   flex: 1;
-  height: 32px;
   display: flex;
   align-items: center;
-  padding: 0 10px;
-  border: 1px solid var(--gray-300);
+  padding: 0 9px;
+  border: 1px solid var(--border-primary);
   border-left: none;
   border-right: none;
-  font-size: 12px;
+  font-size: 11px;
   overflow: hidden;
   white-space: nowrap;
   cursor: text;
-  background: #fff;
+  background: var(--bg-surface);
   box-sizing: border-box;
   min-width: 0;
-  color: var(--gray-700);
-}
-.url-display.hasPrefix {
-  border-left: none;
+  color: var(--text-primary);
+  font-family: var(--font-mono);
 }
 .var-highlight {
   background: var(--amber-soft);
-  border-radius: 3px;
+  border-radius: 2px;
   padding: 0 3px;
   cursor: pointer;
   color: var(--amber);
+  font-weight: 600;
 }
 .var-tooltip {
   position: absolute;
   bottom: 100%;
   left: 60px;
-  margin-bottom: 6px;
-  background: var(--gray-800);
-  color: #fff;
-  padding: 4px 10px;
+  margin-bottom: 5px;
+  background: var(--bg-elevated);
+  border: 1px solid var(--border-primary);
+  color: var(--text-primary);
+  padding: 4px 9px;
   border-radius: var(--radius-sm);
-  font-size: 11px;
+  font-size: 10px;
   white-space: nowrap;
   z-index: 100;
-  box-shadow: var(--shadow-md);
+  font-family: var(--font-mono);
+  box-shadow: 0 4px 12px rgba(0,0,0,0.3);
 }
+.tooltip-key { color: var(--amber); }
 .send-btn {
-  padding: 7px 20px;
-  background: var(--green);
-  color: #fff;
-  border: 1px solid var(--green);
+  padding: 6px 18px;
+  background: var(--accent);
+  color: #000;
+  border: 1px solid var(--accent);
   border-radius: 0 var(--radius) var(--radius) 0;
-  font-weight: 600;
+  font-weight: 700;
   cursor: pointer;
-  font-size: 12px;
+  font-size: 11px;
   white-space: nowrap;
+  font-family: var(--font-mono);
+  letter-spacing: 1px;
   transition: all var(--transition);
 }
-.send-btn:hover {
-  background: var(--green-hover);
-  border-color: var(--green-hover);
+.send-btn:hover { background: var(--accent-hover); border-color: var(--accent-hover); }
+.send-btn:active { transform: scale(0.98); }
+.sending-dot {
+  display: inline-block;
+  width: 6px; height: 6px;
+  background: #000;
+  border-radius: 50%;
+  animation: pulse 0.6s ease-in-out infinite;
 }
-.send-btn:active {
-  transform: scale(0.98);
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.3; }
 }
 </style>

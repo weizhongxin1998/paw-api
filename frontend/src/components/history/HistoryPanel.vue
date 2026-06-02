@@ -21,10 +21,10 @@
         @click="onSelect(item)"
         @dblclick="onReplay(item)"
       >
-        <div style="display:flex;gap:6px;align-items:center">
+        <div class="item-row">
           <span class="item-method" :class="item.method?.toLowerCase()">{{ item.method }}</span>
           <span class="item-status" :class="statusClass(item.response_status)">{{ item.response_status }}</span>
-          <span style="color:#999;font-size:10px;margin-left:auto">{{ formatTime(item.created_at) }}</span>
+          <span class="item-time">{{ formatTime(item.created_at) }}</span>
         </div>
         <div class="hist-url">{{ item.url }}</div>
       </div>
@@ -95,9 +95,7 @@ async function loadHistory() {
   try {
     const res = await ListHistory(pid, 200, 0)
     items.value = (res || []) as HistoryItem[]
-  } catch {
-    items.value = []
-  }
+  } catch { items.value = [] }
 }
 
 function onSelect(item: HistoryItem) {
@@ -105,9 +103,7 @@ function onSelect(item: HistoryItem) {
   emit('select-detail', item)
 }
 
-async function onReplay(item: HistoryItem) {
-  emit('open-tab', item)
-}
+async function onReplay(item: HistoryItem) { emit('open-tab', item) }
 
 async function onClearAll() {
   const pid = projectStore.currentId
@@ -136,22 +132,15 @@ function formatTime(raw: string): string {
     const diffMs = now - d.getTime()
     const diffMin = Math.floor(diffMs / 60000)
     if (diffMin < 1) return '刚刚'
-    if (diffMin < 60) return `${diffMin} min ago`
+    if (diffMin < 60) return `${diffMin}m`
     const diffHour = Math.floor(diffMin / 60)
-    if (diffHour < 24) return `${diffHour} hour ago`
-    return `${Math.floor(diffHour / 24)} day ago`
-  } catch {
-    return raw
-  }
+    if (diffHour < 24) return `${diffHour}h`
+    return `${Math.floor(diffHour / 24)}d`
+  } catch { return raw }
 }
 
-watch(() => projectStore.currentId, () => {
-  if (projectStore.currentId) loadHistory()
-})
-
-onMounted(() => {
-  if (projectStore.currentId) loadHistory()
-})
+watch(() => projectStore.currentId, () => { if (projectStore.currentId) loadHistory() })
+onMounted(() => { if (projectStore.currentId) loadHistory() })
 </script>
 
 <style scoped>
@@ -163,106 +152,113 @@ onMounted(() => {
 }
 .history-toolbar {
   display: flex;
-  gap: 4px;
-  padding: 8px 10px;
-  border-bottom: 1px solid #e8e8e8;
+  gap: 3px;
+  padding: 6px 8px;
+  border-bottom: 1px solid var(--border-primary);
+  background: var(--bg-base);
 }
 .search-input {
   flex: 1;
-  padding: 5px 8px;
-  border: 1px solid #ddd;
-  border-radius: 4px;
-  font-size: 12px;
-  outline: none;
-}
-.search-input:focus { border-color: #18a058; }
-.method-filter {
-  width: 70px;
-  font-size: 12px;
-  padding: 4px;
-  border: 1px solid #ddd;
-  border-radius: 4px;
-  outline: none;
-  cursor: pointer;
-}
-.history-list {
-  flex: 1;
-  overflow-y: auto;
-}
-.history-item {
-  padding: 8px 10px;
-  border-bottom: 1px solid #f0f0f0;
-  cursor: pointer;
-}
-.history-item:hover {
-  background: #f8f8f8;
-}
-.history-item.selected {
-  background: #e8f0fe;
-}
-.hist-url {
+  padding: 4px 7px;
+  border: 1px solid var(--border-primary);
+  border-radius: var(--radius-sm);
   font-size: 10px;
-  color: #999;
+  outline: none;
+  background: var(--bg-surface);
+  color: var(--text-primary);
+  font-family: var(--font-mono);
+  transition: border-color var(--transition);
+}
+.search-input:focus { border-color: var(--accent); }
+.search-input::placeholder { color: var(--text-muted); }
+.method-filter {
+  width: 60px;
+  font-size: 10px;
+  padding: 3px;
+  border: 1px solid var(--border-primary);
+  border-radius: var(--radius-sm);
+  outline: none;
+  cursor: pointer;
+  background: var(--bg-surface);
+  color: var(--text-secondary);
+  font-family: var(--font-mono);
+}
+.history-list { flex: 1; overflow-y: auto; }
+.history-item {
+  padding: 7px 8px;
+  border-bottom: 1px solid var(--border-primary);
+  cursor: pointer;
+  transition: background var(--transition);
+}
+.history-item:hover { background: var(--bg-hover); }
+.history-item.selected { background: var(--accent-soft); border-left: 2px solid var(--accent); }
+.item-row { display: flex; gap: 5px; align-items: center; }
+.hist-url {
+  font-size: 9px;
+  color: var(--text-muted);
   margin-top: 2px;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+  font-family: var(--font-mono);
 }
 .item-method {
-  font-size: 10px;
+  font-size: 8px;
   font-weight: 700;
-  padding: 1px 5px;
-  border-radius: 3px;
-}
-.item-method.get { background: #d4edda; color: #155724; }
-.item-method.post { background: #fff3cd; color: #856404; }
-.item-method.put { background: #d0e8ff; color: #004085; }
-.item-method.delete { background: #f8d7da; color: #721c24; }
-.item-method.patch { background: #f3e5f5; color: #6a1b9a; }
-.item-status {
-  font-size: 12px;
-  font-weight: 600;
-  padding: 0 4px;
+  padding: 1px 4px;
   border-radius: 2px;
+  letter-spacing: 0.3px;
 }
-.status-2xx { color: #18a058; }
-.status-3xx { color: #0288d1; }
-.status-4xx { color: #f0a020; }
-.status-5xx { color: #d03050; }
+.item-method.get { background: var(--accent-soft); color: var(--accent); }
+.item-method.post { background: var(--amber-soft); color: var(--amber); }
+.item-method.put { background: var(--blue-soft); color: var(--blue); }
+.item-method.delete { background: var(--red-soft); color: var(--red); }
+.item-status {
+  font-size: 11px;
+  font-weight: 700;
+  font-family: var(--font-mono);
+}
+.status-2xx { color: var(--accent); }
+.status-3xx { color: var(--blue); }
+.status-4xx { color: var(--amber); }
+.status-5xx { color: var(--red); }
+.item-time { font-size: 9px; color: var(--text-muted); margin-left: auto; font-family: var(--font-mono); }
 .history-empty {
   flex: 1;
   display: flex;
   align-items: center;
   justify-content: center;
 }
-.empty-text {
-  color: #aaa;
-  font-size: 12px;
-}
+.empty-text { color: var(--text-muted); font-size: 11px; font-family: var(--font-mono); }
 .history-footer {
-  padding: 8px 10px;
-  border-top: 1px solid #eee;
+  padding: 6px 8px;
+  border-top: 1px solid var(--border-primary);
   display: flex;
-  gap: 8px;
+  gap: 6px;
   align-items: center;
 }
 .footer-btn {
   flex: 1;
-  font-size: 10px;
-  padding: 4px 8px;
-  background: #fff;
-  border: 1px solid #ddd;
-  border-radius: 4px;
+  font-size: 9px;
+  padding: 3px 6px;
+  background: var(--bg-surface);
+  border: 1px solid var(--border-primary);
+  border-radius: var(--radius-sm);
   cursor: pointer;
-  color: #555;
+  color: var(--text-muted);
+  font-family: var(--font-mono);
+  transition: all var(--transition);
 }
-.footer-btn:hover { background: #f8f8f8; border-color: #ccc; }
+.footer-btn:hover { border-color: var(--red); color: var(--red); }
 .retention-select {
-  font-size: 10px;
-  padding: 4px;
-  border: 1px solid #ddd;
-  border-radius: 4px;
+  font-size: 9px;
+  padding: 3px;
+  border: 1px solid var(--border-primary);
+  border-radius: var(--radius-sm);
   outline: none;
   cursor: pointer;
+  background: var(--bg-surface);
+  color: var(--text-muted);
+  font-family: var(--font-mono);
 }
 </style>

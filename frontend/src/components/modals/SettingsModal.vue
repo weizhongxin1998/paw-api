@@ -13,9 +13,7 @@
             class="nav-item"
             :class="{ active: activeNav === tab.key }"
             @click="activeNav = tab.key"
-          >
-            {{ tab.label }}
-          </div>
+          >{{ tab.label }}</div>
         </div>
         <div class="settings-content">
           <div v-if="activeNav === 'general'" class="settings-section">
@@ -36,21 +34,18 @@
               <input type="checkbox" v-model="sslVerify" />
             </div>
           </div>
-
           <div v-else-if="activeNav === 'proxy'" class="settings-section">
             <div class="setting-muted">不使用代理</div>
           </div>
-
           <div v-else-if="activeNav === 'cert'" class="settings-section">
             <div class="setting-muted">未配置</div>
           </div>
-
           <div v-else-if="activeNav === 'appearance'" class="settings-section">
             <div class="setting-row">
               <span>主题</span>
               <select v-model="theme" class="setting-select">
-                <option value="light">日间</option>
                 <option value="dark">夜间</option>
+                <option value="light">日间</option>
               </select>
             </div>
             <div class="setting-row">
@@ -70,10 +65,9 @@
               </select>
             </div>
           </div>
-
           <div v-else-if="activeNav === 'data'" class="settings-section">
-            <button class="data-btn" @click="onBackup">📂 备份</button>
-            <button class="data-btn" @click="onRestore">📥 恢复</button>
+            <button class="data-btn" @click="onBackup">备份</button>
+            <button class="data-btn" @click="onRestore">恢复</button>
           </div>
         </div>
       </div>
@@ -86,17 +80,11 @@
 </template>
 
 <script setup lang="ts">
-import { ref, watch } from 'vue'
+import { ref } from 'vue'
 import { useSettingsStore } from '../../stores/settings'
 
-defineProps<{
-  show: boolean
-}>()
-
-const emit = defineEmits<{
-  'update:show': [value: boolean]
-}>()
-
+defineProps<{ show: boolean }>()
+const emit = defineEmits<{ 'update:show': [value: boolean] }>()
 const settingsStore = useSettingsStore()
 
 const navTabs = [
@@ -112,178 +100,44 @@ const timeout = ref(settingsStore.settings.timeout ?? 30)
 const followRedirects = ref(settingsStore.settings.followRedirects ?? true)
 const maxRedirects = ref(settingsStore.settings.maxRedirects ?? 10)
 const sslVerify = ref(settingsStore.settings.sslVerify ?? true)
-const theme = ref(settingsStore.settings.theme ?? 'light')
+const theme = ref(settingsStore.settings.theme ?? 'dark')
 const accentColor = ref(settingsStore.settings.accentColor ?? 'green')
-const fontSize = ref(settingsStore.settings.fontSize ?? 14)
+const fontSize = ref(settingsStore.settings.fontSize ?? 13)
 
-function onClose() {
-  emit('update:show', false)
-}
-
+function onClose() { emit('update:show', false) }
 function onSave() {
-  settingsStore.settings = {
-    ...settingsStore.settings,
-    timeout: timeout.value,
-    followRedirects: followRedirects.value,
-    maxRedirects: maxRedirects.value,
-    sslVerify: sslVerify.value,
-    theme: theme.value,
-    accentColor: accentColor.value,
-    fontSize: fontSize.value,
-  }
+  settingsStore.settings = { ...settingsStore.settings, timeout: timeout.value, followRedirects: followRedirects.value, maxRedirects: maxRedirects.value, sslVerify: sslVerify.value, theme: theme.value, accentColor: accentColor.value, fontSize: fontSize.value }
   onClose()
 }
-
 function onBackup() {}
-
 function onRestore() {}
 </script>
 
 <style scoped>
-.modal-overlay {
-  position: fixed;
-  inset: 0;
-  background: rgba(0,0,0,0.35);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  z-index: 200;
-}
-.settings-box {
-  background: #fff;
-  border-radius: 10px;
-  width: 700px;
-  max-height: 80vh;
-  box-shadow: 0 8px 30px rgba(0,0,0,0.18);
-  overflow: hidden;
-  display: flex;
-  flex-direction: column;
-}
-.settings-hdr {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 14px 18px;
-  border-bottom: 1px solid #eee;
-}
-.settings-hdr h3 {
-  margin: 0;
-  font-size: 16px;
-}
-.close-btn {
-  background: none;
-  border: none;
-  font-size: 22px;
-  color: #999;
-  cursor: pointer;
-  padding: 0 4px;
-  line-height: 1;
-}
-.close-btn:hover { color: #333; }
-.settings-body {
-  display: flex;
-  flex: 1;
-  min-height: 300px;
-  overflow: hidden;
-}
-.settings-nav {
-  width: 90px;
-  border-right: 1px solid #f0f0f0;
-  padding: 6px 0;
-  flex-shrink: 0;
-}
-.nav-item {
-  padding: 8px 14px;
-  font-size: 13px;
-  cursor: pointer;
-  color: #888;
-  border-right: 2px solid transparent;
-}
-.nav-item:hover { color: #555; background: #fafafa; }
-.nav-item.active {
-  color: #18a058;
-  font-weight: 600;
-  border-right-color: #18a058;
-  background: #f0faf3;
-}
-.nav-item:last-child { color: #d03050; font-weight: 600; }
-.settings-content {
-  flex: 1;
-  padding: 14px 18px;
-  overflow-y: auto;
-}
-.settings-section {
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-}
-.setting-row {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 4px 0;
-  font-size: 13px;
-}
-.setting-row span { color: #333; }
-.setting-input-num {
-  width: 70px;
-  padding: 4px 6px;
-  border: 1px solid #ddd;
-  border-radius: 4px;
-  text-align: right;
-  font-size: 13px;
-  outline: none;
-}
-.setting-input-num:focus { border-color: #18a058; }
-.setting-select {
-  padding: 4px 6px;
-  border: 1px solid #ddd;
-  border-radius: 4px;
-  font-size: 13px;
-  outline: none;
-  cursor: pointer;
-}
-.setting-muted {
-  color: #aaa;
-  font-size: 13px;
-  padding: 12px 0;
-}
-.data-btn {
-  display: block;
-  width: 100%;
-  text-align: left;
-  padding: 8px 12px;
-  border: 1px solid #ddd;
-  border-radius: 4px;
-  background: #fff;
-  cursor: pointer;
-  font-size: 13px;
-  margin-bottom: 8px;
-}
-.data-btn:hover { background: #f8f8f8; }
-.settings-footer {
-  display: flex;
-  justify-content: flex-end;
-  gap: 10px;
-  padding: 12px 18px;
-  border-top: 1px solid #eee;
-}
-.btn-cancel {
-  padding: 6px 18px;
-  border: 1px solid #ddd;
-  border-radius: 6px;
-  background: #fff;
-  font-size: 13px;
-  cursor: pointer;
-}
-.btn-save {
-  padding: 6px 18px;
-  background: #18a058;
-  color: #fff;
-  border: 1px solid #18a058;
-  border-radius: 6px;
-  font-size: 13px;
-  cursor: pointer;
-}
-.btn-save:hover { background: #0c7a43; }
+.modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.6); display: flex; align-items: center; justify-content: center; z-index: 200; }
+.settings-box { background: var(--bg-surface); border: 1px solid var(--border-primary); border-radius: var(--radius-lg); width: 660px; max-height: 80vh; box-shadow: 0 12px 40px rgba(0,0,0,0.5); overflow: hidden; display: flex; flex-direction: column; }
+.settings-hdr { display: flex; align-items: center; justify-content: space-between; padding: 14px 18px; border-bottom: 1px solid var(--border-primary); }
+.settings-hdr h3 { margin: 0; font-size: 14px; font-weight: 600; color: var(--text-primary); }
+.close-btn { background: none; border: none; font-size: 20px; color: var(--text-muted); cursor: pointer; padding: 0 4px; line-height: 1; }
+.close-btn:hover { color: var(--text-primary); }
+.settings-body { display: flex; flex: 1; min-height: 280px; overflow: hidden; }
+.settings-nav { width: 90px; border-right: 1px solid var(--border-primary); padding: 4px 0; flex-shrink: 0; }
+.nav-item { padding: 7px 14px; font-size: 12px; cursor: pointer; color: var(--text-muted); border-right: 2px solid transparent; transition: all var(--transition); font-family: var(--font-mono); }
+.nav-item:hover { color: var(--text-secondary); background: var(--bg-hover); }
+.nav-item.active { color: var(--accent); font-weight: 600; border-right-color: var(--accent); background: var(--accent-soft); }
+.settings-content { flex: 1; padding: 14px 18px; overflow-y: auto; }
+.settings-section { display: flex; flex-direction: column; gap: 2px; }
+.setting-row { display: flex; align-items: center; justify-content: space-between; padding: 3px 0; font-size: 12px; }
+.setting-row span { color: var(--text-secondary); }
+.setting-input-num { width: 70px; padding: 4px 6px; border: 1px solid var(--border-primary); border-radius: var(--radius-sm); text-align: right; font-size: 12px; outline: none; background: var(--bg-base); color: var(--text-primary); font-family: var(--font-mono); }
+.setting-input-num:focus { border-color: var(--accent); }
+.setting-select { padding: 4px 6px; border: 1px solid var(--border-primary); border-radius: var(--radius-sm); font-size: 12px; outline: none; cursor: pointer; background: var(--bg-base); color: var(--text-secondary); font-family: var(--font-mono); }
+.setting-muted { color: var(--text-muted); font-size: 12px; padding: 10px 0; }
+.data-btn { display: block; width: 100%; text-align: left; padding: 8px 12px; border: 1px solid var(--border-primary); border-radius: var(--radius-sm); background: var(--bg-base); cursor: pointer; font-size: 12px; margin-bottom: 8px; color: var(--text-secondary); font-family: var(--font-mono); transition: all var(--transition); }
+.data-btn:hover { background: var(--bg-elevated); border-color: var(--border-hover); }
+.settings-footer { display: flex; justify-content: flex-end; gap: 8px; padding: 12px 18px; border-top: 1px solid var(--border-primary); }
+.btn-cancel { padding: 5px 16px; border: 1px solid var(--border-primary); border-radius: var(--radius); background: var(--bg-base); font-size: 11px; cursor: pointer; color: var(--text-secondary); font-family: var(--font-mono); transition: all var(--transition); }
+.btn-cancel:hover { border-color: var(--border-hover); color: var(--text-primary); }
+.btn-save { padding: 5px 16px; background: var(--accent); color: #000; border: 1px solid var(--accent); border-radius: var(--radius); font-size: 11px; cursor: pointer; font-weight: 600; font-family: var(--font-mono); }
+.btn-save:hover { background: var(--accent-hover); }
 </style>

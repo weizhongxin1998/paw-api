@@ -12,7 +12,7 @@
       </button>
       <div style="flex:1"></div>
       <button v-if="activeTab === 'headers'" class="bulk-btn" @click="isBulkEdit = !isBulkEdit">
-        {{ isBulkEdit ? 'Table' : 'Bulk Edit' }}
+        {{ isBulkEdit ? 'Table' : 'Bulk' }}
       </button>
     </div>
 
@@ -38,7 +38,7 @@
         <div v-if="pathVariables.length > 0" class="params-section">
           <div class="params-section-hdr">
             <span class="section-label">Path Variables</span>
-            <span class="section-hint">(URL 中 :param 自动识别)</span>
+            <span class="section-hint">URL 中 :param 自动识别</span>
           </div>
           <table class="kvt">
             <thead>
@@ -92,20 +92,11 @@ import BodyEditor from './BodyEditor.vue'
 import AuthEditor from './AuthEditor.vue'
 import type { KvItem } from '../../types/request'
 
-interface PathVariable {
-  key: string
-  value: string
-  description: string
-}
+interface PathVariable { key: string; value: string; description: string }
 
 const props = defineProps<{
-  headers: string
-  params: string
-  bodyType: string
-  bodyData: string
-  authData: string
-  url: string
-  pathVars: string
+  headers: string; params: string; bodyType: string; bodyData: string
+  authData: string; url: string; pathVars: string
 }>()
 
 const emit = defineEmits<{
@@ -119,7 +110,7 @@ const emit = defineEmits<{
 
 const tabs = [
   { key: 'params', label: 'Params', count: undefined as number | undefined },
-  { key: 'path', label: 'Path Vars', count: undefined as number | undefined },
+  { key: 'path', label: 'Path', count: undefined as number | undefined },
   { key: 'headers', label: 'Headers', count: undefined as number | undefined },
   { key: 'body', label: 'Body' },
   { key: 'auth', label: 'Auth' },
@@ -128,11 +119,9 @@ const tabs = [
 const activeTab = ref('params')
 const isBulkEdit = ref(false)
 const queryParamsEnabled = ref(true)
-
 const bodyType = ref(props.bodyType)
 const bodyData = ref(props.bodyData)
 const authData = ref(props.authData)
-
 const paramsItems = ref<KvItem[]>([])
 const headersItems = ref<KvItem[]>([])
 const pathVariables = ref<PathVariable[]>([])
@@ -155,35 +144,23 @@ const pathVarPatterns = computed(() => {
 })
 
 watch(pathVarPatterns, (patterns) => {
-  // Try to restore from stored pathVars prop
   let stored: PathVariable[] = []
   try { stored = JSON.parse(props.pathVars || '[]') } catch {}
   const storedMap = new Map(stored.map(p => [p.key, p]))
-
   const existing = new Map(pathVariables.value.map(p => [p.key, p]))
   pathVariables.value = patterns.map(key => {
-    const s = storedMap.get(key)
-    const e = existing.get(key)
+    const s = storedMap.get(key); const e = existing.get(key)
     return { key, value: s?.value || e?.value || '', description: s?.description || e?.description || '' }
   })
   tabs[1].count = patterns.length > 0 ? patterns.length : undefined
   syncPathVars()
 }, { immediate: true })
 
-function onPathVarChange() {
-  syncPathVars()
-}
-
-function syncPathVars() {
-  emit('update:pathVars', JSON.stringify(pathVariables.value))
-}
+function onPathVarChange() { syncPathVars() }
+function syncPathVars() { emit('update:pathVars', JSON.stringify(pathVariables.value)) }
 
 function parseKv(raw: string): KvItem[] {
-  try {
-    return JSON.parse(raw).map((i: any) => ({ ...i, id: i.id || String(++iid) }))
-  } catch {
-    return []
-  }
+  try { return JSON.parse(raw).map((i: any) => ({ ...i, id: i.id || String(++iid) })) } catch { return [] }
 }
 
 watch(() => props.params, (v) => { paramsItems.value = parseKv(v) }, { immediate: true })
@@ -213,13 +190,7 @@ function onParamsChange(items: KvItem[]) {
 }
 
 function addQueryParam() {
-  const item: KvItem = {
-    id: String(++iid),
-    key: '',
-    value: '',
-    description: '',
-    enabled: true,
-  }
+  const item: KvItem = { id: String(++iid), key: '', value: '', description: '', enabled: true }
   const newItems = [...paramsItems.value, item]
   paramsItems.value = newItems
   onParamsChange(newItems)
@@ -232,155 +203,93 @@ function addQueryParam() {
   display: flex;
   flex-direction: column;
   overflow: hidden;
+  background: var(--bg-base);
 }
 .sub-tabs {
   display: flex;
-  border-bottom: 1px solid var(--gray-200);
-  background: var(--gray-50);
-  padding: 0 12px;
+  border-bottom: 1px solid var(--border-primary);
+  background: var(--bg-surface);
+  padding: 0 8px;
 }
 .sub-tabs button {
-  padding: 8px 14px;
-  font-size: 12px;
+  padding: 7px 12px;
+  font-size: 11px;
   cursor: pointer;
-  color: var(--gray-500);
+  color: var(--text-muted);
   border: none;
   background: transparent;
   border-bottom: 2px solid transparent;
   outline: none;
+  font-family: var(--font-mono);
+  font-weight: 500;
+  letter-spacing: 0.3px;
   transition: all var(--transition);
 }
 .sub-tabs button.active {
-  color: var(--green);
-  border-bottom-color: var(--green);
+  color: var(--accent);
+  border-bottom-color: var(--accent);
   font-weight: 600;
 }
-.sub-tabs button:hover:not(.active) {
-  color: var(--gray-700);
-}
+.sub-tabs button:hover:not(.active) { color: var(--text-secondary); }
 .cnt {
-  font-size: 10px;
-  background: var(--gray-200);
-  color: var(--gray-500);
-  padding: 0 5px;
-  border-radius: 10px;
-  margin-left: 3px;
-  font-weight: 500;
+  font-size: 9px;
+  background: var(--bg-hover);
+  color: var(--text-muted);
+  padding: 0 4px;
+  border-radius: 8px;
+  margin-left: 2px;
+  font-weight: 600;
 }
 .bulk-btn {
-  font-size: 12px !important;
-  color: #18a058 !important;
+  font-size: 10px !important;
+  color: var(--accent) !important;
+  padding: 7px 8px !important;
 }
 .sub-content {
   flex: 1;
   overflow-y: auto;
 }
-.params-content {
-  padding: 10px;
-}
-.params-section {
-  margin-bottom: 12px;
-}
+.params-content { padding: 8px; }
+.params-section { margin-bottom: 10px; }
 .params-section-hdr {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  margin-bottom: 2px;
+  display: flex; align-items: center; gap: 6px; margin-bottom: 2px;
 }
 .section-toggle {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  font-size: 13px;
-  color: #666;
-  font-weight: 600;
-  cursor: pointer;
+  display: flex; align-items: center; gap: 4px;
+  font-size: 11px; color: var(--text-secondary);
+  font-weight: 600; cursor: pointer; font-family: var(--font-mono);
 }
-.section-toggle input[type="checkbox"] {
-  accent-color: #18a058;
-}
-.section-label {
-  font-size: 13px;
-  color: #666;
-  font-weight: 600;
-}
-.section-hint {
-  font-size: 11px;
-  color: #aaa;
-}
-.kvt {
-  width: 100%;
-  border-collapse: collapse;
-}
+.section-toggle input[type="checkbox"] { accent-color: var(--accent); }
+.section-label { font-size: 11px; color: var(--text-secondary); font-weight: 600; font-family: var(--font-mono); }
+.section-hint { font-size: 10px; color: var(--text-muted); }
+.kvt { width: 100%; border-collapse: collapse; }
 .kvt th {
-  text-align: left;
-  padding: 6px 10px;
-  font-size: 12px;
-  color: #999;
-  text-transform: uppercase;
-  border-bottom: 1px solid #eee;
-  font-weight: 500;
-  background: #fafafa;
-  letter-spacing: 0.3px;
+  text-align: left; padding: 5px 8px; font-size: 10px; color: var(--text-muted);
+  text-transform: uppercase; border-bottom: 1px solid var(--border-primary);
+  font-weight: 500; background: var(--bg-surface); letter-spacing: 0.3px;
 }
-.kvt td {
-  padding: 3px 10px;
-}
+.kvt td { padding: 2px 8px; }
 .kvt-input {
-  width: 100%;
-  padding: 7px 8px;
-  border: 1px solid transparent;
-  font-family: 'SF Mono', 'Consolas', monospace;
-  font-size: 13px;
-  background: transparent;
-  border-radius: 5px;
-  outline: none;
-  transition: border-color .12s, background .12s;
+  width: 100%; padding: 6px 7px; border: 1px solid transparent;
+  font-family: var(--font-mono); font-size: 11px; background: transparent;
+  border-radius: var(--radius-sm); outline: none; color: var(--text-primary);
+  transition: border-color var(--transition), background var(--transition);
 }
-.kvt-input:hover {
-  border-color: #e0e0e0;
-  background: #fafafa;
-}
-.kvt-input:focus {
-  border-color: #18a058;
-  background: #fff;
-  box-shadow: 0 0 0 2px rgba(24,160,88,0.08);
-}
-.kvt-input.readonly {
-  color: #999;
-  background: transparent;
-  cursor: default;
-}
-.kvt-input.readonly:hover {
-  border-color: transparent;
-  background: transparent;
-}
+.kvt-input:hover { border-color: var(--border-hover); background: var(--bg-surface); }
+.kvt-input:focus { border-color: var(--accent); background: var(--bg-surface); }
+.kvt-input.readonly { color: var(--text-muted); background: transparent; cursor: default; }
+.kvt-input.readonly:hover { border-color: transparent; background: transparent; }
 .add-param-btn {
-  padding: 4px 10px;
-  color: #18a058;
-  cursor: pointer;
-  background: none;
-  border: none;
-  font-size: 13px;
-  margin-top: 4px;
-  transition: color .12s;
+  padding: 3px 8px; color: var(--accent); cursor: pointer;
+  background: none; border: none; font-size: 11px; margin-top: 2px;
+  font-family: var(--font-mono); transition: color var(--transition);
 }
-.add-param-btn:hover {
-  color: #0c7a43;
-}
-.path-empty {
-  padding: 24px;
-  text-align: center;
-}
-.hint-text {
-  font-size: 13px;
-  color: #aaa;
-}
+.add-param-btn:hover { color: var(--accent-hover); }
+.path-empty { padding: 20px; text-align: center; }
+.hint-text { font-size: 11px; color: var(--text-muted); font-family: var(--font-mono); }
 .hint-text code {
-  background: #f0f0f0;
-  padding: 1px 5px;
-  border-radius: 3px;
-  font-family: 'SF Mono', Consolas, monospace;
-  font-size: 12px;
+  background: var(--bg-elevated); padding: 1px 4px;
+  border-radius: 2px; font-family: var(--font-mono); font-size: 10px;
+  border: 1px solid var(--border-primary);
 }
 </style>
