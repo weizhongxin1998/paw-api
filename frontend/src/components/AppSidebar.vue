@@ -35,8 +35,6 @@ const showEnvManager = ref(false)
 
 const searchQuery = ref('')
 
-const collectionMenuId = ref<string | null>(null)
-const collectionMenuPos = ref({ x: 0, y: 0 })
 const showRenameModal = ref(false)
 const renameTarget = ref<{ id: string; name: string; type: 'collection' | 'request' } | null>(null)
 const renameValue = ref('')
@@ -428,31 +426,7 @@ function renderLabel(info: { option: any }) {
   if (opt.isLeaf || opt.disabled || opt.key === 'collections-header') {
     return opt.label
   }
-  return h('div', { class: 'tree-node-label' }, [
-    h('span', { class: 'tree-node-name' }, opt.label),
-    h('span', { class: 'tree-node-actions' }, [
-      h('button', {
-        class: 'tree-node-dots',
-        onClick: (e: MouseEvent) => {
-          e.stopPropagation()
-          collectionMenuId.value = opt.key
-          collectionMenuPos.value = { x: e.clientX, y: e.clientY }
-        },
-      }, '···'),
-    ]),
-  ])
-}
-
-const colMenuOptions = [
-  { label: 'New Request', key: 'new-request' },
-]
-
-function handleColMenuSelect(key: string) {
-  const colId = collectionMenuId.value
-  collectionMenuId.value = null
-  if (key === 'new-request' && colId) {
-    createRequestInCollection(colId)
-  }
+  return h('span', { class: 'tree-node-name' }, opt.label)
 }
 
 async function createRequestInCollection(colId: string) {
@@ -511,7 +485,7 @@ onMounted(loadProjects)
             :render-label="renderLabel"
             @update:selected-keys="handleTreeSelect"
             @drop="handleDrop"
-            @contextmenu="(e: any, opt: any) => handleContextMenu(e, opt?.key)"
+            :node-props="({ option }: any) => (option.disabled || option.key === 'collections-header') ? {} : { onContextmenu: (e: MouseEvent) => handleContextMenu(e, option.key) }"
           />
         </div>
       </div>
@@ -545,14 +519,10 @@ onMounted(loadProjects)
     </div>
 
     <!-- Context Menu -->
-    <div v-if="collectionMenuId" class="collection-menu" :style="{ left: collectionMenuPos.x + 'px', top: collectionMenuPos.y + 'px' }">
-      <div v-for="opt in colMenuOptions" :key="opt.key" class="collection-menu-item" @click="handleColMenuSelect(opt.key)">{{ opt.label }}</div>
-    </div>
-    <div v-if="collectionMenuId" class="context-overlay" @click="collectionMenuId = null" @contextmenu.prevent="collectionMenuId = null" />
-
     <div v-if="showContextMenu" class="context-menu" :style="{ left: contextMenuX + 'px', top: contextMenuY + 'px' }">
+      <div v-if="contextMenuColId" class="context-item" @click="createRequestInCollection(contextMenuColId!); showContextMenu = false">{{ $t('contextMenu.newRequest') }}</div>
       <div v-if="contextMenuColId" class="context-item" @click="startRename('collection', contextMenuColId!, '')">{{ $t('contextMenu.renameCollection') }}</div>
-      <div v-if="contextMenuColId" class="context-item" @click="() => startAdd(contextMenuColId ?? undefined)">{{ $t('contextMenu.newSubCollection') }}</div>
+      <div v-if="contextMenuColId" class="context-item" @click="startAdd(contextMenuColId ?? undefined); showContextMenu = false">{{ $t('contextMenu.newSubCollection') }}</div>
       <div v-if="contextMenuColId" class="context-item" @click="handleDelete('collection', contextMenuColId!)">{{ $t('contextMenu.deleteCollection') }}</div>
       <div v-if="contextMenuReqId" class="context-item" @click="startRename('request', contextMenuReqId!, '')">{{ $t('contextMenu.renameRequest') }}</div>
       <div v-if="contextMenuReqId" class="context-item" @click="copyRequest(contextMenuReqId!)">{{ $t('contextMenu.copyRequest') }}</div>
@@ -611,13 +581,6 @@ onMounted(loadProjects)
 .setting-row { display: flex; align-items: center; justify-content: space-between; font-size: 13px; }
 .tree-node-label { display: flex; align-items: center; width: 100%; padding-right: 8px; }
 .tree-node-name { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; flex: 1; min-width: 0; }
-.tree-node-actions { display: none; flex-shrink: 0; margin-left: auto; }
-.tree-node-label:hover .tree-node-actions { display: flex; }
-.tree-node-dots { background: none; border: none; cursor: pointer; font-size: 16px; line-height: 1; padding: 0 4px; color: #888; border-radius: 4px; letter-spacing: 1px; }
-.tree-node-dots:hover { background: #e8e8e8; color: #333; }
-.collection-menu { position: fixed; z-index: 9999; background: #fff; border: 1px solid #ddd; border-radius: 6px; box-shadow: 0 4px 12px rgba(0,0,0,0.15); padding: 4px 0; min-width: 140px; }
-.collection-menu-item { padding: 6px 12px; font-size: 13px; cursor: pointer; }
-.collection-menu-item:hover { background: #f0f0f0; }
 .context-menu { position: fixed; z-index: 9999; background: #fff; border: 1px solid #ddd; border-radius: 6px; box-shadow: 0 4px 12px rgba(0,0,0,0.15); padding: 4px 0; min-width: 160px; }
 .context-item { padding: 6px 12px; font-size: 13px; cursor: pointer; }
 .context-item:hover { background: #f0f0f0; }

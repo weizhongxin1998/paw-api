@@ -85,6 +85,11 @@ func (r *RequestRepo) GetMaxSortOrder(collectionID string) (int, error) {
 	return 0, nil
 }
 
+func (r *RequestRepo) DeleteByCollection(collectionID string) error {
+	_, err := database.DB.Exec(`DELETE FROM requests WHERE collection_id = ?`, collectionID)
+	return err
+}
+
 func (r *RequestRepo) Delete(id string) error {
 	_, err := database.DB.Exec(`DELETE FROM requests WHERE id = ?`, id)
 	return err

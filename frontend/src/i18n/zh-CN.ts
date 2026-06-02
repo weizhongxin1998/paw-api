@@ -170,6 +170,7 @@ export default {
     filePath: '文件路径',
   },
   contextMenu: {
+    newRequest: '新建接口',
     renameCollection: '重命名集合',
     renameRequest: '重命名',
     newSubCollection: '新建子集合',

@@ -88,6 +88,25 @@ func (r *CollectionRepo) GetMaxSortOrder(projectID, parentID string) (int, error
 	return 0, nil
 }
 
+func (r *CollectionRepo) ListByParent(parentID string) ([]models.Collection, error) {
+	rows, err := database.DB.Query(
+		`SELECT id, project_id, parent_id, name, sort_order, created_at, updated_at FROM collections WHERE parent_id = ? ORDER BY sort_order`, parentID,
+	)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	collections := make([]models.Collection, 0)
+	for rows.Next() {
+		c, err := scanCollection(rows)
+		if err != nil {
+			return nil, err
+		}
+		collections = append(collections, *c)
+	}
+	return collections, rows.Err()
+}
+
 func (r *CollectionRepo) Delete(id string) error {
 	_, err := database.DB.Exec(`DELETE FROM collections WHERE id = ?`, id)
 	return err
