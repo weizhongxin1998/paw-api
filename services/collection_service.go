@@ -10,11 +10,12 @@ import (
 )
 
 type CollectionService struct {
-	repo *repositories.CollectionRepo
+	repo       *repositories.CollectionRepo
+	requestRepo *repositories.RequestRepo
 }
 
 func NewCollectionService() *CollectionService {
-	return &CollectionService{repo: &repositories.CollectionRepo{}}
+	return &CollectionService{repo: &repositories.CollectionRepo{}, requestRepo: &repositories.RequestRepo{}}
 }
 
 func (s *CollectionService) Create(projectID, parentID, name string, sortOrder int) (*models.Collection, error) {
@@ -73,5 +74,17 @@ func (s *CollectionService) Update(id, name string, parentID *string, sortOrder 
 }
 
 func (s *CollectionService) Delete(id string) error {
+	children, err := s.repo.ListByParent(id)
+	if err != nil {
+		return err
+	}
+	for _, child := range children {
+		if err := s.Delete(child.ID); err != nil {
+			return err
+		}
+	}
+	if err := s.requestRepo.DeleteByCollection(id); err != nil {
+		return err
+	}
 	return s.repo.Delete(id)
 }

@@ -170,6 +170,7 @@ export default {
     exportTitle: 'Export',
   },
   contextMenu: {
+    newRequest: 'New Request',
     renameCollection: 'Rename Collection',
     renameRequest: 'Rename',
     newSubCollection: 'New Sub-collection',
