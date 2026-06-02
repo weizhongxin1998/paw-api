@@ -3,6 +3,9 @@ package services
 import (
 	"encoding/json"
 	"os"
+	"strings"
+
+	"gopkg.in/yaml.v3"
 
 	"paw-api/models"
 	"paw-api/pkg/snowflake"
@@ -72,6 +75,50 @@ type postmanBody struct {
 	Urlencoded []postmanKV `json:"urlencoded,omitempty"`
 }
 
+// ---------- OpenAPI structures ----------
+
+type openAPIDoc struct {
+	OpenAPI  string                     `yaml:"openapi"`
+	Swagger  string                     `yaml:"swagger"`
+	Info     struct {
+		Title   string `yaml:"title"`
+		Version string `yaml:"version"`
+	} `yaml:"info"`
+	Servers  []struct {
+		URL string `yaml:"url"`
+	} `yaml:"servers"`
+	Host     string                      `yaml:"host"`
+	BasePath string                      `yaml:"basePath"`
+	Schemes  []string                    `yaml:"schemes"`
+	Paths    map[string]openAPIPathItem  `yaml:"paths"`
+}
+
+type openAPIPathItem struct {
+	Parameters []openAPIParameter `yaml:"parameters"`
+	Get        *openAPIOperation  `yaml:"get"`
+	Post       *openAPIOperation  `yaml:"post"`
+	Put        *openAPIOperation  `yaml:"put"`
+	Patch      *openAPIOperation  `yaml:"patch"`
+	Delete     *openAPIOperation  `yaml:"delete"`
+	Options    *openAPIOperation  `yaml:"options"`
+	Head       *openAPIOperation  `yaml:"head"`
+}
+
+type openAPIOperation struct {
+	Tags        []string           `yaml:"tags"`
+	Summary     string             `yaml:"summary"`
+	Description string             `yaml:"description"`
+	OperationID string             `yaml:"operationId"`
+	Parameters  []openAPIParameter `yaml:"parameters"`
+}
+
+type openAPIParameter struct {
+	Name        string `yaml:"name"`
+	In          string `yaml:"in"`
+	Description string `yaml:"description"`
+	Required    bool   `yaml:"required"`
+}
+
 // ---------- Public API ----------
 
 func (s *ImportService) ImportPostman(projectID int64, filePath string) (*ImportResult, error) {
@@ -101,6 +148,135 @@ func (s *ImportService) ImportPostman(projectID int64, filePath string) (*Import
 	}
 
 	return result, nil
+}
+
+func (s *ImportService) ImportOpenAPI(projectID int64, filePath string) (*ImportResult, error) {
+	data, err := os.ReadFile(filePath)
+	if err != nil {
+		return nil, err
+	}
+
+	var doc openAPIDoc
+	// Auto-detect format: try JSON first, fall back to YAML
+	if err := json.Unmarshal(data, &doc); err != nil {
+		if err := yaml.Unmarshal(data, &doc); err != nil {
+			return nil, err
+		}
+	}
+
+	return s.processOpenAPI(projectID, &doc)
+}
+
+// ---------- Internal ----------
+
+func (s *ImportService) processOpenAPI(projectID int64, doc *openAPIDoc) (*ImportResult, error) {
+	baseURL := resolveBaseURL(doc)
+	result := &ImportResult{}
+	collMap := make(map[string]int64)
+
+	for path, pathItem := range doc.Paths {
+		ops := map[string]*openAPIOperation{
+			"GET":    pathItem.Get,
+			"POST":   pathItem.Post,
+			"PUT":    pathItem.Put,
+			"PATCH":  pathItem.Patch,
+			"DELETE": pathItem.Delete,
+			"OPTIONS": pathItem.Options,
+			"HEAD":   pathItem.Head,
+		}
+
+		for method, op := range ops {
+			if op == nil {
+				continue
+			}
+
+			tag := resolveTag(op, path)
+			collID, exists := collMap[tag]
+			if !exists {
+				coll := &models.Collection{
+					ProjectID: projectID,
+					Name:      tag,
+				}
+				if err := s.collectionRepo.Create(coll); err != nil {
+					return nil, err
+				}
+				collMap[tag] = coll.ID
+				collID = coll.ID
+				result.Collections++
+			}
+
+			fullURL := baseURL + path
+			params := convertOpenAPIParams(pathItem.Parameters, op.Parameters)
+			name := op.Summary
+			if name == "" {
+				name = op.OperationID
+			}
+			if name == "" {
+				name = method + " " + path
+			}
+
+			req := &models.Request{
+				CollectionID: collID,
+				Name:         name,
+				Description:  op.Description,
+				Method:       method,
+				URL:          fullURL,
+				Headers:      "[]",
+				Params:       params,
+				BodyType:     "none",
+				Body:         "{}",
+				Auth:         `{"type":"none"}`,
+			}
+			if err := s.requestRepo.Create(req); err != nil {
+				return nil, err
+			}
+			result.Requests++
+		}
+	}
+
+	return result, nil
+}
+
+func resolveBaseURL(doc *openAPIDoc) string {
+	if len(doc.Servers) > 0 {
+		return strings.TrimRight(doc.Servers[0].URL, "/")
+	}
+	scheme := "https"
+	if len(doc.Schemes) > 0 {
+		scheme = doc.Schemes[0]
+	}
+	return strings.TrimRight(scheme+"://"+doc.Host+doc.BasePath, "/")
+}
+
+func resolveTag(op *openAPIOperation, path string) string {
+	if len(op.Tags) > 0 {
+		return op.Tags[0]
+	}
+	seg := strings.Trim(path, "/")
+	if idx := strings.Index(seg, "/"); idx > 0 {
+		seg = seg[:idx]
+	}
+	if seg == "" {
+		return "Default"
+	}
+	return seg
+}
+
+func convertOpenAPIParams(pathParams, opParams []openAPIParameter) string {
+	out := make([]map[string]interface{}, 0, len(pathParams)+len(opParams))
+	for _, p := range append(pathParams, opParams...) {
+		out = append(out, map[string]interface{}{
+			"key":         p.Name,
+			"value":       "",
+			"description": p.Description,
+			"enabled":     p.Required,
+		})
+	}
+	if out == nil {
+		return "[]"
+	}
+	b, _ := json.Marshal(out)
+	return string(b)
 }
 
 // ---------- Internal ----------
