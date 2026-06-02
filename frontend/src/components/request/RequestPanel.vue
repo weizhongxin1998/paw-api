@@ -235,37 +235,40 @@ function addQueryParam() {
 }
 .sub-tabs {
   display: flex;
-  border-bottom: 1px solid #eee;
-  background: #fafafa;
-  padding: 0 10px;
+  border-bottom: 1px solid var(--gray-200);
+  background: var(--gray-50);
+  padding: 0 12px;
 }
 .sub-tabs button {
-  padding: 7px 14px;
-  font-size: 13px;
+  padding: 8px 14px;
+  font-size: 12px;
   cursor: pointer;
-  color: #888;
+  color: var(--gray-500);
   border: none;
   background: transparent;
   border-bottom: 2px solid transparent;
   outline: none;
+  transition: all var(--transition);
 }
 .sub-tabs button.active {
-  color: #18a058;
-  border-bottom-color: #18a058;
+  color: var(--green);
+  border-bottom-color: var(--green);
   font-weight: 600;
 }
-.sub-tabs button:hover {
-  color: #555;
+.sub-tabs button:hover:not(.active) {
+  color: var(--gray-700);
 }
 .cnt {
   font-size: 10px;
-  background: #eee;
+  background: var(--gray-200);
+  color: var(--gray-500);
   padding: 0 5px;
   border-radius: 10px;
   margin-left: 3px;
+  font-weight: 500;
 }
 .bulk-btn {
-  font-size: 11px !important;
+  font-size: 12px !important;
   color: #18a058 !important;
 }
 .sub-content {
@@ -273,7 +276,7 @@ function addQueryParam() {
   overflow-y: auto;
 }
 .params-content {
-  padding: 8px;
+  padding: 10px;
 }
 .params-section {
   margin-bottom: 12px;
@@ -288,8 +291,8 @@ function addQueryParam() {
   display: flex;
   align-items: center;
   gap: 6px;
-  font-size: 12px;
-  color: #888;
+  font-size: 13px;
+  color: #666;
   font-weight: 600;
   cursor: pointer;
 }
@@ -297,12 +300,12 @@ function addQueryParam() {
   accent-color: #18a058;
 }
 .section-label {
-  font-size: 12px;
-  color: #888;
+  font-size: 13px;
+  color: #666;
   font-weight: 600;
 }
 .section-hint {
-  font-size: 9px;
+  font-size: 11px;
   color: #aaa;
 }
 .kvt {
@@ -311,8 +314,8 @@ function addQueryParam() {
 }
 .kvt th {
   text-align: left;
-  padding: 5px 10px;
-  font-size: 11px;
+  padding: 6px 10px;
+  font-size: 12px;
   color: #999;
   text-transform: uppercase;
   border-bottom: 1px solid #eee;
@@ -321,14 +324,14 @@ function addQueryParam() {
   letter-spacing: 0.3px;
 }
 .kvt td {
-  padding: 2px 10px;
+  padding: 3px 10px;
 }
 .kvt-input {
   width: 100%;
-  padding: 5px 6px;
+  padding: 7px 8px;
   border: 1px solid transparent;
   font-family: 'SF Mono', 'Consolas', monospace;
-  font-size: 12px;
+  font-size: 13px;
   background: transparent;
   border-radius: 5px;
   outline: none;
@@ -358,7 +361,7 @@ function addQueryParam() {
   cursor: pointer;
   background: none;
   border: none;
-  font-size: 11px;
+  font-size: 13px;
   margin-top: 4px;
   transition: color .12s;
 }
@@ -370,7 +373,7 @@ function addQueryParam() {
   text-align: center;
 }
 .hint-text {
-  font-size: 12px;
+  font-size: 13px;
   color: #aaa;
 }
 .hint-text code {
@@ -378,6 +381,6 @@ function addQueryParam() {
   padding: 1px 5px;
   border-radius: 3px;
   font-family: 'SF Mono', Consolas, monospace;
-  font-size: 11px;
+  font-size: 12px;
 }
 </style>

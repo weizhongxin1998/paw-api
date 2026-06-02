@@ -116,7 +116,7 @@ onMounted(loadProjects)
   height: 100vh;
   display: flex;
   flex-direction: column;
-  background: #f5f6f8;
+  background: linear-gradient(180deg, #f8fafb 0%, var(--gray-50) 100%);
 }
 .home-header {
   display: flex;
@@ -179,8 +179,9 @@ onMounted(loadProjects)
   transition: box-shadow 0.15s, border-color 0.15s;
 }
 .project-card:hover {
-  box-shadow: 0 3px 16px rgba(0,0,0,0.08);
-  border-color: #18a058;
+  box-shadow: var(--shadow-lg);
+  border-color: var(--green);
+  transform: translateY(-2px);
 }
 .card-icon {
   font-size: 36px;

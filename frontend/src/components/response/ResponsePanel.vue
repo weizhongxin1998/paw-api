@@ -116,49 +116,52 @@ function copyCurl() {
 }
 .status-bar {
   display: flex;
-  padding: 6px 12px;
-  background: #f8f9fa;
-  border-bottom: 1px solid #eee;
+  padding: 8px 14px;
+  background: var(--gray-50);
+  border-bottom: 1px solid var(--gray-200);
   align-items: center;
-  gap: 12px;
+  gap: 14px;
 }
 .status-badge {
   font-weight: 700;
-  font-size: 13px;
-  padding: 2px 8px;
-  border-radius: 4px;
+  font-size: 12px;
+  padding: 3px 10px;
+  border-radius: var(--radius-sm);
 }
-.status-badge.green { background: #d4edda; color: #155724; }
-.status-badge.blue { background: #d0e8ff; color: #004085; }
-.status-badge.orange { background: #fff3cd; color: #856404; }
-.status-badge.red { background: #f8d7da; color: #721c24; }
-.meta { font-size: 12px; color: #999; }
-.placeholder { font-size: 12px; color: #aaa; }
+.status-badge.green { background: var(--green-soft); color: var(--green); }
+.status-badge.blue { background: var(--blue-soft); color: var(--blue); }
+.status-badge.orange { background: var(--amber-soft); color: var(--amber); }
+.status-badge.red { background: var(--red-soft); color: var(--red); }
+.meta { font-size: 11px; color: var(--gray-500); }
+.placeholder { font-size: 11px; color: var(--gray-400); }
 .sub-tabs {
   display: flex;
-  border-bottom: 1px solid #eee;
-  background: #fafafa;
-  padding: 0 10px;
+  border-bottom: 1px solid var(--gray-200);
+  background: var(--gray-50);
+  padding: 0 12px;
 }
 .sub-tabs button {
-  padding: 6px 14px;
-  font-size: 13px;
+  padding: 7px 14px;
+  font-size: 12px;
   cursor: pointer;
-  color: #888;
+  color: var(--gray-500);
   border: none;
   background: transparent;
   border-bottom: 2px solid transparent;
   outline: none;
+  transition: all var(--transition);
 }
 .sub-tabs button.active {
-  color: #18a058;
-  border-bottom-color: #18a058;
+  color: var(--green);
+  border-bottom-color: var(--green);
   font-weight: 600;
 }
+.sub-tabs button:hover:not(.active) { color: var(--gray-700); }
 .body-content {
   flex: 1;
   overflow-y: auto;
-  padding: 8px 12px;
+  padding: 12px 14px;
+  background: #fff;
 }
 .body-empty {
   display: flex;
@@ -169,34 +172,40 @@ function copyCurl() {
 .body-modes {
   display: flex;
   gap: 4px;
-  margin-bottom: 8px;
+  margin-bottom: 10px;
 }
 .body-modes button {
   padding: 3px 12px;
-  border: 1px solid #ddd;
-  border-radius: 4px;
+  border: 1px solid var(--gray-200);
+  border-radius: var(--radius-sm);
   background: #fff;
-  font-size: 12px;
+  font-size: 11px;
   cursor: pointer;
-  color: #888;
+  color: var(--gray-500);
   outline: none;
+  transition: all var(--transition);
 }
 .body-modes button.active {
-  border-color: #18a058;
-  color: #18a058;
+  border-color: var(--green);
+  color: var(--green);
   font-weight: 600;
+  background: var(--green-soft);
 }
 .code-block {
   font-family: 'SF Mono', 'Consolas', monospace;
-  font-size: 13px;
-  line-height: 1.6;
+  font-size: 12px;
+  line-height: 1.7;
   margin: 0;
   white-space: pre-wrap;
   word-break: break-all;
-  color: #333;
+  color: var(--gray-700);
+  background: var(--gray-50);
+  border: 1px solid var(--gray-200);
+  border-radius: var(--radius);
+  padding: 12px;
 }
 .code-block.raw {
-  color: #555;
+  color: var(--gray-600);
   font-size: 11px;
 }
 .kv-table {
@@ -206,21 +215,23 @@ function copyCurl() {
 }
 .kv-table th, .kv-table td {
   text-align: left;
-  padding: 4px 8px;
-  border-bottom: 1px solid #f0f0f0;
+  padding: 5px 10px;
+  border-bottom: 1px solid var(--gray-100);
 }
-.kv-table th { color: #999; font-weight: 500; }
-.preview-hint { color: #aaa; font-size: 12px; padding: 20px; }
-.hint { color: #aaa; font-size: 12px; }
+.kv-table th { color: var(--gray-500); font-weight: 500; text-transform: uppercase; font-size: 10px; letter-spacing: 0.3px; }
+.kv-table td { color: var(--gray-700); }
+.preview-hint { color: var(--gray-400); font-size: 12px; padding: 20px; }
+.hint { color: var(--gray-400); font-size: 12px; }
 .copy-curl-btn {
-  padding: 3px 10px;
-  border: 1px solid #ddd;
-  border-radius: 4px;
+  padding: 4px 12px;
+  border: 1px solid var(--gray-200);
+  border-radius: var(--radius-sm);
   background: #fff;
-  font-size: 10px;
+  font-size: 11px;
   cursor: pointer;
-  color: #888;
-  margin-bottom: 6px;
+  color: var(--gray-500);
+  margin-bottom: 8px;
+  transition: all var(--transition);
 }
-.copy-curl-btn:hover { border-color: #ccc; }
+.copy-curl-btn:hover { border-color: var(--gray-300); color: var(--gray-700); }
 </style>

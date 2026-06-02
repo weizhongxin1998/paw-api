@@ -2,14 +2,16 @@
   <div>
     <div
       class="tree-node"
-      :class="[node.type, { 'tree-active': node.type === 'request' && false }]"
+      :class="[node.type]"
       :style="{ paddingLeft: node.type === 'request' ? (12 + depth * 14 + 10) + 'px' : (8 + depth * 14) + 'px' }"
       @click="onNodeClick"
       @dblclick="onNodeDblClick"
       @contextmenu.prevent="onCtxMenu($event)"
     >
       <span v-if="node.type === 'folder'" class="arrow" @click.stop="expanded = !expanded">
-        {{ expanded ? '\u25BC' : '\u25BA' }}
+        <svg width="10" height="10" viewBox="0 0 10 10" :class="{ rotated: expanded }">
+          <path d="M3 1 L7 5 L3 9" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
       </span>
       <span v-if="node.type === 'root'" class="node-name root-name">{{ node.name }}</span>
       <template v-else-if="node.type === 'folder'">
@@ -127,45 +129,53 @@ onUnmounted(() => document.removeEventListener('keydown', onKeydown))
   padding: 5px 10px;
   cursor: pointer;
   white-space: nowrap;
-  font-size: 13px;
-  gap: 4px;
+  font-size: 12px;
+  gap: 5px;
   user-select: none;
+  transition: background var(--transition);
+  border-radius: 0 4px 4px 0;
+  margin-right: 2px;
 }
-.tree-node:hover { background: #f0f0f0; }
-.tree-node.root { font-weight: 600; color: #18a058; }
-.arrow { font-size: 9px; width: 10px; color: #888; cursor: pointer; }
+.tree-node:hover { background: var(--gray-100); }
+.tree-node.root { font-weight: 600; color: var(--green); }
+.arrow { display: flex; align-items: center; width: 12px; color: var(--gray-400); transition: transform var(--transition); flex-shrink: 0; }
+.arrow svg { transition: transform 0.2s ease; }
+.arrow svg.rotated { transform: rotate(90deg); }
 .method-tag {
   display: inline-block;
-  width: 32px;
-  font-size: 10px;
+  width: 34px;
+  font-size: 9px;
   font-weight: 700;
   text-align: center;
   padding: 2px 3px;
   border-radius: 3px;
   flex-shrink: 0;
+  letter-spacing: 0.3px;
 }
-.method-tag.get { background: #d4edda; color: #155724; }
-.method-tag.post { background: #fff3cd; color: #856404; }
-.method-tag.put { background: #d0e8ff; color: #004085; }
-.method-tag.delete { background: #f8d7da; color: #721c24; }
-.method-tag.patch { background: #f3e5f5; color: #6a1b9a; }
-.root-name { font-weight: 600; color: #18a058; }
-.folder-name { color: #333; }
+.method-tag.get { background: var(--green-soft); color: var(--green); }
+.method-tag.post { background: var(--amber-soft); color: var(--amber); }
+.method-tag.put { background: var(--blue-soft); color: var(--blue); }
+.method-tag.delete { background: var(--red-soft); color: var(--red); }
+.method-tag.patch { background: var(--purple-soft); color: var(--purple); }
+.root-name { font-weight: 600; color: var(--green); }
+.folder-name { color: var(--gray-700); font-weight: 500; }
 .node-name { overflow: hidden; text-overflow: ellipsis; }
-.node-url { color: #aaa; margin-left: 3px; font-size: 11px; overflow: hidden; text-overflow: ellipsis; }
+.node-url { color: var(--gray-400); margin-left: 3px; font-size: 10px; overflow: hidden; text-overflow: ellipsis; }
 .ctx-overlay { position: fixed; inset: 0; z-index: 1000; }
 .ctx-menu {
   position: fixed;
   background: #fff;
-  border: 1px solid #e0e0e0;
-  border-radius: 8px;
-  box-shadow: 0 3px 12px rgba(0,0,0,0.12);
+  border: 1px solid var(--gray-200);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-lg);
   padding: 4px 0;
   min-width: 160px;
   z-index: 1001;
+  animation: ctxFadeIn 0.12s ease;
 }
-.ctx-item { padding: 6px 14px; cursor: pointer; font-size: 13px; color: #333; }
-.ctx-item:hover { background: #f0f0f0; }
-.ctx-item.danger { color: #d03050; }
-.ctx-sep { border-top: 1px solid #eee; margin: 4px 0; }
+@keyframes ctxFadeIn { from { opacity: 0; transform: translateY(-4px); } to { opacity: 1; transform: translateY(0); } }
+.ctx-item { padding: 6px 14px; cursor: pointer; font-size: 12px; color: var(--gray-600); transition: background var(--transition); }
+.ctx-item:hover { background: var(--gray-100); }
+.ctx-item.danger { color: var(--red); }
+.ctx-sep { border-top: 1px solid var(--gray-100); margin: 4px 0; }
 </style>

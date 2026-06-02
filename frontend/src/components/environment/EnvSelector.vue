@@ -79,33 +79,39 @@ watch(() => props.projectId, () => {
   gap: 2px;
 }
 .env-select {
-  font-size: 12px;
-  padding: 4px 10px;
-  background: #fff;
-  border: 1px solid #ccc;
-  border-radius: 6px;
-  color: #555;
+  font-size: 11px;
+  padding: 5px 10px;
+  background: var(--gray-50);
+  border: 1px solid var(--gray-200);
+  border-radius: var(--radius);
+  color: var(--gray-600);
   cursor: pointer;
   outline: none;
   width: 140px;
   appearance: none;
   -webkit-appearance: none;
+  transition: border-color var(--transition);
 }
 .env-select:focus {
-  border-color: #18a058;
+  border-color: var(--green);
+}
+.env-select:hover {
+  border-color: var(--gray-300);
 }
 .manage-btn {
-  background: #fff;
-  border: 1px solid #ccc;
-  border-radius: 6px;
+  background: var(--gray-50);
+  border: 1px solid var(--gray-200);
+  border-radius: var(--radius);
   cursor: pointer;
   font-size: 11px;
-  color: #666;
-  padding: 4px 8px;
+  color: var(--gray-500);
+  padding: 5px 8px;
   white-space: nowrap;
+  transition: all var(--transition);
 }
 .manage-btn:hover {
-  border-color: #18a058;
-  color: #18a058;
+  border-color: var(--green);
+  color: var(--green);
+  background: var(--green-soft);
 }
 </style>

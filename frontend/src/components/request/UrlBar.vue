@@ -165,27 +165,30 @@ function onVarLeave(e: MouseEvent) {
 .url-bar {
   display: flex;
   padding: 8px 10px;
-  border-bottom: 1px solid #eee;
+  border-bottom: 1px solid var(--gray-200);
+  gap: 0;
 }
 .method-select {
   width: 84px;
   padding: 7px 8px;
-  border: 1px solid #d0d0d0;
+  border: 1px solid var(--gray-300);
   border-right: none;
-  border-radius: 6px 0 0 6px;
+  border-radius: var(--radius) 0 0 var(--radius);
   font-family: 'SF Mono', 'Consolas', monospace;
-  font-size: 13px;
+  font-size: 12px;
   font-weight: 600;
-  background: #fafafa;
+  background: var(--gray-50);
   cursor: pointer;
   outline: none;
+  color: var(--gray-700);
   appearance: none;
   -webkit-appearance: none;
   text-align: center;
   text-align-last: center;
+  transition: border-color var(--transition);
 }
 .method-select:focus {
-  border-color: #18a058;
+  border-color: var(--green);
 }
 .url-input-wrapper {
   flex: 1;
@@ -196,13 +199,13 @@ function onVarLeave(e: MouseEvent) {
 .url-prefix {
   display: flex;
   align-items: center;
-  padding: 7px 10px;
-  background: #e8f5e9;
-  color: #18a058;
+  padding: 0 10px;
+  background: var(--green-soft);
+  color: var(--green);
   font-family: 'SF Mono', 'Consolas', monospace;
-  font-size: 13px;
+  font-size: 12px;
   font-weight: 500;
-  border: 1px solid #d0d0d0;
+  border: 1px solid var(--gray-300);
   border-left: none;
   border-right: none;
   white-space: nowrap;
@@ -211,74 +214,82 @@ function onVarLeave(e: MouseEvent) {
 .url-input-editing {
   flex: 1;
   padding: 7px 10px;
-  border: 1px solid #d0d0d0;
+  border: 1px solid var(--gray-300);
   border-left: none;
   border-right: none;
   font-family: 'SF Mono', 'Consolas', monospace;
-  font-size: 13px;
+  font-size: 12px;
   outline: none;
   box-sizing: border-box;
   min-width: 0;
+  color: var(--gray-700);
+  transition: border-color var(--transition);
 }
 .url-input-editing.hasPrefix {
   border-left: none;
 }
 .url-input-editing:focus {
-  border-color: #18a058;
+  border-color: var(--green);
 }
 .url-display {
   flex: 1;
-  height: 34px;
+  height: 32px;
   display: flex;
   align-items: center;
   padding: 0 10px;
-  border: 1px solid #d0d0d0;
+  border: 1px solid var(--gray-300);
   border-left: none;
   border-right: none;
-  font-size: 13px;
+  font-size: 12px;
   overflow: hidden;
   white-space: nowrap;
   cursor: text;
   background: #fff;
   box-sizing: border-box;
   min-width: 0;
+  color: var(--gray-700);
 }
 .url-display.hasPrefix {
   border-left: none;
 }
 .var-highlight {
-  background: #fff3cd;
+  background: var(--amber-soft);
   border-radius: 3px;
-  padding: 0 2px;
+  padding: 0 3px;
   cursor: pointer;
-  color: #856404;
+  color: var(--amber);
 }
 .var-tooltip {
   position: absolute;
   bottom: 100%;
   left: 60px;
-  margin-bottom: 4px;
-  background: #333;
+  margin-bottom: 6px;
+  background: var(--gray-800);
   color: #fff;
-  padding: 3px 8px;
-  border-radius: 4px;
-  font-size: 10px;
+  padding: 4px 10px;
+  border-radius: var(--radius-sm);
+  font-size: 11px;
   white-space: nowrap;
   z-index: 100;
+  box-shadow: var(--shadow-md);
 }
 .send-btn {
-  padding: 7px 22px;
-  background: #18a058;
+  padding: 7px 20px;
+  background: var(--green);
   color: #fff;
-  border: 1px solid #18a058;
-  border-radius: 0 6px 6px 0;
+  border: 1px solid var(--green);
+  border-radius: 0 var(--radius) var(--radius) 0;
   font-weight: 600;
   cursor: pointer;
-  font-size: 13px;
+  font-size: 12px;
   white-space: nowrap;
+  transition: all var(--transition);
 }
 .send-btn:hover {
-  background: #0c7a43;
-  border-color: #0c7a43;
+  background: var(--green-hover);
+  border-color: var(--green-hover);
+}
+.send-btn:active {
+  transform: scale(0.98);
 }
 </style>

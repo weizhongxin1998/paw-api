@@ -14,13 +14,13 @@
       <tbody>
         <tr v-for="(item, index) in items" :key="item.id">
           <td class="td-check">
-            <n-checkbox v-model:checked="item.enabled" size="small" />
+            <n-checkbox v-model:checked="item.enabled" size="medium" />
           </td>
-          <td><n-input v-model:value="item.key" size="tiny" borderless placeholder="Key" /></td>
-          <td><n-input v-model:value="item.value" size="tiny" borderless placeholder="Value" /></td>
-          <td><n-input v-model:value="item.description" size="tiny" borderless placeholder="Desc" /></td>
+          <td><n-input v-model:value="item.key" size="small" borderless placeholder="Key" /></td>
+          <td><n-input v-model:value="item.value" size="small" borderless placeholder="Value" /></td>
+          <td><n-input v-model:value="item.description" size="small" borderless placeholder="Desc" /></td>
           <td v-if="showType">
-            <n-select v-model:value="(item as any).fieldType" size="tiny" :options="typeOptions" />
+            <n-select v-model:value="(item as any).fieldType" size="small" :options="typeOptions" />
           </td>
           <td class="td-remove" @click="onRemove(index)">x</td>
         </tr>
@@ -120,8 +120,8 @@ table {
 }
 th {
   text-align: left;
-  padding: 5px 8px;
-  font-size: 11px;
+  padding: 6px 8px;
+  font-size: 12px;
   color: #999;
   text-transform: uppercase;
   border-bottom: 1px solid #eee;
@@ -129,17 +129,17 @@ th {
   background: #fafafa;
 }
 td {
-  padding: 1px 8px;
+  padding: 3px 8px;
 }
 .td-check {
   text-align: center;
-  width: 24px;
+  width: 28px;
 }
 .td-remove {
   text-align: center;
   color: #ccc;
   cursor: pointer;
-  font-size: 14px;
+  font-size: 15px;
 }
 .td-remove:hover {
   color: #d03050;

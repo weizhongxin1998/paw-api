@@ -161,8 +161,8 @@ defineExpose({ refreshTree })
 <style scoped>
 .sidebar {
   width: 220px;
-  background: #fafafa;
-  border-right: 1px solid #e0e0e0;
+  background: #fff;
+  border-right: 1px solid var(--gray-200);
   display: flex;
   flex-direction: column;
   flex-shrink: 0;
@@ -170,70 +170,65 @@ defineExpose({ refreshTree })
 }
 .sidebar-tabs {
   display: flex;
-  border-bottom: 1px solid #e8e8e8;
+  border-bottom: 1px solid var(--gray-200);
+  background: var(--gray-50);
 }
 .sidebar-tabs button {
-  flex: 1; padding: 8px; text-align: center; font-size: 13px; cursor: pointer;
-  background: #fafafa; border: none; color: #888; outline: none;
-  border-bottom: 2px solid transparent;
+  flex: 1; padding: 9px 8px; text-align: center; font-size: 11px; cursor: pointer;
+  background: transparent; border: none; color: var(--gray-400); outline: none;
+  font-weight: 500; letter-spacing: 0.4px; text-transform: uppercase;
+  border-bottom: 2px solid transparent; transition: all var(--transition);
 }
 .sidebar-tabs button.active {
-  background: #fff; color: #18a058; border-bottom-color: #18a058; font-weight: 600;
+  color: var(--green); border-bottom-color: var(--green); font-weight: 600;
+}
+.sidebar-tabs button:hover {
+  color: var(--gray-600); background: rgba(0,0,0,0.02);
 }
 .sidebar-add {
-  padding: 5px 10px;
-  font-size: 18px;
-  color: #18a058;
-  cursor: pointer;
-  user-select: none;
-  line-height: 1;
-  font-weight: 700;
+  display: flex; align-items: center; justify-content: center;
+  width: 28px; font-size: 17px; color: var(--green); cursor: pointer;
+  font-weight: 700; border-radius: var(--radius-sm); margin: 4px 4px 4px 0;
+  transition: all var(--transition);
 }
-.sidebar-add:hover { color: #0c7a43; }
+.sidebar-add:hover { background: var(--green-soft); color: var(--green-hover); }
 .add-menu {
-  position: absolute;
-  top: 36px;
-  left: 4px;
-  z-index: 50;
-  background: #fff;
-  border: 1px solid #e0e0e0;
-  border-radius: 8px;
-  box-shadow: 0 3px 12px rgba(0,0,0,0.12);
-  padding: 4px 0;
-  min-width: 140px;
+  position: absolute; top: 38px; left: 6px; z-index: 50;
+  background: #fff; border: 1px solid var(--gray-200);
+  border-radius: var(--radius-lg); box-shadow: var(--shadow-lg);
+  padding: 4px 0; min-width: 140px;
 }
 .add-menu-item {
-  padding: 6px 14px;
-  cursor: pointer;
-  font-size: 13px;
-  color: #333;
+  padding: 7px 14px; cursor: pointer; font-size: 12px; color: var(--gray-600);
+  transition: background var(--transition);
 }
-.add-menu-item:hover {
-  background: #f0f0f0;
-}
+.add-menu-item:hover { background: var(--gray-100); }
 
 .modal-overlay {
   position: fixed; inset: 0; background: rgba(0,0,0,0.3);
   display: flex; align-items: center; justify-content: center; z-index: 200;
 }
 .modal-box {
-  background: #fff; border-radius: 10px; padding: 24px; width: 360px;
-  box-shadow: 0 8px 30px rgba(0,0,0,0.15);
+  background: #fff; border-radius: var(--radius-lg); padding: 26px; width: 360px;
+  box-shadow: var(--shadow-lg);
 }
-.modal-box h3 { margin: 0 0 16px; font-size: 15px; }
-.modal-box label { display: block; font-size: 12px; color: #888; margin-bottom: 4px; }
+.modal-box h3 { margin: 0 0 18px; font-size: 15px; font-weight: 600; }
+.modal-box label { display: block; font-size: 11px; color: var(--gray-500); margin-bottom: 4px; text-transform: uppercase; letter-spacing: 0.3px; }
 .modal-box input, .modal-box select {
-  width: 100%; padding: 7px 10px; border: 1px solid #ddd; border-radius: 6px;
-  font-size: 13px; outline: none; margin-bottom: 10px; box-sizing: border-box;
+  width: 100%; padding: 8px 10px; border: 1px solid var(--gray-200); border-radius: var(--radius);
+  font-size: 13px; outline: none; margin-bottom: 12px; box-sizing: border-box;
+  transition: border-color var(--transition);
 }
-.modal-box input:focus, .modal-box select:focus { border-color: #18a058; }
+.modal-box input:focus, .modal-box select:focus { border-color: var(--green); box-shadow: 0 0 0 3px rgba(24,160,88,0.1); }
 .method-select { background: #fff; cursor: pointer; }
-.modal-acts { display: flex; justify-content: flex-end; gap: 8px; margin-top: 14px; }
+.modal-acts { display: flex; justify-content: flex-end; gap: 8px; margin-top: 16px; }
 .modal-acts button {
-  padding: 6px 18px; border: 1px solid #ddd; border-radius: 6px;
-  font-size: 12px; cursor: pointer; background: #fff;
+  padding: 7px 18px; border: 1px solid var(--gray-200); border-radius: var(--radius);
+  font-size: 12px; cursor: pointer; background: #fff; color: var(--gray-600);
+  transition: all var(--transition);
 }
-.modal-acts .btn-primary { background: #18a058; color: #fff; border-color: #18a058; }
-.modal-acts .btn-primary:hover { background: #0c7a43; }
-.modal-acts .btn-primary:disabled { background: #aaa; border-color: #aaa; cursor: not-allowed; }
+.modal-acts button:hover { border-color: var(--gray-300); }
+.modal-acts .btn-primary { background: var(--green); color: #fff; border-color: var(--green); }
+.modal-acts .btn-primary:hover { background: var(--green-hover); border-color: var(--green-hover); }
+.modal-acts .btn-primary:disabled { background: var(--gray-300); border-color: var(--gray-300); cursor: not-allowed; }
 </style>

@@ -96,29 +96,31 @@ watch([authType, token, username, password, apiKey, apiValue, apiAddTo], syncAut
 
 <style scoped>
 .auth-editor {
-  padding: 12px;
+  padding: 14px;
 }
 .type-select {
-  margin-bottom: 12px;
+  margin-bottom: 14px;
 }
 .auth-empty {
-  padding: 20px;
+  padding: 24px;
 }
 .auth-form {
   display: flex;
   flex-direction: column;
-  gap: 6px;
+  gap: 8px;
 }
 .auth-form label {
-  font-size: 12px;
-  color: #888;
+  font-size: 11px;
+  color: var(--gray-500);
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
 }
 .hint-suffix {
   font-size: 11px;
-  color: #aaa;
+  color: var(--gray-400);
 }
 .hint {
-  color: #aaa;
+  color: var(--gray-400);
   font-size: 13px;
 }
 </style>
