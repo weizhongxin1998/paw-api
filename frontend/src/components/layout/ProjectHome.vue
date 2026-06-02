@@ -15,6 +15,12 @@
         <span class="home-version">v1.0</span>
       </div>
       <div class="home-actions">
+        <button class="btn-theme" @click="emit('toggle-theme')" :title="props.themeMode === 'dark' ? '日间模式' : '夜间模式'">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <circle v-if="props.themeMode === 'dark'" cx="12" cy="12" r="5"/><line v-if="props.themeMode === 'dark'" x1="12" y1="1" x2="12" y2="3"/><line v-if="props.themeMode === 'dark'" x1="12" y1="21" x2="12" y2="23"/><line v-if="props.themeMode === 'dark'" x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line v-if="props.themeMode === 'dark'" x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line v-if="props.themeMode === 'dark'" x1="1" y1="12" x2="3" y2="12"/><line v-if="props.themeMode === 'dark'" x1="21" y1="12" x2="23" y2="12"/><line v-if="props.themeMode === 'dark'" x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line v-if="props.themeMode === 'dark'" x1="18.36" y1="5.64" x2="19.78" y2="4.22"/>
+            <path v-else d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>
+          </svg>
+        </button>
         <button class="btn-import" @click="showImport = true">
           <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
           导入
@@ -95,8 +101,11 @@ interface ProjectCard {
   stats: { request_count: number; collection_count: number } | null
 }
 
+const props = defineProps<{ themeMode: 'dark' | 'light' }>()
+
 const emit = defineEmits<{
   (e: 'enter-project', id: number): void
+  (e: 'toggle-theme'): void
 }>()
 
 const projectList = ref<ProjectCard[]>([])
@@ -184,7 +193,20 @@ onMounted(loadProjects)
   border: 1px solid var(--border-primary);
   font-family: var(--font-mono);
 }
-.home-actions { display: flex; gap: 8px; }
+.home-actions { display: flex; gap: 8px; align-items: center; }
+.btn-theme {
+  padding: 7px 10px;
+  background: transparent;
+  color: var(--text-muted);
+  border: 1px solid var(--border-primary);
+  border-radius: var(--radius);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all var(--transition);
+}
+.btn-theme:hover { border-color: var(--accent); color: var(--accent); background: var(--accent-soft); }
 .btn-new {
   padding: 7px 18px;
   background: var(--accent);

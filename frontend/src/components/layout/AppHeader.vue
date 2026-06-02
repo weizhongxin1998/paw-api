@@ -31,9 +31,9 @@
       />
     </div>
     <div class="header-right">
-      <button class="header-btn" @click="onToggleTheme" :title="themeLabel">
+      <button class="header-btn" @click="emit('toggleTheme')" :title="themeLabel">
         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-          <circle v-if="themeModeRef === 'dark'" cx="12" cy="12" r="5"/><line v-if="themeModeRef === 'dark'" x1="12" y1="1" x2="12" y2="3"/><line v-if="themeModeRef === 'dark'" x1="12" y1="21" x2="12" y2="23"/><line v-if="themeModeRef === 'dark'" x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line v-if="themeModeRef === 'dark'" x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line v-if="themeModeRef === 'dark'" x1="1" y1="12" x2="3" y2="12"/><line v-if="themeModeRef === 'dark'" x1="21" y1="12" x2="23" y2="12"/><line v-if="themeModeRef === 'dark'" x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line v-if="themeModeRef === 'dark'" x1="18.36" y1="5.64" x2="19.78" y2="4.22"/>
+          <circle v-if="props.themeMode === 'dark'" cx="12" cy="12" r="5"/><line v-if="props.themeMode === 'dark'" x1="12" y1="1" x2="12" y2="3"/><line v-if="props.themeMode === 'dark'" x1="12" y1="21" x2="12" y2="23"/><line v-if="props.themeMode === 'dark'" x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line v-if="props.themeMode === 'dark'" x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line v-if="props.themeMode === 'dark'" x1="1" y1="12" x2="3" y2="12"/><line v-if="props.themeMode === 'dark'" x1="21" y1="12" x2="23" y2="12"/><line v-if="props.themeMode === 'dark'" x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line v-if="props.themeMode === 'dark'" x1="18.36" y1="5.64" x2="19.78" y2="4.22"/>
           <path v-else d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>
         </svg>
       </button>
@@ -58,11 +58,13 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, onUnmounted, getCurrentInstance } from 'vue'
+import { ref, computed, onMounted, onUnmounted } from 'vue'
 import { useProjectStore } from '../../stores/project'
 import { useEnvStore } from '../../stores/env'
 import EnvSelector from '../environment/EnvSelector.vue'
 import SettingsModal from '../modals/SettingsModal.vue'
+
+const props = defineProps<{ themeMode: 'dark' | 'light' }>()
 
 const projectStore = useProjectStore()
 const envStore = useEnvStore()
@@ -70,6 +72,7 @@ const envStore = useEnvStore()
 const emit = defineEmits<{
   'projectChanged': [id: number]
   'backToHome': []
+  'toggleTheme': []
 }>()
 
 const dropdownShow = ref(false)
@@ -79,7 +82,6 @@ const newProjectName = ref('')
 const newProjectDesc = ref('')
 const projectBtnRef = ref<HTMLElement | null>(null)
 const dropdownRef = ref<HTMLElement | null>(null)
-const themeModeRef = ref<'dark'|'light'>('dark')
 
 function selectProject(id: number) {
   dropdownShow.value = false
@@ -112,15 +114,7 @@ function onClickOutside(e: MouseEvent) {
   }
 }
 
-function onToggleTheme() {
-  themeModeRef.value = themeModeRef.value === 'dark' ? 'light' : 'dark'
-  const root = document.querySelector('.app-container')
-  if (root) {
-    root.classList.toggle('theme-light', themeModeRef.value === 'light')
-  }
-}
-
-const themeLabel = '夜间模式'
+const themeLabel = computed(() => props.themeMode === 'dark' ? '日间模式' : '夜间模式')
 
 onMounted(() => {
   document.addEventListener('click', onClickOutside)

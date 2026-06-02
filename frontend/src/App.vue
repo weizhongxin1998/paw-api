@@ -7,12 +7,16 @@
           <AppHeader
             v-if="projectStore.currentId"
             :project-id="projectStore.currentId"
+            :theme-mode="themeMode"
             @project-changed="onProjectChanged"
             @back-to-home="projectStore.currentId = null"
+            @toggle-theme="toggleTheme"
           />
           <ProjectHome
             v-if="!projectStore.currentId"
+            :theme-mode="themeMode"
             @enter-project="onEnterProject"
+            @toggle-theme="toggleTheme"
           />
           <AppBody v-else :project-id="projectStore.currentId" />
         </div>
@@ -22,8 +26,8 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted } from 'vue'
-import { darkTheme } from 'naive-ui'
+import { ref, computed, onMounted } from 'vue'
+import { darkTheme, type GlobalThemeOverrides } from 'naive-ui'
 import { NConfigProvider, NMessageProvider, NDialogProvider } from 'naive-ui'
 import AppHeader from './components/layout/AppHeader.vue'
 import AppBody from './components/layout/AppBody.vue'
@@ -37,7 +41,7 @@ const collectionStore = useCollectionStore()
 const envStore = useEnvStore()
 
 const themeMode = ref<'dark' | 'light'>('dark')
-const nTheme = ref(darkTheme)
+const nTheme = computed(() => themeMode.value === 'dark' ? darkTheme : null)
 
 async function onEnterProject(id: number) {
   await projectStore.switchProject(id)
@@ -51,110 +55,111 @@ async function onProjectChanged(id: number) {
   envStore.loadEnvironments(id)
 }
 
+function toggleTheme() {
+  themeMode.value = themeMode.value === 'dark' ? 'light' : 'dark'
+}
+
 onMounted(async () => {
   await projectStore.loadProjects()
 })
 
-function toggleTheme() {
-  themeMode.value = themeMode.value === 'dark' ? 'light' : 'dark'
-  nTheme.value = themeMode.value === 'dark' ? darkTheme : null as any
-}
-
-const themeOverrides = {
-  common: {
-    primaryColor: '#00e05a',
-    primaryColorHover: '#00ff66',
-    primaryColorPressed: '#00b84a',
-    primaryColorSuppl: '#00e05a',
-    bodyColor: '#0d0d0d',
-    cardColor: '#141414',
-    modalColor: '#141414',
-    popoverColor: '#1a1a1a',
-    borderColor: '#2a2a2a',
-    dividerColor: '#2a2a2a',
-    borderRadius: '4px',
-    fontSizeSmall: '12px',
-    fontSizeMedium: '13px',
-    fontSizeLarge: '15px',
-    fontFamilyMono: "'JetBrains Mono','Cascadia Code','Fira Code','SF Mono','Consolas',monospace",
-    fontFamily: "'JetBrains Mono','Cascadia Code','Fira Code','SF Mono','Consolas',monospace",
-    fontWeightStrong: '600',
-    textColor1: '#e0e0e0',
-    textColor2: '#b0b0b0',
-    textColor3: '#707070',
-    placeholderColor: '#505050',
-    inputColor: '#141414',
-    inputBorderColor: '#2a2a2a',
-    inputBorderColorHover: '#3a3a3a',
-    inputBorderColorFocus: '#00e05a',
-    buttonColor2: '#1a1a1a',
-    buttonColor2Hover: '#252525',
-    buttonColor2Pressed: '#303030',
-    scrollbarColor: '#333',
-    scrollbarColorHover: '#444',
-    closeColor: '#707070',
-    closeColorHover: '#e0e0e0',
-    closeColorPressed: '#b0b0b0',
-  },
-  Button: {
-    textColor: '#00e05a',
-    textColorHover: '#00ff66',
-    textColorPressed: '#00b84a',
-    border: '1px solid #2a2a2a',
-    borderHover: '1px solid #3a3a3a',
-    borderFocus: '1px solid #00e05a',
-    color: '#1a1a1a',
-    colorHover: '#252525',
-    colorPressed: '#303030',
-    borderRadiusSmall: '3px',
-    borderRadiusMedium: '4px',
-  },
-  Input: {
-    border: '1px solid #2a2a2a',
-    borderHover: '1px solid #3a3a3a',
-    borderFocus: '1px solid #00e05a',
-    borderRadius: '4px',
-    color: '#141414',
-    colorFocus: '#141414',
-    textColor: '#e0e0e0',
-    placeholderColor: '#505050',
-    lineHeight: '1.6',
-    fontSizeSmall: '12px',
-    fontSizeMedium: '13px',
-  },
-  Select: {
-    peers: { InternalSelection: { textColor: '#e0e0e0' } },
-  },
-  Checkbox: {
-    colorChecked: '#00e05a',
-    borderChecked: '#00e05a',
-    border: '1px solid #3a3a3a',
-    checkMarkColor: '#0d0d0d',
-  },
-  Dropdown: {
-    color: '#1a1a1a',
-    dividerColor: '#2a2a2a',
-    optionColorActive: '#1a2a1a',
-    optionTextColorActive: '#00e05a',
-  },
-  Modal: {
-    color: '#141414',
-    textColor: '#e0e0e0',
-    titleTextColor: '#e0e0e0',
-  },
-  Tabs: {
-    tabTextColorActiveLine: '#00e05a',
-    tabTextColorActiveBar: '#00e05a',
-    barColor: '#00e05a',
-  },
-  Spin: {
-    color: '#00e05a',
-  },
-  Result: {
-    titleTextColor: '#e0e0e0',
-    textColor: '#b0b0b0',
-  },
-}
+const themeOverrides = computed<GlobalThemeOverrides>(() => {
+  const dark = themeMode.value === 'dark'
+  return {
+    common: {
+      primaryColor: dark ? '#00e05a' : '#009944',
+      primaryColorHover: dark ? '#00ff66' : '#007a33',
+      primaryColorPressed: dark ? '#00b84a' : '#006b2a',
+      primaryColorSuppl: dark ? '#00e05a' : '#009944',
+      bodyColor: dark ? '#0d0d0d' : '#f5f3f1',
+      cardColor: dark ? '#141414' : '#ffffff',
+      modalColor: dark ? '#141414' : '#ffffff',
+      popoverColor: dark ? '#1a1a1a' : '#f2f2ef',
+      borderColor: dark ? '#2a2a2a' : '#c8c8c2',
+      dividerColor: dark ? '#2a2a2a' : '#c8c8c2',
+      borderRadius: '4px',
+      fontSizeSmall: '12px',
+      fontSizeMedium: '13px',
+      fontSizeLarge: '15px',
+      fontFamilyMono: "'JetBrains Mono','Cascadia Code','Fira Code','SF Mono','Consolas',monospace",
+      fontFamily: "'JetBrains Mono','Cascadia Code','Fira Code','SF Mono','Consolas',monospace",
+      fontWeightStrong: '600',
+      textColor1: dark ? '#e0e0e0' : '#1a1a18',
+      textColor2: dark ? '#b0b0b0' : '#444442',
+      textColor3: dark ? '#707070' : '#666662',
+      placeholderColor: dark ? '#505050' : '#888884',
+      inputColor: dark ? '#141414' : '#ffffff',
+      inputColorFocus: dark ? '#141414' : '#ffffff',
+      inputBorderColor: dark ? '#2a2a2a' : '#c8c8c2',
+      inputBorderColorHover: dark ? '#3a3a3a' : '#a8a8a2',
+      inputBorderColorFocus: dark ? '#00e05a' : '#009944',
+      buttonColor2: dark ? '#1a1a1a' : '#fafaf9',
+      buttonColor2Hover: dark ? '#252525' : '#f0f0ee',
+      buttonColor2Pressed: dark ? '#303030' : '#e8e8e6',
+      scrollbarColor: dark ? '#333' : '#ccc',
+      scrollbarColorHover: dark ? '#444' : '#aaa',
+      closeColor: dark ? '#707070' : '#888',
+      closeColorHover: dark ? '#e0e0e0' : '#333',
+      closeColorPressed: dark ? '#b0b0b0' : '#555',
+    },
+    Button: {
+      textColor: dark ? '#00e05a' : '#009944',
+      textColorHover: dark ? '#00ff66' : '#007a33',
+      textColorPressed: dark ? '#00b84a' : '#006b2a',
+      border: dark ? '1px solid #2a2a2a' : '1px solid #c8c8c2',
+      borderHover: dark ? '1px solid #3a3a3a' : '1px solid #a8a8a2',
+      borderFocus: dark ? '1px solid #00e05a' : '1px solid #009944',
+      color: dark ? '#1a1a1a' : '#fafaf9',
+      colorHover: dark ? '#252525' : '#f0f0ee',
+      colorPressed: dark ? '#303030' : '#e8e8e6',
+      borderRadiusSmall: '3px',
+      borderRadiusMedium: '4px',
+    },
+    Input: {
+      border: dark ? '1px solid #2a2a2a' : '1px solid #c8c8c2',
+      borderHover: dark ? '1px solid #3a3a3a' : '1px solid #a8a8a2',
+      borderFocus: dark ? '1px solid #00e05a' : '1px solid #009944',
+      borderRadius: '4px',
+      color: dark ? '#141414' : '#ffffff',
+      colorFocus: dark ? '#141414' : '#ffffff',
+      textColor: dark ? '#e0e0e0' : '#1a1a18',
+      placeholderColor: dark ? '#505050' : '#999',
+      lineHeight: '1.6',
+      fontSizeSmall: '12px',
+      fontSizeMedium: '13px',
+    },
+    Select: {
+      peers: { InternalSelection: { textColor: dark ? '#e0e0e0' : '#1a1a18' } },
+    },
+    Checkbox: {
+      colorChecked: dark ? '#00e05a' : '#009944',
+      borderChecked: dark ? '#00e05a' : '#009944',
+      border: dark ? '1px solid #3a3a3a' : '1px solid #bbb',
+      checkMarkColor: dark ? '#0d0d0d' : '#fff',
+    },
+    Dropdown: {
+      color: dark ? '#1a1a1a' : '#ffffff',
+      dividerColor: dark ? '#2a2a2a' : '#e0e0da',
+      optionColorActive: dark ? '#1a2a1a' : '#e6f7ec',
+      optionTextColorActive: dark ? '#00e05a' : '#009944',
+    },
+    Modal: {
+      color: dark ? '#141414' : '#ffffff',
+      textColor: dark ? '#e0e0e0' : '#1a1a18',
+      titleTextColor: dark ? '#e0e0e0' : '#1a1a18',
+    },
+    Tabs: {
+      tabTextColorActiveLine: dark ? '#00e05a' : '#009944',
+      tabTextColorActiveBar: dark ? '#00e05a' : '#009944',
+      barColor: dark ? '#00e05a' : '#009944',
+    },
+    Spin: { color: dark ? '#00e05a' : '#009944' },
+    Result: {
+      titleTextColor: dark ? '#e0e0e0' : '#1a1a18',
+      textColor: dark ? '#b0b0b0' : '#555552',
+    },
+  }
+})
 
 defineExpose({ toggleTheme, themeMode })
 </script>
@@ -169,7 +174,6 @@ defineExpose({ toggleTheme, themeMode })
   --border-primary: #2a2a2a;
   --border-hover: #3a3a3a;
   --border-focus: #00e05a;
-  --border-active: #3a3a3a;
   --text-primary: #e0e0e0;
   --text-secondary: #b0b0b0;
   --text-muted: #707070;
@@ -180,7 +184,6 @@ defineExpose({ toggleTheme, themeMode })
   --accent-soft: rgba(0,224,90,0.08);
   --accent-glow: rgba(0,224,90,0.15);
   --red: #ff4444;
-  --red-hover: #ff6666;
   --red-soft: rgba(255,68,68,0.08);
   --amber: #ffaa00;
   --amber-soft: rgba(255,170,0,0.08);
@@ -198,64 +201,52 @@ defineExpose({ toggleTheme, themeMode })
 }
 
 .theme-light {
-  --bg-base: #f5f5f4;
+  --bg-base: #f5f3f1;
   --bg-surface: #ffffff;
-  --bg-elevated: #fafaf9;
-  --bg-hover: #f0f0ee;
-  --bg-active: #e8e8e6;
-  --border-primary: #e0e0dc;
-  --border-hover: #d0d0cc;
+  --bg-elevated: #f2f2ef;
+  --bg-hover: #ebebe8;
+  --bg-active: #e3e3e0;
+  --border-primary: #c8c8c2;
+  --border-hover: #a8a8a2;
   --border-focus: #009944;
-  --border-active: #d0d0cc;
   --text-primary: #1a1a18;
-  --text-secondary: #555552;
-  --text-muted: #888884;
-  --text-placeholder: #aaaaa8;
+  --text-secondary: #444442;
+  --text-muted: #666662;
+  --text-placeholder: #888884;
   --accent: #009944;
   --accent-hover: #007a33;
   --accent-pressed: #006b2a;
-  --accent-soft: rgba(0,153,68,0.06);
+  --accent-soft: rgba(0,153,68,0.08);
   --accent-glow: rgba(0,153,68,0.12);
   --red: #cc3333;
-  --red-soft: rgba(204,51,51,0.06);
-  --amber: #cc7700;
-  --amber-soft: rgba(204,119,0,0.06);
+  --red-soft: rgba(204,51,51,0.08);
+  --amber: #b36d00;
+  --amber-soft: rgba(179,109,0,0.08);
   --blue: #2266cc;
-  --blue-soft: rgba(34,102,204,0.06);
+  --blue-soft: rgba(34,102,204,0.08);
   --purple: #7733cc;
-  --purple-soft: rgba(119,51,204,0.06);
+  --purple-soft: rgba(119,51,204,0.08);
 }
 
 html, body, #app {
-  margin: 0;
-  padding: 0;
-  height: 100%;
-  font-family: var(--font-ui);
-  font-size: 13px;
-  color: var(--text-primary);
-  background: var(--bg-base);
-  -webkit-font-smoothing: antialiased;
-  overflow: hidden;
+  margin: 0; padding: 0; height: 100%;
+  font-family: var(--font-ui); font-size: 13px;
+  color: var(--text-primary); background: var(--bg-base);
+  -webkit-font-smoothing: antialiased; overflow: hidden;
 }
 
 .app-container {
-  display: flex;
-  flex-direction: column;
-  height: 100vh;
-  overflow: hidden;
-  position: relative;
-  background: var(--bg-base);
+  display: flex; flex-direction: column; height: 100vh;
+  overflow: hidden; position: relative; background: var(--bg-base);
 }
 
 .noise-overlay {
-  position: fixed;
-  inset: 0;
-  pointer-events: none;
-  z-index: 9999;
+  position: fixed; inset: 0; pointer-events: none; z-index: 9999;
   opacity: 0.025;
   background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='1'/%3E%3C/svg%3E");
   background-size: 256px 256px;
 }
+.theme-light .noise-overlay { opacity: 0.012; }
 
 ::-webkit-scrollbar { width: 6px; height: 6px; }
 ::-webkit-scrollbar-track { background: transparent; }
