@@ -1,24 +1,24 @@
 <template>
   <div class="header">
     <div class="header-left">
-      <n-button text class="project-btn">
+      <button class="project-btn">
         {{ projectName || '未选择项目' }}
-      </n-button>
+        <span class="proj-arrow">&#x25BC;</span>
+      </button>
       <EnvSelector
         :project-id="projectId"
         @update:active-env-id="onActiveEnvChange"
       />
     </div>
     <div class="header-right">
-      <n-button text size="small">日间</n-button>
-      <n-button text size="small">设置</n-button>
+      <button class="header-btn">日间</button>
+      <button class="header-btn">设置</button>
     </div>
   </div>
 </template>
 
 <script setup lang="ts">
 import { ref } from 'vue'
-import { NButton } from 'naive-ui'
 import { useEnvStore } from '../../stores/env'
 import EnvSelector from '../environment/EnvSelector.vue'
 
@@ -53,7 +53,37 @@ function onActiveEnvChange(id: number | null) {
   gap: 8px;
 }
 .project-btn {
-  font-size: 13px;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  padding: 4px 10px;
+  border: 1px solid #ddd;
+  border-radius: 6px;
+  background: #fff;
+  cursor: pointer;
+  font-size: 12px;
   font-weight: 600;
+  color: #333;
+  outline: none;
+}
+.project-btn:hover {
+  background: #f8f8f8;
+}
+.proj-arrow {
+  font-size: 9px;
+  color: #888;
+}
+.header-btn {
+  font-size: 11px;
+  padding: 3px 10px;
+  background: transparent;
+  border: 1px solid transparent;
+  border-radius: 4px;
+  color: #666;
+  cursor: pointer;
+  outline: none;
+}
+.header-btn:hover {
+  background: #e8e8e8;
 }
 </style>

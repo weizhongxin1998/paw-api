@@ -1,21 +1,8 @@
 <template>
   <div class="sidebar">
     <div class="sidebar-tabs">
-      <n-button
-        :type="activePanel === 'collection' ? 'primary' : 'default'"
-        size="small"
-        @click="activePanel = 'collection'"
-      >Collections</n-button>
-      <n-button
-        :type="activePanel === 'history' ? 'primary' : 'default'"
-        size="small"
-        @click="activePanel = 'history'"
-      >History</n-button>
-      <n-button
-        :type="activePanel === 'websocket' ? 'primary' : 'default'"
-        size="small"
-        @click="activePanel = 'websocket'"
-      >WS</n-button>
+      <button :class="{ active: activePanel === 'collection' }" @click="switchPanel('collection')">Collections</button>
+      <button :class="{ active: activePanel === 'history' }" @click="switchPanel('history')">History</button>
     </div>
 
     <CollectionTree
@@ -29,25 +16,21 @@
       @open-tab="onHistoryReplay"
       ref="historyPanelRef"
     />
-    <div v-else class="ws-placeholder">
-      <n-empty description="WebSocket mode active" size="small" />
-    </div>
 
     <div v-if="activePanel === 'collection'" class="sidebar-footer">
-      <n-button text size="tiny" @click="onNewCollection">+ 新建集合</n-button>
-      <n-button text size="tiny" @click="onOpenDocs">Docs</n-button>
+      <button class="footer-btn" @click="onNewCollection">+ 新建集合</button>
+      <button class="footer-btn" @click="onOpenDocs">Docs</button>
     </div>
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue'
-import { NButton, NEmpty } from 'naive-ui'
+import { ref, watch } from 'vue'
 import CollectionTree from '../collection/CollectionTree.vue'
 import HistoryPanel from '../history/HistoryPanel.vue'
 import type { TreeItem } from '../../types/collection'
 
-const activePanel = ref<'collection' | 'history' | 'websocket'>('collection')
+const activePanel = ref<'collection' | 'history'>('collection')
 const tree = ref<TreeItem[]>([])
 const historyPanelRef = ref<InstanceType<typeof HistoryPanel> | null>(null)
 
@@ -58,22 +41,18 @@ const emit = defineEmits<{
   (e: 'open-docs'): void
 }>()
 
-const emitPanelChange = () => {
-  emit('panel-change', activePanel.value)
+function switchPanel(panel: 'collection' | 'history') {
+  activePanel.value = panel
+  emit('panel-change', panel as any)
 }
-emitPanelChange()
 
 function onOpenRequest(node: TreeItem) {
   emit('open-request', node)
 }
 
-function onContextMenu(node: TreeItem, event: MouseEvent) {
-  // TODO: show context menu
-}
+function onContextMenu(_: TreeItem, _ev: MouseEvent) {}
 
-function onNewCollection() {
-  // TODO: create collection
-}
+function onNewCollection() {}
 
 function onHistoryReplay(item: any) {
   emit('history-replay', item)
@@ -94,10 +73,29 @@ function onOpenDocs() {
   flex-shrink: 0;
 }
 .sidebar-tabs {
-  padding: 8px;
-  border-bottom: 1px solid #e8e8e8;
   display: flex;
-  gap: 4px;
+  border-bottom: 1px solid #e8e8e8;
+}
+.sidebar-tabs button {
+  flex: 1;
+  padding: 8px;
+  text-align: center;
+  font-size: 11px;
+  cursor: pointer;
+  background: #fafafa;
+  border: none;
+  color: #888;
+  outline: none;
+  border-bottom: 2px solid transparent;
+}
+.sidebar-tabs button.active {
+  background: #fff;
+  color: #18a058;
+  border-bottom-color: #18a058;
+  font-weight: 600;
+}
+.sidebar-tabs button:hover {
+  color: #555;
 }
 .sidebar-footer {
   padding: 6px 10px;
@@ -105,10 +103,15 @@ function onOpenDocs() {
   display: flex;
   justify-content: space-between;
 }
-.ws-placeholder {
-  flex: 1;
-  display: flex;
-  align-items: center;
-  justify-content: center;
+.footer-btn {
+  background: none;
+  border: none;
+  color: #18a058;
+  font-size: 11px;
+  cursor: pointer;
+  padding: 0;
+}
+.footer-btn:hover {
+  text-decoration: underline;
 }
 </style>

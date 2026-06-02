@@ -1,25 +1,19 @@
 <template>
   <div class="response-panel">
     <div class="status-bar">
-      <n-tag v-if="response" :type="statusType" size="small">
+      <span v-if="response" class="status-badge" :class="statusClass">
         {{ response.status }} {{ statusText }}
-      </n-tag>
+      </span>
       <span v-if="response" class="meta">{{ response.time }} ms</span>
       <span v-if="response" class="meta">{{ formatSize(response.size) }}</span>
       <span v-if="!response" class="placeholder">点击 Send 发送请求</span>
     </div>
 
     <div class="sub-tabs">
-      <n-button
-        v-for="tab in bodyTabs"
-        :key="tab"
-        :type="activeTab === tab ? 'primary' : 'default'"
-        size="small"
-        :ghost="activeTab !== tab"
-        @click="activeTab = tab"
-      >
-        {{ tab }}
-      </n-button>
+      <button :class="{ active: activeTab === 'Body' }" @click="activeTab = 'Body'">Body</button>
+      <button :class="{ active: activeTab === 'Headers' }" @click="activeTab = 'Headers'">Headers</button>
+      <button :class="{ active: activeTab === 'Cookies' }" @click="activeTab = 'Cookies'">Cookies</button>
+      <button :class="{ active: activeTab === 'Log' }" @click="activeTab = 'Log'">Log</button>
     </div>
 
     <div v-if="!response" class="body-empty">
@@ -27,13 +21,12 @@
     </div>
 
     <div v-else class="body-content">
-      <div v-if="activeTab === 'Body'" class="body-modes">
-        <n-radio-group v-model:value="bodyMode" size="small">
-          <n-radio-button value="pretty">Pretty</n-radio-button>
-          <n-radio-button value="raw">Raw</n-radio-button>
-          <n-radio-button value="preview">Preview</n-radio-button>
-        </n-radio-group>
-
+      <div v-if="activeTab === 'Body'">
+        <div class="body-modes">
+          <button :class="{ active: bodyMode === 'pretty' }" @click="bodyMode = 'pretty'">Pretty</button>
+          <button :class="{ active: bodyMode === 'raw' }" @click="bodyMode = 'raw'">Raw</button>
+          <button :class="{ active: bodyMode === 'preview' }" @click="bodyMode = 'preview'">Preview</button>
+        </div>
         <pre v-if="bodyMode === 'pretty'" class="code-block">{{ formatBody(response.body) }}</pre>
         <pre v-else-if="bodyMode === 'raw'" class="code-block raw">{{ response.body }}</pre>
         <div v-else class="preview-hint">Preview 模式需要 HTML 类型响应</div>
@@ -63,7 +56,7 @@
       </div>
 
       <div v-else-if="activeTab === 'Log'">
-        <n-button size="small" @click="copyCurl">复制 cURL</n-button>
+        <button class="copy-curl-btn" @click="copyCurl">复制 cURL</button>
         <pre class="code-block">{{ response.rawRequest || '(暂无)' }}</pre>
       </div>
     </div>
@@ -72,7 +65,6 @@
 
 <script setup lang="ts">
 import { ref, computed } from 'vue'
-import { NTag, NButton, NRadioGroup, NRadioButton } from 'naive-ui'
 import type { HttpResponse } from '../../types/response'
 
 const props = defineProps<{
@@ -82,28 +74,20 @@ const props = defineProps<{
 const activeTab = ref('Body')
 const bodyMode = ref('pretty')
 
-const bodyTabs = ['Body', 'Headers', 'Cookies', 'Log']
-
-const statusType = computed(() => {
-  if (!props.response) return 'default'
+const statusClass = computed(() => {
+  if (!props.response) return ''
   const s = props.response.status
-  if (s < 300) return 'success'
-  if (s < 400) return 'info'
-  if (s < 500) return 'warning'
-  return 'error'
+  if (s < 300) return 'green'
+  if (s < 400) return 'blue'
+  if (s < 500) return 'orange'
+  return 'red'
 })
 
 const statusText = computed(() => {
   if (!props.response) return ''
   const s = props.response.status
-  if (s === 200) return 'OK'
-  if (s === 201) return 'Created'
-  if (s === 204) return 'No Content'
-  if (s === 400) return 'Bad Request'
-  if (s === 401) return 'Unauthorized'
-  if (s === 404) return 'Not Found'
-  if (s === 500) return 'Server Error'
-  return ''
+  const map: Record<number, string> = { 200: 'OK', 201: 'Created', 204: 'No Content', 400: 'Bad Request', 401: 'Unauthorized', 404: 'Not Found', 500: 'Server Error' }
+  return map[s] || ''
 })
 
 function formatSize(bytes: number): string {
@@ -113,11 +97,7 @@ function formatSize(bytes: number): string {
 }
 
 function formatBody(raw: string): string {
-  try {
-    return JSON.stringify(JSON.parse(raw), null, 2)
-  } catch {
-    return raw
-  }
+  try { return JSON.stringify(JSON.parse(raw), null, 2) } catch { return raw }
 }
 
 function copyCurl() {
@@ -132,6 +112,7 @@ function copyCurl() {
   border-top: 1px solid #e0e0e0;
   display: flex;
   flex-direction: column;
+  flex-shrink: 0;
 }
 .status-bar {
   display: flex;
@@ -141,26 +122,44 @@ function copyCurl() {
   align-items: center;
   gap: 12px;
 }
-.meta {
-  font-size: 11px;
-  color: #999;
+.status-badge {
+  font-weight: 700;
+  font-size: 12px;
+  padding: 2px 8px;
+  border-radius: 4px;
 }
-.placeholder {
-  font-size: 11px;
-  color: #aaa;
-}
+.status-badge.green { background: #d4edda; color: #155724; }
+.status-badge.blue { background: #d0e8ff; color: #004085; }
+.status-badge.orange { background: #fff3cd; color: #856404; }
+.status-badge.red { background: #f8d7da; color: #721c24; }
+.meta { font-size: 11px; color: #999; }
+.placeholder { font-size: 11px; color: #aaa; }
 .sub-tabs {
   display: flex;
-  padding: 4px 10px;
-  gap: 4px;
   border-bottom: 1px solid #eee;
   background: #fafafa;
+  padding: 0 10px;
+}
+.sub-tabs button {
+  padding: 6px 14px;
+  font-size: 12px;
+  cursor: pointer;
+  color: #888;
+  border: none;
+  background: transparent;
+  border-bottom: 2px solid transparent;
+  outline: none;
+}
+.sub-tabs button.active {
+  color: #18a058;
+  border-bottom-color: #18a058;
+  font-weight: 600;
 }
 .body-content {
   flex: 1;
   overflow-y: auto;
   max-height: 200px;
-  padding: 8px;
+  padding: 8px 12px;
 }
 .body-empty {
   display: flex;
@@ -170,8 +169,23 @@ function copyCurl() {
 }
 .body-modes {
   display: flex;
-  flex-direction: column;
-  gap: 8px;
+  gap: 4px;
+  margin-bottom: 8px;
+}
+.body-modes button {
+  padding: 3px 12px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  background: #fff;
+  font-size: 11px;
+  cursor: pointer;
+  color: #888;
+  outline: none;
+}
+.body-modes button.active {
+  border-color: #18a058;
+  color: #18a058;
+  font-weight: 600;
 }
 .code-block {
   font-family: 'SF Mono', 'Consolas', monospace;
@@ -196,17 +210,18 @@ function copyCurl() {
   padding: 4px 8px;
   border-bottom: 1px solid #f0f0f0;
 }
-.kv-table th {
-  color: #999;
-  font-weight: 500;
+.kv-table th { color: #999; font-weight: 500; }
+.preview-hint { color: #aaa; font-size: 12px; padding: 20px; }
+.hint { color: #aaa; font-size: 12px; }
+.copy-curl-btn {
+  padding: 3px 10px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  background: #fff;
+  font-size: 10px;
+  cursor: pointer;
+  color: #888;
+  margin-bottom: 6px;
 }
-.preview-hint {
-  color: #aaa;
-  font-size: 12px;
-  padding: 20px;
-}
-.hint {
-  color: #aaa;
-  font-size: 12px;
-}
+.copy-curl-btn:hover { border-color: #ccc; }
 </style>

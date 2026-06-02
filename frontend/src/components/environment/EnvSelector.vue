@@ -1,18 +1,12 @@
 <template>
   <div class="env-selector">
-    <n-select
-      v-model:value="selectedId"
-      :options="envOptions"
-      size="small"
-      placeholder="选择环境"
-      style="width: 140px"
-      @update:value="onSelect"
-    />
-    <n-button text size="small" @click="showManager = true" title="管理环境">
-      <template #icon>
-        <span style="font-size:14px">&#9881;</span>
-      </template>
-    </n-button>
+    <select v-model="selectedId" class="env-select" @change="onSelect($event)">
+      <option :value="null" disabled>选择环境</option>
+      <option v-for="e in environments" :key="e.id" :value="e.id">
+        {{ e.name }}{{ e.is_active ? ' ✓' : '' }}
+      </option>
+    </select>
+    <button class="gear-btn" @click="showManager = true" title="管理环境">&#9881;</button>
 
     <EnvManagerModal
       v-model:show="showManager"
@@ -23,8 +17,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, watch, onMounted } from 'vue'
-import { NSelect, NButton } from 'naive-ui'
+import { ref, watch } from 'vue'
 import { ListEnvironments, ActivateEnvironment } from '../../../wailsjs/go/main/App'
 import type { Environment } from '../../types/environment'
 import EnvManagerModal from './EnvManagerModal.vue'
@@ -40,13 +33,6 @@ const emit = defineEmits<{
 const selectedId = ref<number | null>(null)
 const environments = ref<Environment[]>([])
 const showManager = ref(false)
-
-const envOptions = computed(() => {
-  return environments.value.map(e => ({
-    label: e.name + (e.is_active ? ' ✓' : ''),
-    value: e.id,
-  }))
-})
 
 async function fetchEnvs() {
   if (!props.projectId) {
@@ -65,9 +51,11 @@ async function fetchEnvs() {
   } catch {}
 }
 
-function onSelect(id: number) {
-  ActivateEnvironment(id).catch(() => {})
-  emit('update:activeEnvId', id)
+function onSelect(_e: Event) {
+  if (selectedId.value != null) {
+    ActivateEnvironment(selectedId.value).catch(() => {})
+    emit('update:activeEnvId', selectedId.value)
+  }
 }
 
 watch(() => props.projectId, () => {
@@ -80,5 +68,32 @@ watch(() => props.projectId, () => {
   display: flex;
   align-items: center;
   gap: 2px;
+}
+.env-select {
+  font-size: 11px;
+  padding: 4px 10px;
+  background: #fff;
+  border: 1px solid #ccc;
+  border-radius: 6px;
+  color: #555;
+  cursor: pointer;
+  outline: none;
+  width: 140px;
+  appearance: none;
+  -webkit-appearance: none;
+}
+.env-select:focus {
+  border-color: #18a058;
+}
+.gear-btn {
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-size: 14px;
+  color: #888;
+  padding: 2px 4px;
+}
+.gear-btn:hover {
+  color: #333;
 }
 </style>

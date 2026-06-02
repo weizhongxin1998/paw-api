@@ -1,58 +1,32 @@
 <template>
   <div class="url-bar">
-    <n-select
-      v-model:value="method"
-      :options="methodOptions"
-      :consistent-menu-width="false"
-      size="medium"
-      class="method-select"
-    />
+    <select v-model="method" class="method-select">
+      <option v-for="opt in methodOptions" :key="opt" :value="opt">{{ opt }}</option>
+    </select>
     <div class="url-input-wrapper" @click="startEdit">
-      <n-input
+      <input
         v-if="isEditing"
         ref="inputRef"
-        v-model:value="url"
-        placeholder="https://api.example.com/v1/users"
-        size="medium"
+        v-model="url"
         class="url-input-editing"
+        placeholder="https://api.example.com/v1/users"
         @blur="stopEdit"
         @keydown.enter="onEnter"
       />
-      <div
-        v-else
-        class="url-display"
-        @mouseover="onVarHover"
-        @mouseleave="onVarLeave"
-      >
+      <div v-else class="url-display" @mouseover="onVarHover" @mouseleave="onVarLeave">
         <template v-for="(seg, i) in urlSegments" :key="i">
           <span v-if="seg.type === 'var'" class="var-highlight">{{ seg.text }}</span>
           <span v-else>{{ seg.text }}</span>
         </template>
       </div>
-      <n-popover
-        v-if="hoveredVar"
-        trigger="manual"
-        :show="true"
-        :x="tooltipX"
-        :y="tooltipY"
-        placement="top"
-        :to="false"
-      >
-        <template #trigger>
-          <span style="position:fixed;display:none"></span>
-        </template>
-        <span>{{ resolvedVarText || '加载中...' }}</span>
-      </n-popover>
+      <div v-if="hoveredVar && resolvedVarText" class="var-tooltip">{{ resolvedVarText }}</div>
     </div>
-    <n-button type="primary" class="send-btn" @click="$emit('send')">
-      Send
-    </n-button>
+    <button class="send-btn" @click="$emit('send')">Send</button>
   </div>
 </template>
 
 <script setup lang="ts">
 import { ref, computed, nextTick } from 'vue'
-import { NSelect, NInput, NButton, NPopover } from 'naive-ui'
 import { ResolveVariable } from '../../../wailsjs/go/main/App'
 import { useEnvStore } from '../../stores/env'
 
@@ -74,11 +48,9 @@ const emit = defineEmits<{
 
 const envStore = useEnvStore()
 const isEditing = ref(false)
-const inputRef = ref<InstanceType<typeof NInput> | null>(null)
+const inputRef = ref<HTMLInputElement | null>(null)
 const hoveredVar = ref<string | null>(null)
 const resolvedVarText = ref('')
-const tooltipX = ref(0)
-const tooltipY = ref(0)
 let resolveTimer: ReturnType<typeof setTimeout> | null = null
 
 const method = computed({
@@ -110,15 +82,7 @@ const urlSegments = computed<UrlSegment[]>(() => {
   return segments
 })
 
-const methodOptions = [
-  { label: 'GET', value: 'GET' },
-  { label: 'POST', value: 'POST' },
-  { label: 'PUT', value: 'PUT' },
-  { label: 'DELETE', value: 'DELETE' },
-  { label: 'PATCH', value: 'PATCH' },
-  { label: 'HEAD', value: 'HEAD' },
-  { label: 'OPTIONS', value: 'OPTIONS' },
-]
+const methodOptions = ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'HEAD', 'OPTIONS']
 
 async function startEdit() {
   isEditing.value = true
@@ -142,9 +106,6 @@ function onVarHover(e: MouseEvent) {
     const match = varName.match(/^\{\{(\w+)\}\}$/)
     if (!match) return
     hoveredVar.value = match[1]
-    tooltipX.value = e.clientX
-    tooltipY.value = e.clientY
-    resolvedVarText.value = '加载中...'
     if (resolveTimer) clearTimeout(resolveTimer)
     resolveTimer = setTimeout(async () => {
       const envId = envStore.activeEnvId ?? 0
@@ -171,15 +132,27 @@ function onVarLeave(e: MouseEvent) {
 .url-bar {
   display: flex;
   padding: 8px 10px;
-  gap: 0;
   border-bottom: 1px solid #eee;
 }
 .method-select {
-  width: 90px;
+  width: 80px;
+  padding: 7px 8px;
+  border: 1px solid #d0d0d0;
+  border-right: none;
+  border-radius: 6px 0 0 6px;
+  font-family: 'SF Mono', 'Consolas', monospace;
+  font-size: 12px;
+  font-weight: 600;
+  background: #fafafa;
+  cursor: pointer;
+  outline: none;
+  appearance: none;
+  -webkit-appearance: none;
+  text-align: center;
+  text-align-last: center;
 }
-.method-select :deep(.n-base-selection) {
-  border-radius: 6px 0 0 6px !important;
-  border-right: none !important;
+.method-select:focus {
+  border-color: #18a058;
 }
 .url-input-wrapper {
   flex: 1;
@@ -187,38 +160,67 @@ function onVarLeave(e: MouseEvent) {
 }
 .url-input-editing {
   width: 100%;
+  padding: 7px 10px;
+  border: 1px solid #d0d0d0;
+  border-left: none;
+  border-right: none;
+  font-family: 'SF Mono', 'Consolas', monospace;
+  font-size: 12px;
+  outline: none;
+  box-sizing: border-box;
 }
-.url-input-editing :deep(.n-input__border) {
-  border-radius: 0 !important;
-  border-left: none !important;
-  border-right: none !important;
+.url-input-editing:focus {
+  border-color: #18a058;
 }
 .url-display {
   width: 100%;
   height: 34px;
   display: flex;
   align-items: center;
-  padding: 0 12px;
-  border: 1px solid #ddd;
+  padding: 0 10px;
+  border: 1px solid #d0d0d0;
   border-left: none;
   border-right: none;
-  font-size: 14px;
-  font-family: inherit;
+  font-size: 13px;
   overflow: hidden;
   white-space: nowrap;
   cursor: text;
   background: #fff;
-  color: #333;
+  box-sizing: border-box;
 }
 .var-highlight {
   background: #fff3cd;
   border-radius: 3px;
   padding: 0 2px;
   cursor: pointer;
+  color: #856404;
+}
+.var-tooltip {
+  position: absolute;
+  bottom: 100%;
+  left: 60px;
+  margin-bottom: 4px;
+  background: #333;
+  color: #fff;
+  padding: 3px 8px;
+  border-radius: 4px;
+  font-size: 10px;
+  white-space: nowrap;
+  z-index: 100;
 }
 .send-btn {
-  border-radius: 0 6px 6px 0 !important;
+  padding: 7px 22px;
+  background: #18a058;
+  color: #fff;
+  border: 1px solid #18a058;
+  border-radius: 0 6px 6px 0;
   font-weight: 600;
-  padding: 0 22px;
+  cursor: pointer;
+  font-size: 12px;
+  white-space: nowrap;
+}
+.send-btn:hover {
+  background: #0c7a43;
+  border-color: #0c7a43;
 }
 </style>
