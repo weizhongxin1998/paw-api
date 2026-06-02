@@ -6,29 +6,33 @@ import (
 )
 
 type ProjectHandler struct {
-	service *services.ProjectService
+	svc *services.ProjectService
 }
 
-func NewProjectHandler() *ProjectHandler {
-	return &ProjectHandler{service: services.NewProjectService()}
+func NewProjectHandler(svc *services.ProjectService) *ProjectHandler {
+	return &ProjectHandler{svc: svc}
 }
 
-func (h *ProjectHandler) CreateProject(name, description string) (*models.Project, error) {
-	return h.service.Create(name, description)
+func (h *ProjectHandler) List() ([]models.Project, error) {
+	return h.svc.List()
 }
 
-func (h *ProjectHandler) GetProject(id string) (*models.Project, error) {
-	return h.service.GetByID(id)
+func (h *ProjectHandler) Get(id int64) (*models.Project, error) {
+	return h.svc.Get(id)
 }
 
-func (h *ProjectHandler) ListProjects() ([]models.Project, error) {
-	return h.service.List()
+func (h *ProjectHandler) Create(name, description string) (*models.Project, error) {
+	return h.svc.Create(name, description)
 }
 
-func (h *ProjectHandler) UpdateProject(id, name, description string) (*models.Project, error) {
-	return h.service.Update(id, name, description)
+func (h *ProjectHandler) Update(id int64, name, description string) (*models.Project, error) {
+	return h.svc.Update(id, name, description)
 }
 
-func (h *ProjectHandler) DeleteProject(id string) error {
-	return h.service.Delete(id)
+func (h *ProjectHandler) Delete(id int64) error {
+	return h.svc.Delete(id)
+}
+
+func (h *ProjectHandler) GetStats(id int64) (models.ProjectStats, error) {
+	return h.svc.GetStats(id)
 }

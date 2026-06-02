@@ -1,90 +1,115 @@
 package services
 
 import (
-	"errors"
-	"time"
 	"paw-api/models"
+	"paw-api/pkg/snowflake"
 	"paw-api/repositories"
-
-	"github.com/google/uuid"
 )
 
 type CollectionService struct {
-	repo       *repositories.CollectionRepo
-	requestRepo *repositories.RequestRepo
+	collectionRepo *repositories.CollectionRepository
+	requestRepo    *repositories.RequestRepository
+	sf             *snowflake.Generator
 }
 
-func NewCollectionService() *CollectionService {
-	return &CollectionService{repo: &repositories.CollectionRepo{}, requestRepo: &repositories.RequestRepo{}}
-}
-
-func (s *CollectionService) Create(projectID, parentID, name string, sortOrder int) (*models.Collection, error) {
-	if name == "" {
-		return nil, errors.New("collection name is required")
+func NewCollectionService(
+	collectionRepo *repositories.CollectionRepository,
+	requestRepo *repositories.RequestRepository,
+	sf *snowflake.Generator,
+) *CollectionService {
+	return &CollectionService{
+		collectionRepo: collectionRepo,
+		requestRepo:    requestRepo,
+		sf:             sf,
 	}
-	if sortOrder <= 0 {
-		maxOrder, err := s.repo.GetMaxSortOrder(projectID, parentID)
-		if err != nil {
-			return nil, err
-		}
-		sortOrder = maxOrder + 1
-	}
-	now := time.Now()
-	var pid *string
-	if parentID != "" {
-		pid = &parentID
-	}
-	c := &models.Collection{
-		ID:        uuid.New().String(),
-		ProjectID: projectID,
-		ParentID:  pid,
-		Name:      name,
-		SortOrder: sortOrder,
-		CreatedAt: now,
-		UpdatedAt: now,
-	}
-	return c, s.repo.Create(c)
 }
 
-func (s *CollectionService) GetByID(id string) (*models.Collection, error) {
-	return s.repo.GetByID(id)
-}
-
-func (s *CollectionService) ListByProject(projectID string) ([]models.Collection, error) {
-	return s.repo.ListByProject(projectID)
-}
-
-func (s *CollectionService) Update(id, name string, parentID *string, sortOrder int) (*models.Collection, error) {
-	c, err := s.repo.GetByID(id)
+func (s *CollectionService) GetTree(projectID int64) ([]models.TreeItem, error) {
+	collections, err := s.collectionRepo.ListByProject(projectID)
 	if err != nil {
 		return nil, err
 	}
-	if c == nil {
-		return nil, errors.New("collection not found")
+
+	collectionsByParent := make(map[int64][]models.Collection)
+	var roots []models.Collection
+	for _, c := range collections {
+		if c.ParentID == nil {
+			roots = append(roots, c)
+		} else {
+			collectionsByParent[*c.ParentID] = append(collectionsByParent[*c.ParentID], c)
+		}
 	}
-	if name != "" {
-		c.Name = name
+
+	var buildTree func(parent *models.Collection) models.TreeItem
+	buildTree = func(parent *models.Collection) models.TreeItem {
+		item := models.TreeItem{
+			ID:        parent.ID,
+			Name:      parent.Name,
+			Type:      "folder",
+			SortOrder: parent.SortOrder,
+		}
+
+		for _, child := range collectionsByParent[parent.ID] {
+			item.Children = append(item.Children, buildTree(&child))
+		}
+
+		requests, err := s.requestRepo.ListByCollection(parent.ID)
+		if err == nil {
+			for _, req := range requests {
+				item.Children = append(item.Children, models.TreeItem{
+					ID:        req.ID,
+					Name:      req.Name,
+					Type:      "request",
+					Method:    req.Method,
+					URL:       req.URL,
+					SortOrder: req.SortOrder,
+				})
+			}
+		}
+
+		return item
 	}
-	if parentID != nil {
-		c.ParentID = parentID
+
+	var tree []models.TreeItem
+	for _, root := range roots {
+		tree = append(tree, buildTree(&root))
 	}
-	c.SortOrder = sortOrder
-	c.UpdatedAt = time.Now()
-	return c, s.repo.Update(c)
+
+	return tree, nil
 }
 
-func (s *CollectionService) Delete(id string) error {
-	children, err := s.repo.ListByParent(id)
+func (s *CollectionService) Get(id int64) (*models.Collection, error) {
+	return s.collectionRepo.GetByID(id)
+}
+
+func (s *CollectionService) Create(projectID int64, parentID *int64, name string) (*models.Collection, error) {
+	collection := &models.Collection{
+		ProjectID: projectID,
+		ParentID:  parentID,
+		Name:      name,
+	}
+	if err := s.collectionRepo.Create(collection); err != nil {
+		return nil, err
+	}
+	return collection, nil
+}
+
+func (s *CollectionService) Rename(id int64, name string) error {
+	collection, err := s.collectionRepo.GetByID(id)
 	if err != nil {
 		return err
 	}
-	for _, child := range children {
-		if err := s.Delete(child.ID); err != nil {
-			return err
-		}
-	}
-	if err := s.requestRepo.DeleteByCollection(id); err != nil {
+	collection.Name = name
+	return s.collectionRepo.Update(collection)
+}
+
+func (s *CollectionService) Move(id int64, parentID *int64, sortOrder int) error {
+	if err := s.collectionRepo.MoveToParent(id, parentID); err != nil {
 		return err
 	}
-	return s.repo.Delete(id)
+	return s.collectionRepo.UpdateSortOrder(id, sortOrder)
+}
+
+func (s *CollectionService) Delete(id int64) error {
+	return s.collectionRepo.Delete(id)
 }

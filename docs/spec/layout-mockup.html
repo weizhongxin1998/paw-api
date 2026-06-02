@@ -1,0 +1,560 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Paw API — 全部页面 Mockup</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; font-size: 12px; color: #333; background: #ddd; padding: 20px; }
+  .page { max-width: 1000px; margin: 0 auto; }
+  .section { background: #fff; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.08); margin-bottom: 24px; overflow: hidden; }
+  .sec-title { padding: 10px 16px; background: #f5f5f5; border-bottom: 1px solid #eee; font-weight: 600; font-size: 13px; }
+  .sec-body { position: relative; }
+
+  /* ========== COMMON ========== */
+  .hdr { display: flex; align-items: center; justify-content: space-between; padding: 0 14px; height: 38px; background: #f0f0f0; border-bottom: 1px solid #ddd; }
+  .hdr-l { display: flex; align-items: center; gap: 14px; }
+  .hdr-r { display: flex; align-items: center; gap: 10px; }
+  .hdr-t { font-size: 12px; color: #999; }
+  .proj-btn { display: flex; align-items: center; gap: 5px; padding: 4px 10px; border: 1px solid #ddd; border-radius: 6px; background: #fff; cursor: pointer; font-size: 12px; font-weight: 600; }
+  .env { font-size: 11px; padding: 3px 10px; background: #fff; border: 1px solid #ccc; border-radius: 6px; }
+  .btn { font-size: 11px; padding: 6px 14px; border-radius: 6px; cursor: pointer; transition: all .12s; }
+  .btn-pri { background: #18a058; color: #fff; border: 1px solid #18a058; font-weight: 600; }
+  .btn-pri:hover { background: #0c7a43; border-color: #0c7a43; }
+  .btn-ghost { background: transparent; border: 1px solid transparent; color: #666; }
+  .btn-ghost:hover { background: #f0f0f0; }
+  .btn-light { background: #fff; border: 1px solid #ddd; color: #555; }
+  .btn-light:hover { background: #f8f8f8; border-color: #ccc; }
+  input[type="text"].form, input[type="password"].form, textarea.form, select.form { padding: 6px 10px; border: 1px solid #d0d0d0; border-radius: 6px; font-size: 12px; outline: none; transition: border-color .15s; font-family: inherit; }
+  input.form:focus, textarea.form:focus, select.form:focus { border-color: #18a058; box-shadow: 0 0 0 2px rgba(24,160,88,0.08); }
+  .mtag { display: inline-block; font-size: 9px; font-weight: 700; padding: 1px 5px; border-radius: 3px; }
+  .mtag.get { background: #d4edda; color: #155724; }
+  .mtag.post { background: #fff3cd; color: #856404; }
+  .mtag.put { background: #d0e8ff; color: #004085; }
+  .mtag.del { background: #f8d7da; color: #721c24; }
+  .tab-sub { display: flex; border-bottom: 1px solid #eee; background: #fafafa; padding: 0 12px; }
+  .tab-sub button { padding: 7px 14px; font-size: 12px; cursor: pointer; color: #888; border: none; background: transparent; border-bottom: 2px solid transparent; }
+  .tab-sub button.active { color: #18a058; border-bottom-color: #18a058; font-weight: 600; }
+  .tab-sub .cnt { font-size: 10px; background: #eee; padding: 0 5px; border-radius: 10px; margin-left: 3px; }
+
+  /* Sidebar */
+  .sb { width: 220px; background: #fafafa; border-right: 1px solid #e0e0e0; flex-shrink: 0; overflow-y: auto; }
+  .sb-tabs { display: flex; border-bottom: 1px solid #e8e8e8; }
+  .sb-tabs button { flex: 1; padding: 7px; text-align: center; font-size: 11px; cursor: pointer; background: #fafafa; border: none; color: #888; }
+  .sb-tabs button.active { background: #fff; color: #18a058; border-bottom: 2px solid #18a058; font-weight: 600; }
+  .tree { padding: 4px 0; }
+  .tree-i { display: flex; align-items: center; padding: 4px 10px; cursor: pointer; font-size: 11px; gap: 4px; }
+  .tree-i:hover { background: #f0f0f0; }
+  .tree-i.root { font-weight: 600; color: #18a058; }
+  .tree-i.folder { color: #333; }
+  .tree-i.folder .arr { font-size: 9px; width: 10px; }
+  .tree-i.req { padding-left: 22px; }
+  .tree-i.req .tm { display: inline-block; width: 32px; font-size: 9px; font-weight: 700; }
+  .tree-url { color: #aaa; margin-left: 3px; font-size: 10px; }
+  .main { flex: 1; display: flex; flex-direction: column; min-width: 0; min-height: 300px; }
+  .tabs { display: flex; background: #f2f2f2; border-bottom: 1px solid #ddd; height: 32px; align-items: flex-end; padding: 0 4px; gap: 2px; }
+  .tab { padding: 5px 12px; font-size: 11px; background: #e2e2e2; border: 1px solid #ddd; border-bottom: none; border-radius: 6px 6px 0 0; cursor: pointer; display: flex; align-items: center; gap: 5px; }
+  .tab.active { background: #fff; border-bottom: 2px solid #18a058; }
+  .tab .dirty { width: 6px; height: 6px; background: #bbb; border-radius: 50%; }
+  .tab .close { color: #aaa; font-size: 13px; }
+  .tab-plus { padding: 5px 8px; font-size: 16px; cursor: pointer; color: #18a058; }
+  .urlbar { display: flex; padding: 8px 10px; gap: 0; border-bottom: 1px solid #eee; }
+  .urlbar .method { width: 80px; padding: 7px 8px; border: 1px solid #d0d0d0; border-right: none; border-radius: 6px 0 0 6px; font-family: 'SF Mono','Consolas',monospace; font-size: 12px; font-weight: 600; background: #fafafa; cursor: pointer; outline: none; appearance: none; -webkit-appearance: none; text-align: center; text-align-last: center; }
+  .urlbar .method:focus { border-color: #18a058; }
+  .urlbar .url { flex: 1; padding: 7px 10px; border: 1px solid #d0d0d0; border-left: none; border-right: none; font-family: 'SF Mono','Consolas',monospace; font-size: 12px; outline: none; transition: border-color .15s; }
+  .urlbar .url:focus { border-color: #18a058; }
+  .urlbar .send { padding: 7px 22px; background: #18a058; color: #fff; border: 1px solid #18a058; border-radius: 0 6px 6px 0; font-weight: 600; cursor: pointer; font-size: 12px; white-space: nowrap; transition: background .15s; }
+  .urlbar .send:hover { background: #0c7a43; border-color: #0c7a43; }
+  .urlbar .cancel { padding: 7px 22px; background: #d03050; color: #fff; border: 1px solid #d03050; border-radius: 0 6px 6px 0; font-weight: 600; cursor: pointer; font-size: 12px; white-space: nowrap; }
+  .kvt { width: 100%; border-collapse: collapse; }
+  .kvt th { text-align: left; padding: 5px 10px; font-size: 10px; color: #999; text-transform: uppercase; border-bottom: 1px solid #eee; font-weight: 500; background: #fafafa; letter-spacing: 0.3px; }
+  .kvt td { padding: 2px 10px; }
+  .kvt input { width: 100%; padding: 5px 6px; border: 1px solid transparent; font-family: 'SF Mono','Consolas',monospace; font-size: 11px; background: transparent; border-radius: 5px; outline: none; transition: border-color .12s, background .12s; }
+  .kvt input:hover { border-color: #e0e0e0; background: #fafafa; }
+  .kvt input:focus { border-color: #18a058; background: #fff; box-shadow: 0 0 0 2px rgba(24,160,88,0.08); }
+  .kvt input.readonly { color: #999; background: transparent; cursor: default; }
+  .kvt input.readonly:hover { border-color: transparent; background: transparent; }
+  .kvt .add { padding: 4px 10px; color: #18a058; cursor: pointer; background: none; border: none; font-size: 11px; margin-top: 4px; transition: color .12s; }
+  .kvt .add:hover { color: #0c7a43; }
+  .resp-hdr { display: flex; padding: 6px 12px; background: #f8f9fa; border-bottom: 1px solid #eee; align-items: center; gap: 12px; border-top: 1px solid #e0e0e0; }
+  .status { font-weight: 700; font-size: 12px; padding: 2px 8px; border-radius: 4px; }
+  .status.green { background: #d4edda; color: #155724; }
+  .status.red { background: #f8d7da; color: #721c24; }
+  .resp-meta { font-size: 11px; color: #999; }
+  .resp-body { padding: 10px 12px; font-family: monospace; font-size: 11px; line-height: 1.6; max-height: 120px; overflow-y: auto; background: #fcfcfc; }
+  .flex { display: flex; }
+
+  /* Modal */
+  .modal { position: absolute; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.35); display: flex; align-items: center; justify-content: center; z-index: 10; }
+  .modal-box { background: #fff; border-radius: 10px; padding: 24px; width: 420px; box-shadow: 0 8px 30px rgba(0,0,0,0.18); }
+  .modal-box h3 { font-size: 15px; margin-bottom: 16px; }
+  .modal-box label { display: block; font-size: 11px; color: #999; margin-bottom: 3px; }
+  .modal-box input, .modal-box textarea, .modal-box select { width: 100%; padding: 7px 10px; border: 1px solid #ddd; border-radius: 4px; font-size: 12px; margin-bottom: 10px; font-family: inherit; }
+  .modal-acts { display: flex; justify-content: flex-end; gap: 8px; margin-top: 6px; }
+  .modal-box .note { font-size: 11px; color: #999; margin-bottom: 8px; }
+
+  /* Context menu */
+  .ctx-menu { position: absolute; background: #fff; border: 1px solid #e0e0e0; border-radius: 8px; box-shadow: 0 3px 12px rgba(0,0,0,0.12); padding: 4px 0; min-width: 160px; z-index: 20; }
+  .ctx-item { padding: 6px 14px; cursor: pointer; font-size: 12px; display: flex; align-items: center; gap: 8px; }
+  .ctx-item:hover { background: #f0f0f0; }
+  .ctx-item.danger { color: #d03050; }
+  .ctx-sep { border-top: 1px solid #eee; margin: 4px 0; }
+
+  /* History */
+  .hist-item { padding: 8px 10px; border-bottom: 1px solid #f0f0f0; cursor: pointer; }
+  .hist-item:hover { background: #f8f8f8; }
+  .hist-url { font-size: 10px; color: #999; margin-top: 2px; }
+
+  /* WS messages */
+  .ws-msg { padding: 4px 10px; margin: 4px 0; }
+  .ws-msg.sent { text-align: right; }
+  .ws-msg .bubble { display: inline-block; padding: 6px 12px; border-radius: 8px; font-size: 11px; font-family: monospace; max-width: 80%; word-break: break-all; }
+  .ws-msg.sent .bubble { background: #d4edda; }
+  .ws-msg.recv .bubble { background: #f0f0f0; }
+
+  /* Overview grid */
+  .grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; padding: 12px; }
+</style>
+</head>
+<body>
+<div class="page">
+  <h1 style="font-size:20px;margin-bottom:20px;text-align:center">Paw API — 页面全景</h1>
+
+  <!-- ============================ 1. WORKSPACE ============================ -->
+  <div class="section">
+    <div class="sec-title">1. 主工作区 — GET 请求 + 响应 (含路径参数)</div>
+    <div class="sec-body">
+      <div class="hdr"><div class="hdr-l"><div class="proj-btn">My API Project &#x25BC;</div><span class="env">开发环境 &#x25BC;</span></div><div class="hdr-r"><span class="hdr-t">日间</span><span class="hdr-t">设置</span></div></div>
+      <div class="flex">
+        <div class="sb">
+          <div class="sb-tabs"><button class="active">Collections</button><button>History</button></div>
+          <div class="tree" style="min-height:320px">
+            <div class="tree-i root">&#x25BC; My API Project</div>
+            <div class="tree-i folder"><span class="arr">&#x25BC;</span>Default Collection</div>
+            <div class="tree-i folder"><span class="arr">&#x25BC;</span>User Module</div>
+            <div class="tree-i req" style="background:#e8f5e9;border-left:3px solid #18a058"><span class="tm mtag get">GET</span>详情<span class="tree-url">/api/users/:id</span></div>
+            <div class="tree-i req"><span class="tm mtag get">GET</span>列表<span class="tree-url">/api/users</span></div>
+            <div class="tree-i req"><span class="tm mtag post">POST</span>创建<span class="tree-url">/api/users</span></div>
+            <div class="tree-i req"><span class="tm mtag del">DEL</span>删除<span class="tree-url">/api/users/:id</span></div>
+            <div class="tree-i folder"><span class="arr">&#x25BA;</span>Order Module</div>
+          </div>
+        </div>
+        <div class="main">
+          <div class="tabs"><div class="tab active"><span class="mtag get">GET</span>获取用户详情<span class="close">x</span></div><div class="tab"><span class="mtag post">POST</span>创建用户<div class="dirty"></div><span class="close">x</span></div><span class="tab-plus">+</span></div>
+          <div class="urlbar"><select class="method"><option>GET</option></select><input class="url" value="https://api.example.com/v1/users/1/orders/42"><button class="send">Send</button></div>
+          <div class="tab-sub"><button class="active">Params</button><button>Headers <span class="cnt">3</span></button><button>Body</button><button>Auth</button></div>
+          <div style="padding:8px;flex:1;overflow-y:auto">
+            <!-- Query Params -->
+            <div style="display:flex;align-items:center;gap:8px;margin-bottom:2px"><input type="checkbox" checked><span style="font-size:11px;color:#888;font-weight:600">Query Params</span></div>
+            <table class="kvt" style="margin-bottom:12px"><thead><tr><th style="width:18px"></th><th>Key</th><th>Value</th><th>Description</th><th style="width:16px"></th></tr></thead>
+              <tbody><tr><td><input type="checkbox" checked></td><td><input value="page"></td><td><input value="1"></td><td><input value=""></td><td style="color:#ccc;text-align:center">x</td></tr>
+              <tr><td><input type="checkbox" checked></td><td><input value="size"></td><td><input value="20"></td><td><input value=""></td><td style="color:#ccc;text-align:center">x</td></tr></tbody></table>
+            <!-- Path Variables -->
+            <div style="display:flex;align-items:center;gap:8px;margin-bottom:2px"><span style="font-size:11px;color:#888;font-weight:600">Path Variables</span><span style="font-size:9px;color:#aaa">(URL 中 :param 自动识别)</span></div>
+            <table class="kvt"><thead><tr><th>Key</th><th>Value</th><th>Description</th></tr></thead>
+              <tbody><tr><td><input value="userId" style="color:#999" readonly></td><td><input value="1"></td><td><input value="用户 ID"></td></tr>
+              <tr><td><input value="orderId" style="color:#999" readonly></td><td><input value="42"></td><td><input value="订单 ID"></td></tr></tbody></table>
+            <button class="kvt add">+ 添加参数</button>
+          </div>
+          <div class="resp-hdr"><span class="status green">200 OK</span><span class="resp-meta">85 ms</span><span class="resp-meta">0.3 KB</span></div>
+          <div class="tab-sub"><button class="active">Body</button><button>Headers</button><button>Cookies</button><button>Log</button></div>
+          <div class="resp-body"><pre style="margin:0">{ "id": 1, "name": "Alice", "email": "alice@example.com" }</pre></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============================ 2. BODY TYPES ============================ -->
+  <div class="section">
+    <div class="sec-title">2. Body 类型</div>
+    <div class="sec-body" style="padding:8px">
+      <div class="grid2">
+        <!-- form-data -->
+        <div style="border:1px solid #eee;border-radius:6px;overflow:hidden">
+          <div style="padding:6px 12px;background:#f8f8f8;font-weight:600;font-size:12px;border-bottom:1px solid #eee">form-data</div>
+          <div style="padding:6px">
+            <table class="kvt"><thead><tr><th style="width:18px"></th><th>Key</th><th>Value</th><th style="width:40px">Type</th><th>Desc</th><th style="width:16px"></th></tr></thead>
+              <tbody><tr><td><input type="checkbox" checked></td><td><input value="username"></td><td><input value="alice"></td><td><select style="font-size:10px;padding:2px;border:1px solid #eee;border-radius:2px;"><option>text</option><option>file</option></select></td><td><input value="用户名"></td><td style="text-align:center;color:#ccc">x</td></tr>
+              <tr><td><input type="checkbox" checked></td><td><input value="avatar"></td><td><input value="avatar.png" style="color:#2080f0"></td><td><select style="font-size:10px;padding:2px;border:1px solid #eee;border-radius:2px;background:#e8f0fe"><option>text</option><option selected>file</option></select></td><td><input value="头像"></td><td style="text-align:center;color:#ccc">x</td></tr></tbody></table>
+          </div>
+        </div>
+        <!-- raw JSON -->
+        <div style="border:1px solid #eee;border-radius:6px;overflow:hidden">
+          <div style="padding:6px 12px;background:#f8f8f8;font-weight:600;font-size:12px;border-bottom:1px solid #eee">raw <span style="font-weight:400;color:#999">— JSON</span> <button style="margin-left:auto;float:right;font-size:10px;padding:2px 8px;border:1px solid #ddd;border-radius:3px;background:#fff;cursor:pointer">Beautify</button></div>
+          <div style="padding:8px;font-family:monospace;font-size:12px;line-height:1.6;min-height:80px;background:#fcfcfc">
+            <span style="color:#888">{</span><br>
+            &nbsp;&nbsp;<span style="color:#881280">"name"</span>: <span style="color:#1a7a1a">"Alice"</span>,<br>
+            &nbsp;&nbsp;<span style="color:#881280">"age"</span>: <span style="color:#0550ae">25</span>,<br>
+            &nbsp;&nbsp;<span style="color:#881280">"active"</span>: <span style="color:#cf222e">true</span><br>
+            <span style="color:#888">}</span>
+          </div>
+        </div>
+        <!-- binary -->
+        <div style="border:1px solid #eee;border-radius:6px;overflow:hidden">
+          <div style="padding:6px 12px;background:#f8f8f8;font-weight:600;font-size:12px;border-bottom:1px solid #eee">binary</div>
+          <div style="padding:20px;text-align:center">
+            <div style="font-size:32px;margin-bottom:8px;opacity:0.4">&#x1F4C4;</div>
+            <div style="font-size:12px;color:#666;margin-bottom:6px">未选择文件</div>
+            <button style="padding:5px 14px;border:1px solid #ddd;border-radius:4px;background:#fff;cursor:pointer;font-size:11px">选择文件</button>
+          </div>
+        </div>
+        <!-- url-encoded -->
+        <div style="border:1px solid #eee;border-radius:6px;overflow:hidden">
+          <div style="padding:6px 12px;background:#f8f8f8;font-weight:600;font-size:12px;border-bottom:1px solid #eee">x-www-form-urlencoded</div>
+          <div style="padding:6px">
+            <table class="kvt"><thead><tr><th style="width:18px"></th><th>Key</th><th>Value</th><th>Desc</th><th style="width:16px"></th></tr></thead>
+              <tbody><tr><td><input type="checkbox" checked></td><td><input value="grant_type"></td><td><input value="client_credentials"></td><td><input value=""></td><td style="text-align:center;color:#ccc">x</td></tr>
+              <tr><td><input type="checkbox" checked></td><td><input value="scope"></td><td><input value="read write"></td><td><input value=""></td><td style="text-align:center;color:#ccc">x</td></tr></tbody></table>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============================ 3. AUTH TYPES ============================ -->
+  <div class="section">
+    <div class="sec-title">3. Auth 类型</div>
+    <div class="sec-body">
+      <div class="grid2" style="padding:12px">
+        <div style="border:1px solid #eee;border-radius:6px;overflow:hidden">
+          <div style="padding:8px 12px;background:#f8f8f8;font-weight:600;font-size:12px">No Auth</div>
+          <div style="padding:30px;text-align:center;color:#aaa;font-size:12px">此请求不使用认证</div>
+        </div>
+        <div style="border:1px solid #eee;border-radius:6px;overflow:hidden">
+          <div style="padding:8px 12px;background:#f8f8f8;font-weight:600;font-size:12px">Bearer Token</div>
+          <div style="padding:14px">
+            <label style="font-size:11px;color:#999">Token</label>
+            <input style="width:100%;padding:5px 8px;border:1px solid #ddd;border-radius:4px;font-family:monospace;font-size:12px" value="{{access_token}}">
+            <div style="font-size:10px;color:#999;margin-top:4px">前缀 Bearer 自动添加</div>
+          </div>
+        </div>
+        <div style="border:1px solid #eee;border-radius:6px;overflow:hidden">
+          <div style="padding:8px 12px;background:#f8f8f8;font-weight:600;font-size:12px">Basic Auth</div>
+          <div style="padding:14px">
+            <label style="font-size:11px;color:#999">Username</label>
+            <input style="width:100%;padding:5px 8px;border:1px solid #ddd;border-radius:4px;font-family:monospace;font-size:12px;margin-bottom:8px" value="admin">
+            <label style="font-size:11px;color:#999">Password</label>
+            <input style="width:100%;padding:5px 8px;border:1px solid #ddd;border-radius:4px;font-family:monospace;font-size:12px" value="••••••••" type="password">
+          </div>
+        </div>
+        <div style="border:1px solid #eee;border-radius:6px;overflow:hidden">
+          <div style="padding:8px 12px;background:#f8f8f8;font-weight:600;font-size:12px">API Key</div>
+          <div style="padding:14px">
+            <label style="font-size:11px;color:#999">Key</label>
+            <input style="width:100%;padding:5px 8px;border:1px solid #ddd;border-radius:4px;font-family:monospace;font-size:12px;margin-bottom:8px" value="X-API-Key">
+            <label style="font-size:11px;color:#999">Value</label>
+            <input style="width:100%;padding:5px 8px;border:1px solid #ddd;border-radius:4px;font-family:monospace;font-size:12px;margin-bottom:8px" value="{{api_key}}">
+            <label style="font-size:11px;color:#999">Add to</label>
+            <select style="width:100%;padding:5px 8px;border:1px solid #ddd;border-radius:4px;font-size:12px"><option>Header</option><option>Query Params</option></select>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============================ 4. RESPONSE TABS ============================ -->
+  <div class="section">
+    <div class="sec-title">4. 响应面板 — Headers / Cookies / Log</div>
+    <div class="sec-body">
+      <div class="resp-hdr"><span class="status green">200 OK</span><span class="resp-meta">124 ms</span><span class="resp-meta">1.2 KB</span></div>
+      <div class="grid2" style="padding:12px">
+        <!-- Headers -->
+        <div style="border:1px solid #eee;border-radius:6px;overflow:hidden">
+          <div style="padding:6px 12px;background:#f8f8f8;font-weight:600;font-size:12px">Headers</div>
+          <div style="padding:4px">
+            <table class="kvt"><thead><tr><th>Key</th><th>Value</th></tr></thead>
+              <tbody><tr><td><input value="Content-Type" readonly></td><td><input value="application/json; charset=utf-8" readonly></td></tr>
+              <tr><td><input value="Server" readonly></td><td><input value="nginx/1.21" readonly></td></tr>
+              <tr><td><input value="X-Request-Id" readonly></td><td><input value="abc-123-def" readonly></td></tr></tbody></table>
+          </div>
+        </div>
+        <!-- Cookies -->
+        <div style="border:1px solid #eee;border-radius:6px;overflow:hidden">
+          <div style="padding:6px 12px;background:#f8f8f8;font-weight:600;font-size:12px">Cookies</div>
+          <div style="padding:4px">
+            <table class="kvt"><thead><tr><th>Name</th><th>Value</th><th>Domain</th><th>Path</th></tr></thead>
+              <tbody><tr><td><input value="session_id" readonly></td><td><input value="sess_xxx..." readonly></td><td><input value=".example.com" readonly></td><td><input value="/" readonly></td></tr>
+              <tr><td><input value="csrf_token" readonly></td><td><input value="tok_yyy..." readonly></td><td><input value=".example.com" readonly></td><td><input value="/api" readonly></td></tr></tbody></table>
+          </div>
+        </div>
+      </div>
+      <!-- Request Log -->
+      <div style="border:1px solid #eee;border-radius:6px;overflow:hidden;margin:0 12px 12px">
+        <div style="padding:6px 12px;background:#f8f8f8;font-weight:600;font-size:12px;display:flex;justify-content:space-between;align-items:center">
+          Request Log
+          <button style="font-size:10px;padding:3px 10px;border:1px solid #ddd;border-radius:3px;background:#fff;cursor:pointer">&#x1F4CB; 复制 cURL</button>
+        </div>
+        <div style="padding:10px 12px;font-family:monospace;font-size:11px;line-height:1.7;background:#fcfcfc;color:#555">
+          GET /v1/users?page=1&amp;size=20 HTTP/1.1<br>Host: api.example.com<br>Authorization: Bearer eyJhbGciOi...<br>Accept: application/json<br><br>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============================ 5. HEADERS BULK EDIT ============================ -->
+  <div class="section">
+    <div class="sec-title">5. Headers — Bulk Edit 模式</div>
+    <div class="sec-body">
+      <div class="tab-sub"><button>Params</button><button class="active">Headers <span class="cnt">3</span></button><button>Body</button><button>Auth</button><button style="margin-left:auto;font-size:11px;color:#18a058;cursor:pointer;background:none;border:none">Bulk Edit</button></div>
+      <div style="padding:10px 12px">
+        <textarea style="width:100%;height:100px;font-family:monospace;font-size:12px;line-height:1.7;padding:8px 10px;border:1px solid #ddd;border-radius:4px" placeholder="Key: Value 格式，每行一条...">Content-Type: application/json
+Authorization: Bearer {{token}}
+Accept: application/json</textarea>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============================ 6. HISTORY PANEL ============================ -->
+  <div class="section">
+    <div class="sec-title">6. 历史记录面板（左侧栏切换到 History）</div>
+    <div class="sec-body" class="flex">
+      <div class="flex">
+        <div class="sb" style="border-right:1px solid #e0e0e0">
+          <div class="sb-tabs"><button>Collections</button><button class="active">History</button></div>
+          <div style="padding:8px 10px;display:flex;gap:4px">
+            <input style="flex:1;padding:4px 8px;border:1px solid #ddd;border-radius:4px;font-size:11px" placeholder="搜索 URL...">
+            <select style="width:70px;font-size:11px;padding:4px;border:1px solid #ddd;border-radius:4px"><option>全部</option><option>GET</option><option>POST</option><option>PUT</option><option>DELETE</option></select>
+          </div>
+          <div style="overflow-y:auto">
+            <div class="hist-item"><div style="display:flex;gap:6px;align-items:center"><span class="mtag get">GET</span><span class="status green">200</span><span style="color:#999;font-size:10px;margin-left:auto">2 min ago</span></div><div class="hist-url">api.example.com/v1/users</div></div>
+            <div class="hist-item"><div style="display:flex;gap:6px;align-items:center"><span class="mtag post">POST</span><span class="status green">201</span><span style="color:#999;font-size:10px;margin-left:auto">5 min ago</span></div><div class="hist-url">api.example.com/v1/users</div></div>
+            <div class="hist-item"><div style="display:flex;gap:6px;align-items:center"><span class="mtag get">GET</span><span class="status red">404</span><span style="color:#999;font-size:10px;margin-left:auto">12 min ago</span></div><div class="hist-url">api.example.com/v1/orders/999</div></div>
+            <div class="hist-item"><div style="display:flex;gap:6px;align-items:center"><span class="mtag del">DEL</span><span class="status green">204</span><span style="color:#999;font-size:10px;margin-left:auto">1 hour ago</span></div><div class="hist-url">api.example.com/v1/users/5</div></div>
+          </div>
+          <div style="padding:8px 10px;border-top:1px solid #eee;display:flex;gap:8px">
+            <button class="btn btn-light" style="flex:1;font-size:10px">清空全部</button>
+            <select style="font-size:10px;padding:4px;border:1px solid #ddd;border-radius:4px"><option>保留 30 天</option><option>保留 60 天</option><option>永久保留</option></select>
+          </div>
+        </div>
+        <div class="main" style="min-height:250px;">
+          <div class="tabs" style="align-items:center;justify-content:center">
+            <span style="color:#aaa;font-size:12px">选择一条历史记录查看详情，或双击在新 Tab 中回放</span>
+          </div>
+          <div style="flex:1;display:flex;align-items:center;justify-content:center;color:#ccc">点击左侧历史项查看详情 &rarr;</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============================ 7. WebSocket ============================ -->
+  <div class="section">
+    <div class="sec-title">7. WebSocket 面板</div>
+    <div class="sec-body">
+      <div class="hdr"><div class="hdr-l"><div class="proj-btn">My API Project</div><span class="env">开发环境</span></div><div class="hdr-r"><span class="hdr-t">日间</span><span class="hdr-t">设置</span></div></div>
+      <div class="flex">
+        <div class="sb">
+          <div class="tree" style="min-height:260px">
+            <div class="tree-i root">&#x25BC; My API Project</div>
+            <div class="tree-i folder"><span class="arr">&#x25BA;</span>Default Collection</div>
+            <div class="tree-i folder"><span class="arr">&#x25BA;</span>User Module</div>
+            <div class="tree-i folder"><span class="arr">&#x25BC;</span>WebSocket</div>
+            <div class="tree-i req" style="background:#e8f5e9;border-left:3px solid #18a058"><span style="color:#18a058;font-weight:600">&#x1F517;</span> Chat WS</div>
+          </div>
+        </div>
+        <div class="main">
+          <div style="display:flex;align-items:center;padding:6px 10px;gap:8px;border-bottom:1px solid #eee">
+            <input style="flex:1;padding:5px 8px;border:1px solid #ddd;border-radius:4px;font-family:monospace;font-size:12px" value="wss://chat.example.com/ws">
+            <button class="btn btn-pri" style="background:#d03050">Disconnect</button>
+            <span style="font-size:10px;display:flex;align-items:center;gap:4px"><span style="width:8px;height:8px;background:#18a058;border-radius:50%;display:inline-block"></span>已连接 (12s)</span>
+          </div>
+          <div style="flex:1;overflow-y:auto;padding:8px;min-height:140px;background:#f8f9fa">
+            <div class="ws-msg recv"><div class="bubble">{"type":"welcome","msg":"Connected to chat"}</div><div style="font-size:9px;color:#aaa;margin-top:1px">10:32:15</div></div>
+            <div class="ws-msg sent"><div class="bubble">{"type":"join","room":"general"}</div><div style="font-size:9px;color:#aaa;margin-top:1px">10:32:18</div></div>
+            <div class="ws-msg recv"><div class="bubble">{"type":"message","user":"Alice","text":"Hello!"}</div><div style="font-size:9px;color:#aaa;margin-top:1px">10:32:20</div></div>
+          </div>
+          <div style="display:flex;padding:6px 10px;gap:8px;border-top:1px solid #eee">
+            <input style="flex:1;padding:5px 8px;border:1px solid #ddd;border-radius:4px;font-family:monospace;font-size:12px" placeholder='{"type":"message","text":"..."}' value='{"type":"message","text":"Hi there!"}'>
+            <button class="btn btn-pri">Send</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============================ 8. MODALS ============================ -->
+  <div class="section">
+    <div class="sec-title">8. 弹窗 — Import / Settings / Env Manager / Export</div>
+    <div class="sec-body">
+      <div class="grid2" style="padding:12px">
+        <!-- Import -->
+        <div style="border:1px solid #eee;border-radius:6px;overflow:hidden">
+          <div style="padding:8px 12px;background:#f8f8f8;font-weight:600;font-size:12px">导入</div>
+          <div style="padding:14px">
+            <label style="font-size:11px;color:#999">格式</label>
+            <select style="width:100%;padding:6px 8px;border:1px solid #ddd;border-radius:4px;font-size:12px;margin-bottom:10px">
+              <option>Postman Collection v2.x</option><option>OpenAPI 3.x</option><option>Swagger 2.x</option><option>Paw 自有格式 (.paw)</option>
+            </select>
+            <label style="font-size:11px;color:#999">文件</label>
+            <div style="display:flex;gap:8px"><input style="flex:1;padding:5px 8px;border:1px solid #ddd;border-radius:4px;font-size:12px;background:#fafafa" placeholder="未选择文件" readonly><button class="btn btn-light" style="font-size:11px">浏览</button></div>
+            <div style="margin-top:14px;display:flex;justify-content:flex-end;gap:8px"><button class="btn btn-light">取消</button><button class="btn btn-pri">导入</button></div>
+          </div>
+        </div>
+        <!-- Settings -->
+        <div style="border:1px solid #eee;border-radius:6px;overflow:hidden">
+          <div style="padding:8px 12px;background:#f8f8f8;font-weight:600;font-size:12px">设置</div>
+          <div style="padding:10px;font-size:11px">
+            <div style="display:flex;border-bottom:1px solid #f0f0f0"><div style="width:80px;padding:6px;color:#18a058;font-weight:600;border-right:1px solid #f0f0f0">通用</div><div style="padding:6px 10px">
+              <div style="display:flex;align-items:center;justify-content:space-between;padding:2px 0"><span>请求超时</span><input style="width:60px;padding:2px 4px;border:1px solid #ddd;border-radius:3px;text-align:right;font-size:11px" value="30"> s</div>
+              <div style="display:flex;align-items:center;justify-content:space-between;padding:2px 0"><span>跟随重定向</span><input type="checkbox" checked></div>
+              <div style="display:flex;align-items:center;justify-content:space-between;padding:2px 0"><span>最大重定向</span><input style="width:60px;padding:2px 4px;border:1px solid #ddd;border-radius:3px;text-align:right;font-size:11px" value="10"></div>
+              <div style="display:flex;align-items:center;justify-content:space-between;padding:2px 0"><span>SSL 证书验证</span><input type="checkbox" checked></div>
+            </div></div>
+            <div style="display:flex;border-bottom:1px solid #f0f0f0"><div style="width:80px;padding:6px;color:#888;border-right:1px solid #f0f0f0">代理</div><div style="padding:6px 10px">不使用代理</div></div>
+            <div style="display:flex;border-bottom:1px solid #f0f0f0"><div style="width:80px;padding:6px;color:#888;border-right:1px solid #f0f0f0">证书</div><div style="padding:6px 10px;color:#aaa">未配置</div></div>
+            <div style="display:flex;border-bottom:1px solid #f0f0f0"><div style="width:80px;padding:6px;color:#888;border-right:1px solid #f0f0f0">外观</div><div style="padding:6px 10px"><span style="color:#18a058;font-weight:600">日间 / 绿色</span> · 14px</div></div>
+            <div style="display:flex"><div style="width:80px;padding:6px;color:#d03050;border-right:1px solid #f0f0f0;font-weight:600">数据</div><div style="padding:6px 10px;display:flex;flex-direction:column;gap:4px"><button style="font-size:10px;padding:3px 8px;border:1px solid #ddd;border-radius:3px;background:#fff;cursor:pointer;text-align:left">&#x1F4C2; 备份</button><button style="font-size:10px;padding:3px 8px;border:1px solid #ddd;border-radius:3px;background:#fff;cursor:pointer;text-align:left">&#x1F4E5; 恢复</button></div></div>
+          </div>
+        </div>
+        <!-- Env Manager -->
+        <div style="border:1px solid #eee;border-radius:6px;overflow:hidden">
+          <div style="padding:8px 12px;background:#f8f8f8;font-weight:600;font-size:12px">环境管理</div>
+          <div style="padding:12px">
+            <div style="display:flex;gap:8px;margin-bottom:10px;align-items:center">
+              <select style="flex:1;padding:5px 8px;border:1px solid #ddd;border-radius:4px;font-size:12px;font-weight:600">
+                <option>开发环境 ✓</option><option>测试环境</option><option>生产环境</option>
+              </select>
+              <button class="btn btn-light" style="font-size:11px">复制</button>
+              <button class="btn btn-light" style="font-size:11px;color:#d03050">删除</button>
+            </div>
+            <table class="kvt"><thead><tr><th style="width:18px"></th><th>Variable</th><th>Value</th><th style="width:16px"></th></tr></thead>
+              <tbody><tr><td><input type="checkbox" checked></td><td><input value="base_url"></td><td><input value="https://api-dev.example.com"></td><td style="text-align:center;color:#ccc">x</td></tr>
+              <tr><td><input type="checkbox" checked></td><td><input value="token"></td><td><input value="dev-token-xxx"></td><td style="text-align:center;color:#ccc">x</td></tr>
+              <tr><td><input type="checkbox"></td><td><input value="debug"></td><td><input value="true"></td><td style="text-align:center;color:#ccc">x</td></tr></tbody></table>
+            <button class="kvt add">+ 添加变量</button>
+            <div style="margin-top:12px;display:flex;justify-content:space-between"><input style="width:60%;padding:4px 8px;border:1px solid #ddd;border-radius:4px;font-size:11px" placeholder="新环境名称"><button class="btn btn-pri" style="font-size:11px">+ 新建环境</button></div>
+          </div>
+        </div>
+        <!-- Export -->
+        <div style="border:1px solid #eee;border-radius:6px;overflow:hidden">
+          <div style="padding:8px 12px;background:#f8f8f8;font-weight:600;font-size:12px">导出</div>
+          <div style="padding:14px">
+            <label style="font-size:11px;color:#999">导出范围</label>
+            <select style="width:100%;padding:6px 8px;border:1px solid #ddd;border-radius:4px;font-size:12px;margin-bottom:10px"><option>整个项目</option><option>Default Collection</option><option>User Module</option><option>Order Module</option></select>
+            <label style="font-size:11px;color:#999">格式</label>
+            <select style="width:100%;padding:6px 8px;border:1px solid #ddd;border-radius:4px;font-size:12px;margin-bottom:10px"><option>Postman Collection v2.1</option><option>Paw 自有格式 (.paw)</option></select>
+            <div style="display:flex;justify-content:flex-end;gap:8px"><button class="btn btn-light">取消</button><button class="btn btn-pri">导出</button></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============================ 9. CONTEXT MENUS ============================ -->
+  <div class="section">
+    <div class="sec-title">9. 右键菜单 — 集合树 &amp; Tab</div>
+    <div class="sec-body">
+      <div class="grid2" style="padding:12px">
+        <!-- Tree right-click -->
+        <div style="position:relative;border:1px solid #eee;border-radius:6px;overflow:hidden;padding:8px;min-height:200px">
+          <div style="font-size:12px;font-weight:600;margin-bottom:8px">集合节点右键</div>
+          <div class="tree" style="border:1px solid #f0f0f0;border-radius:4px">
+            <div class="tree-i root">&#x25BC; My API Project</div>
+            <div class="tree-i folder" style="background:#e8f5e9"><span class="arr">&#x25BC;</span>User Module</div>
+            <div class="tree-i req"><span class="tm mtag get">GET</span>列表<span class="tree-url">/api/users</span></div>
+          </div>
+          <div class="ctx-menu" style="top:60px;left:60px">
+            <div class="ctx-item">&#x2795; 新建请求</div>
+            <div class="ctx-item">&#x1F4C1; 新建文件夹</div>
+            <div class="ctx-sep"></div>
+            <div class="ctx-item">&#x270F; 重命名</div>
+            <div class="ctx-item">&#x1F4CB; 复制</div>
+            <div class="ctx-sep"></div>
+            <div class="ctx-item">&#x1F4E4; 导出此集合</div>
+            <div class="ctx-sep"></div>
+            <div class="ctx-item danger">&#x1F5D1; 删除</div>
+          </div>
+        </div>
+        <!-- Tab right-click -->
+        <div style="position:relative;border:1px solid #eee;border-radius:6px;overflow:hidden;padding:8px;min-height:200px">
+          <div style="font-size:12px;font-weight:600;margin-bottom:8px">Tab 右键</div>
+          <div class="tabs" style="border-radius:4px">
+            <div class="tab active"><span class="mtag get">GET</span>获取用户列表<span class="close">x</span></div>
+            <div class="tab"><span class="mtag post">POST</span>创建用户<div class="dirty"></div><span class="close">x</span></div>
+            <div class="tab"><span class="mtag get">GET</span>订单列表<span class="close">x</span></div>
+          </div>
+          <div class="ctx-menu" style="top:50px;left:10px">
+            <div class="ctx-item">&#x274C; 关闭</div>
+            <div class="ctx-item">关闭其他</div>
+            <div class="ctx-item">关闭右侧</div>
+            <div class="ctx-item">关闭全部</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============================ 10. NEW PROJECT / EMPTY ============================ -->
+  <div class="section">
+    <div class="sec-title">10. 空状态 — 首次启动 &amp; 新建项目</div>
+    <div class="sec-body">
+      <div class="grid2" style="padding:12px">
+        <div style="border:1px solid #eee;border-radius:6px;overflow:hidden">
+          <div style="padding:8px 12px;background:#f8f8f8;font-weight:600;font-size:12px">无项目时主界面</div>
+          <div style="padding:30px;text-align:center">
+            <div style="font-size:48px;margin-bottom:12px;opacity:0.3">&#x1F4E6;</div>
+            <div style="font-size:16px;font-weight:600;color:#555;margin-bottom:6px">欢迎使用 Paw API</div>
+            <div style="color:#999;font-size:12px;margin-bottom:18px">创建你的第一个项目，开始调试 API</div>
+            <button class="btn btn-pri" style="font-size:13px;padding:8px 24px">+ 新建项目</button>
+          </div>
+        </div>
+        <div style="border:1px solid #eee;border-radius:6px;overflow:hidden">
+          <div style="padding:8px 12px;background:#f8f8f8;font-weight:600;font-size:12px">新建项目弹窗</div>
+          <div style="padding:16px">
+            <label>项目名称</label><input value="E-commerce API">
+            <label>描述（可选）</label><textarea placeholder="简短描述..." style="height:50px;resize:none"></textarea>
+            <div class="note">将自动创建默认集合并设置初始开发环境</div>
+            <div class="modal-acts"><button class="btn btn-light">取消</button><button class="btn btn-pri">创建</button></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============================ 11. URL + PATH ============================ -->
+  <div class="section">
+    <div class="sec-title">11. URL 路径参数 &amp; 变量高亮</div>
+    <div class="sec-body">
+      <div class="grid2" style="padding:12px">
+        <!-- Path Variables -->
+        <div style="border:1px solid #eee;border-radius:6px;overflow:hidden">
+          <div style="padding:8px 12px;background:#f8f8f8;font-weight:600;font-size:12px">路径参数 — URL 中 :param 自动识别</div>
+          <div style="padding:10px">
+            <div class="urlbar"><select class="method"><option>GET</option></select><input class="url" value="https://api.example.com/v1/users/:userId/orders/:orderId"><button class="send">Send</button></div>
+            <div style="font-size:10px;color:#999;margin:6px 0 2px 0;font-weight:600">PATH VARIABLES</div>
+            <table class="kvt"><thead><tr><th>Key</th><th>Value</th><th>Description</th></tr></thead>
+              <tbody><tr><td><input value="userId" style="color:#aaa" readonly></td><td><input value="1"></td><td><input value=""></td></tr>
+              <tr><td><input value="orderId" style="color:#aaa" readonly></td><td><input value="42"></td><td><input value=""></td></tr></tbody></table>
+          </div>
+          <div style="padding:8px 12px;font-size:10px;color:#888;border-top:1px solid #f0f0f0">
+            填入 URL 后自动检测 <code>:param</code>（也支持 <code>{param}</code>），下方自动展开路径参数表格。Key 不可编辑，Value 支持变量插值 <code>&#123;&#123;var&#125;&#125;</code>
+          </div>
+        </div>
+        <!-- Env variable highlight -->
+        <div style="border:1px solid #eee;border-radius:6px;overflow:hidden">
+          <div style="padding:8px 12px;background:#f8f8f8;font-weight:600;font-size:12px">环境变量高亮 &amp; 悬停提示</div>
+          <div style="padding:12px">
+            <div style="margin-bottom:10px">
+              <div style="font-size:10px;color:#999;margin-bottom:4px">URL 输入中：</div>
+              <div style="padding:5px 8px;border:1px solid #ddd;border-radius:4px;font-family:monospace;font-size:12px;word-break:break-all">
+                https://<span style="background:#fff3cd;padding:1px 3px;border-radius:2px;color:#856404">{{base_url}}</span>/v1/users
+              </div>
+            </div>
+            <div style="position:relative">
+              <div style="font-size:10px;color:#999;margin-bottom:4px">悬停显示解析值：</div>
+              <div style="padding:5px 8px;border:1px solid #ddd;border-radius:4px;font-family:monospace;font-size:12px">
+                https://<span style="background:#fff3cd;padding:1px 3px;border-radius:2px;color:#856404;position:relative">{{base_url}}</span>/v1/users
+                <div style="position:absolute;top:-28px;left:60px;background:#333;color:#fff;padding:3px 8px;border-radius:4px;font-size:10px;white-space:nowrap">
+                  https://api-dev.example.com
+                  <div style="position:absolute;bottom:-4px;left:50%;margin-left:-4px;width:0;height:0;border-left:4px solid transparent;border-right:4px solid transparent;border-top:4px solid #333"></div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+</body>
+</html>

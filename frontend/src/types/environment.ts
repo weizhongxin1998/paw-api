@@ -1,9 +1,16 @@
 export interface Environment {
-  id: string
-  project_id: string
+  id: number
+  project_id: number
   name: string
-  variables: string
+  base_url: string
   is_active: boolean
   created_at: string
   updated_at: string
+}
+
+export interface EnvVariable {
+  id: number
+  key: string
+  value: string
+  enabled: boolean
 }

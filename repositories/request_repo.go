@@ -2,95 +2,101 @@ package repositories
 
 import (
 	"database/sql"
-	"paw-api/database"
+	"time"
+
 	"paw-api/models"
+	"paw-api/pkg/snowflake"
 )
 
-type RequestRepo struct{}
-
-func (r *RequestRepo) Create(req *models.Request) error {
-	_, err := database.DB.Exec(
-		`INSERT INTO requests (id, collection_id, name, method, url, headers, params, body, auth, script, sort_order, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-		req.ID, req.CollectionID, req.Name, req.Method, req.URL, req.Headers, req.Params, req.Body, req.Auth, req.Script, req.SortOrder, req.CreatedAt, req.UpdatedAt,
-	)
-	return err
+type RequestRepository struct {
+	db *sql.DB
+	sf *snowflake.Generator
 }
 
-func (r *RequestRepo) GetByID(id string) (*models.Request, error) {
-	req := &models.Request{}
-	err := database.DB.QueryRow(
-		`SELECT id, collection_id, name, method, url, headers, params, body, auth, script, sort_order, created_at, updated_at FROM requests WHERE id = ?`, id,
-	).Scan(&req.ID, &req.CollectionID, &req.Name, &req.Method, &req.URL, &req.Headers, &req.Params, &req.Body, &req.Auth, &req.Script, &req.SortOrder, &req.CreatedAt, &req.UpdatedAt)
-	if err == sql.ErrNoRows {
-		return nil, nil
-	}
-	return req, err
+func NewRequestRepo(db *sql.DB, sf *snowflake.Generator) *RequestRepository {
+	return &RequestRepository{db: db, sf: sf}
 }
 
-func (r *RequestRepo) ListByProjectID(projectID string) ([]models.Request, error) {
-	rows, err := database.DB.Query(
-		`SELECT id, collection_id, name, method, url, headers, params, body, auth, script, sort_order, created_at, updated_at FROM requests WHERE collection_id IN (SELECT id FROM collections WHERE project_id = ?) ORDER BY sort_order`, projectID,
+func (r *RequestRepository) ListByCollection(collectionID int64) ([]models.Request, error) {
+	rows, err := r.db.Query(
+		`SELECT id, collection_id, name, description, method, url, headers, params, body_type, body, auth, sort_order, created_at, updated_at
+		 FROM requests WHERE collection_id = ? ORDER BY sort_order ASC`, collectionID,
 	)
 	if err != nil {
 		return nil, err
 	}
 	defer rows.Close()
-	requests := make([]models.Request, 0)
+
+	var requests []models.Request
 	for rows.Next() {
 		var req models.Request
-		if err := rows.Scan(&req.ID, &req.CollectionID, &req.Name, &req.Method, &req.URL, &req.Headers, &req.Params, &req.Body, &req.Auth, &req.Script, &req.SortOrder, &req.CreatedAt, &req.UpdatedAt); err != nil {
+		if err := rows.Scan(
+			&req.ID, &req.CollectionID, &req.Name, &req.Description, &req.Method, &req.URL,
+			&req.Headers, &req.Params, &req.BodyType, &req.Body, &req.Auth, &req.SortOrder,
+			&req.CreatedAt, &req.UpdatedAt,
+		); err != nil {
 			return nil, err
 		}
 		requests = append(requests, req)
 	}
-	return requests, rows.Err()
+	return requests, nil
 }
 
-func (r *RequestRepo) ListByCollection(collectionID string) ([]models.Request, error) {
-	rows, err := database.DB.Query(
-		`SELECT id, collection_id, name, method, url, headers, params, body, auth, script, sort_order, created_at, updated_at FROM requests WHERE collection_id = ? ORDER BY sort_order`, collectionID,
+func (r *RequestRepository) GetByID(id int64) (*models.Request, error) {
+	var req models.Request
+	err := r.db.QueryRow(
+		`SELECT id, collection_id, name, description, method, url, headers, params, body_type, body, auth, sort_order, created_at, updated_at
+		 FROM requests WHERE id = ?`, id,
+	).Scan(
+		&req.ID, &req.CollectionID, &req.Name, &req.Description, &req.Method, &req.URL,
+		&req.Headers, &req.Params, &req.BodyType, &req.Body, &req.Auth, &req.SortOrder,
+		&req.CreatedAt, &req.UpdatedAt,
 	)
 	if err != nil {
 		return nil, err
 	}
-	defer rows.Close()
-	requests := make([]models.Request, 0)
-	for rows.Next() {
-		var req models.Request
-		if err := rows.Scan(&req.ID, &req.CollectionID, &req.Name, &req.Method, &req.URL, &req.Headers, &req.Params, &req.Body, &req.Auth, &req.Script, &req.SortOrder, &req.CreatedAt, &req.UpdatedAt); err != nil {
-			return nil, err
-		}
-		requests = append(requests, req)
-	}
-	return requests, rows.Err()
+	return &req, nil
 }
 
-func (r *RequestRepo) Update(req *models.Request) error {
-	_, err := database.DB.Exec(
-		`UPDATE requests SET collection_id = ?, name = ?, method = ?, url = ?, headers = ?, params = ?, body = ?, auth = ?, script = ?, sort_order = ?, updated_at = ? WHERE id = ?`,
-		req.CollectionID, req.Name, req.Method, req.URL, req.Headers, req.Params, req.Body, req.Auth, req.Script, req.SortOrder, req.UpdatedAt, req.ID,
+func (r *RequestRepository) Create(request *models.Request) error {
+	now := time.Now().UTC().Format(time.RFC3339)
+	request.ID = r.sf.Next()
+	request.CreatedAt = now
+	request.UpdatedAt = now
+
+	_, err := r.db.Exec(
+		`INSERT INTO requests (id, collection_id, name, description, method, url, headers, params, body_type, body, auth, sort_order, created_at, updated_at)
+		 VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+		request.ID, request.CollectionID, request.Name, request.Description, request.Method, request.URL,
+		request.Headers, request.Params, request.BodyType, request.Body, request.Auth, request.SortOrder,
+		request.CreatedAt, request.UpdatedAt,
 	)
 	return err
 }
 
-func (r *RequestRepo) GetMaxSortOrder(collectionID string) (int, error) {
-	var max sql.NullInt64
-	err := database.DB.QueryRow(`SELECT MAX(sort_order) FROM requests WHERE collection_id = ?`, collectionID).Scan(&max)
-	if err != nil {
-		return 0, err
-	}
-	if max.Valid {
-		return int(max.Int64), nil
-	}
-	return 0, nil
-}
-
-func (r *RequestRepo) DeleteByCollection(collectionID string) error {
-	_, err := database.DB.Exec(`DELETE FROM requests WHERE collection_id = ?`, collectionID)
+func (r *RequestRepository) Update(request *models.Request) error {
+	request.UpdatedAt = time.Now().UTC().Format(time.RFC3339)
+	_, err := r.db.Exec(
+		`UPDATE requests SET name = ?, description = ?, method = ?, url = ?, headers = ?, params = ?,
+		 body_type = ?, body = ?, auth = ?, sort_order = ?, updated_at = ? WHERE id = ?`,
+		request.Name, request.Description, request.Method, request.URL,
+		request.Headers, request.Params, request.BodyType, request.Body, request.Auth, request.SortOrder,
+		request.UpdatedAt, request.ID,
+	)
 	return err
 }
 
-func (r *RequestRepo) Delete(id string) error {
-	_, err := database.DB.Exec(`DELETE FROM requests WHERE id = ?`, id)
+func (r *RequestRepository) Delete(id int64) error {
+	_, err := r.db.Exec("DELETE FROM requests WHERE id = ?", id)
+	return err
+}
+
+func (r *RequestRepository) UpdateSortOrder(id int64, sortOrder int) error {
+	_, err := r.db.Exec("UPDATE requests SET sort_order = ? WHERE id = ?", sortOrder, id)
+	return err
+}
+
+func (r *RequestRepository) MoveToCollection(id int64, collectionID int64) error {
+	_, err := r.db.Exec("UPDATE requests SET collection_id = ? WHERE id = ?", collectionID, id)
 	return err
 }

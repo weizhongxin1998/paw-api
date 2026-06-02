@@ -1,69 +1,52 @@
 import { defineStore } from 'pinia'
-import { ref } from 'vue'
-import type { Project, Collection } from '../types/project'
+import { ref, computed } from 'vue'
+import type { Project } from '../types/project'
+import { ListProjects, CreateProject, GetSetting, SetSetting } from '../../wailsjs/go/main/App'
 
 export const useProjectStore = defineStore('project', () => {
   const projects = ref<Project[]>([])
-  const currentProject = ref<Project | null>(null)
-  const collections = ref<Collection[]>([])
-  const selectedCollectionId = ref<string | null>(null)
-  const refreshKey = ref(0)
+  const currentId = ref<number | null>(null)
 
-  function setProjects(list: Project[]) {
-    projects.value = list
-  }
-
-  function addProject(p: Project) {
-    projects.value.push(p)
-  }
-
-  function setCurrentProject(p: Project | null) {
-    currentProject.value = p
-  }
-
-  function setCollections(list: Collection[]) {
-    collections.value = list
-  }
-
-  function addCollection(c: Collection) {
-    collections.value.push(c)
-  }
-
-  function removeCollection(id: string) {
-    collections.value = collections.value.filter(c => c.id !== id)
-    if (selectedCollectionId.value === id) selectedCollectionId.value = null
-  }
-
-  function updateCollection(c: Collection) {
-    const idx = collections.value.findIndex(x => x.id === c.id)
-    if (idx !== -1) collections.value[idx] = c
-  }
-
-  function selectCollection(id: string | null) {
-    selectedCollectionId.value = id
-  }
-
-  function removeProject(id: string) {
-    projects.value = projects.value.filter(p => p.id !== id)
-    if (currentProject.value?.id === id) {
-      currentProject.value = projects.value[0] || null
+  async function loadProjects() {
+    try {
+      const list = await ListProjects()
+      projects.value = list || []
+    } catch {
+      projects.value = []
     }
   }
 
-  function updateProject(p: Project) {
-    const idx = projects.value.findIndex(x => x.id === p.id)
-    if (idx !== -1) projects.value[idx] = p
-    if (currentProject.value?.id === p.id) currentProject.value = p
+  async function loadLastProject() {
+    try {
+      const lastId = await GetSetting('app.last_project_id')
+      if (lastId && projects.value.some(p => p.id === Number(lastId))) {
+        currentId.value = Number(lastId)
+      } else if (projects.value.length > 0) {
+        currentId.value = projects.value[0].id
+      }
+    } catch {
+      if (projects.value.length > 0) {
+        currentId.value = projects.value[0].id
+      }
+    }
   }
 
-  function triggerRefresh() {
-    refreshKey.value++
+  async function switchProject(id: number) {
+    currentId.value = id
+    try {
+      await SetSetting('app.last_project_id', String(id))
+    } catch { /* ignore */ }
   }
 
-  return {
-    projects, currentProject, collections, selectedCollectionId, refreshKey,
-    setProjects, addProject, setCurrentProject, setCollections,
-    addCollection, removeCollection, updateCollection, selectCollection,
-    removeProject, updateProject, triggerRefresh,
+  async function createProject(name: string, description: string): Promise<Project> {
+    const p = await CreateProject(name, description)
+    projects.value.push(p)
+    return p
   }
+
+  const currentProject = computed(() =>
+    projects.value.find(p => p.id === currentId.value) || null
+  )
+
+  return { projects, currentId, currentProject, loadProjects, loadLastProject, switchProject, createProject }
 })

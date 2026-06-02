@@ -2,112 +2,94 @@ package repositories
 
 import (
 	"database/sql"
-	"paw-api/database"
+	"time"
+
 	"paw-api/models"
+	"paw-api/pkg/snowflake"
 )
 
-type CollectionRepo struct{}
+type CollectionRepository struct {
+	db *sql.DB
+	sf *snowflake.Generator
+}
 
-func scanCollection(scanner interface {
-	Scan(dest ...interface{}) error
-}) (*models.Collection, error) {
+func NewCollectionRepo(db *sql.DB, sf *snowflake.Generator) *CollectionRepository {
+	return &CollectionRepository{db: db, sf: sf}
+}
+
+func (r *CollectionRepository) ListByProject(projectID int64) ([]models.Collection, error) {
+	rows, err := r.db.Query(
+		"SELECT id, project_id, parent_id, name, sort_order, created_at, updated_at FROM collections WHERE project_id = ? ORDER BY sort_order ASC",
+		projectID,
+	)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	var collections []models.Collection
+	for rows.Next() {
+		var c models.Collection
+		var parentID sql.NullInt64
+		if err := rows.Scan(&c.ID, &c.ProjectID, &parentID, &c.Name, &c.SortOrder, &c.CreatedAt, &c.UpdatedAt); err != nil {
+			return nil, err
+		}
+		if parentID.Valid {
+			c.ParentID = &parentID.Int64
+		}
+		collections = append(collections, c)
+	}
+	return collections, nil
+}
+
+func (r *CollectionRepository) GetByID(id int64) (*models.Collection, error) {
 	var c models.Collection
-	var parentID sql.NullString
-	err := scanner.Scan(&c.ID, &c.ProjectID, &parentID, &c.Name, &c.SortOrder, &c.CreatedAt, &c.UpdatedAt)
+	var parentID sql.NullInt64
+	err := r.db.QueryRow(
+		"SELECT id, project_id, parent_id, name, sort_order, created_at, updated_at FROM collections WHERE id = ?", id,
+	).Scan(&c.ID, &c.ProjectID, &parentID, &c.Name, &c.SortOrder, &c.CreatedAt, &c.UpdatedAt)
 	if err != nil {
 		return nil, err
 	}
 	if parentID.Valid {
-		c.ParentID = &parentID.String
+		c.ParentID = &parentID.Int64
 	}
 	return &c, nil
 }
 
-func (r *CollectionRepo) Create(c *models.Collection) error {
-	_, err := database.DB.Exec(
-		`INSERT INTO collections (id, project_id, parent_id, name, sort_order, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?)`,
-		c.ID, c.ProjectID, c.ParentID, c.Name, c.SortOrder, c.CreatedAt, c.UpdatedAt,
+func (r *CollectionRepository) Create(collection *models.Collection) error {
+	now := time.Now().UTC().Format(time.RFC3339)
+	collection.ID = r.sf.Next()
+	collection.CreatedAt = now
+	collection.UpdatedAt = now
+
+	_, err := r.db.Exec(
+		"INSERT INTO collections (id, project_id, parent_id, name, sort_order, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?)",
+		collection.ID, collection.ProjectID, collection.ParentID, collection.Name, collection.SortOrder, collection.CreatedAt, collection.UpdatedAt,
 	)
 	return err
 }
 
-func (r *CollectionRepo) GetByID(id string) (*models.Collection, error) {
-	row := database.DB.QueryRow(
-		`SELECT id, project_id, parent_id, name, sort_order, created_at, updated_at FROM collections WHERE id = ?`, id,
-	)
-	c, err := scanCollection(row)
-	if err == sql.ErrNoRows {
-		return nil, nil
-	}
-	return c, err
-}
-
-func (r *CollectionRepo) ListByProject(projectID string) ([]models.Collection, error) {
-	rows, err := database.DB.Query(
-		`SELECT id, project_id, parent_id, name, sort_order, created_at, updated_at FROM collections WHERE project_id = ? ORDER BY sort_order`, projectID,
-	)
-	if err != nil {
-		return nil, err
-	}
-	defer rows.Close()
-	collections := make([]models.Collection, 0)
-	for rows.Next() {
-		c, err := scanCollection(rows)
-		if err != nil {
-			return nil, err
-		}
-		collections = append(collections, *c)
-	}
-	return collections, rows.Err()
-}
-
-func (r *CollectionRepo) Update(c *models.Collection) error {
-	_, err := database.DB.Exec(
-		`UPDATE collections SET name = ?, parent_id = ?, sort_order = ?, updated_at = ? WHERE id = ?`,
-		c.Name, c.ParentID, c.SortOrder, c.UpdatedAt, c.ID,
+func (r *CollectionRepository) Update(collection *models.Collection) error {
+	collection.UpdatedAt = time.Now().UTC().Format(time.RFC3339)
+	_, err := r.db.Exec(
+		"UPDATE collections SET name = ?, sort_order = ?, updated_at = ? WHERE id = ?",
+		collection.Name, collection.SortOrder, collection.UpdatedAt, collection.ID,
 	)
 	return err
 }
 
-func (r *CollectionRepo) GetMaxSortOrder(projectID, parentID string) (int, error) {
-	var max sql.NullInt64
-	if parentID == "" {
-		err := database.DB.QueryRow(`SELECT MAX(sort_order) FROM collections WHERE project_id = ? AND parent_id IS NULL`, projectID).Scan(&max)
-		if err != nil {
-			return 0, err
-		}
-	} else {
-		err := database.DB.QueryRow(`SELECT MAX(sort_order) FROM collections WHERE project_id = ? AND parent_id = ?`, projectID, parentID).Scan(&max)
-		if err != nil {
-			return 0, err
-		}
-	}
-	if max.Valid {
-		return int(max.Int64), nil
-	}
-	return 0, nil
+func (r *CollectionRepository) Delete(id int64) error {
+	_, err := r.db.Exec("DELETE FROM collections WHERE id = ?", id)
+	return err
 }
 
-func (r *CollectionRepo) ListByParent(parentID string) ([]models.Collection, error) {
-	rows, err := database.DB.Query(
-		`SELECT id, project_id, parent_id, name, sort_order, created_at, updated_at FROM collections WHERE parent_id = ? ORDER BY sort_order`, parentID,
-	)
-	if err != nil {
-		return nil, err
-	}
-	defer rows.Close()
-	collections := make([]models.Collection, 0)
-	for rows.Next() {
-		c, err := scanCollection(rows)
-		if err != nil {
-			return nil, err
-		}
-		collections = append(collections, *c)
-	}
-	return collections, rows.Err()
+func (r *CollectionRepository) UpdateSortOrder(id int64, sortOrder int) error {
+	_, err := r.db.Exec("UPDATE collections SET sort_order = ? WHERE id = ?", sortOrder, id)
+	return err
 }
 
-func (r *CollectionRepo) Delete(id string) error {
-	_, err := database.DB.Exec(`DELETE FROM collections WHERE id = ?`, id)
+func (r *CollectionRepository) MoveToParent(id int64, parentID *int64) error {
+	_, err := r.db.Exec("UPDATE collections SET parent_id = ? WHERE id = ?", parentID, id)
 	return err
 }

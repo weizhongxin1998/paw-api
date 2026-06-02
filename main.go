@@ -12,31 +12,21 @@ import (
 var assets embed.FS
 
 func main() {
+	// Create an instance of the app structure
 	app := NewApp()
 
+	// Create application with options
 	err := wails.Run(&options.App{
-		Title:     "Paw API",
-		Width:     1280,
-		Height:    800,
-		MinWidth:  960,
-		MinHeight: 600,
+		Title:  "paw-api",
+		Width:  1024,
+		Height: 768,
 		AssetServer: &assetserver.Options{
 			Assets: assets,
 		},
-		BackgroundColour: &options.RGBA{R: 255, G: 255, B: 255, A: 1},
+		BackgroundColour: &options.RGBA{R: 27, G: 38, B: 54, A: 1},
 		OnStartup:        app.startup,
-		OnShutdown:       app.shutdown,
 		Bind: []interface{}{
 			app,
-			app.ProjectHandler,
-			app.CollectionHandler,
-			app.RequestHandler,
-			app.EnvironmentHandler,
-			app.HistoryHandler,
-			app.WebSocketHandler,
-			app.CookieHandler,
-			app.ImporterHandler,
-			app.ExporterHandler,
 		},
 	})
 

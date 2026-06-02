@@ -1,35 +1,10 @@
 import { defineStore } from 'pinia'
 import { ref } from 'vue'
-
-export interface HistoryItem {
-  id: string
-  project_id: string
-  request_id: string | null
-  method: string
-  url: string
-  headers: string
-  body: string
-  response_status: number
-  response_body: string
-  response_headers: string
-  duration_ms: number
-  created_at: string
-}
+import type { HistoryItem } from '../types/history'
 
 export const useHistoryStore = defineStore('history', () => {
-  const history = ref<HistoryItem[]>([])
+  const items = ref<HistoryItem[]>([])
+  const searchKeyword = ref('')
 
-  function setHistory(items: HistoryItem[]) {
-    history.value = items
-  }
-
-  function removeHistory(id: string) {
-    history.value = history.value.filter(h => h.id !== id)
-  }
-
-  function clearHistory() {
-    history.value = []
-  }
-
-  return { history, setHistory, removeHistory, clearHistory }
+  return { items, searchKeyword }
 })

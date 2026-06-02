@@ -2,60 +2,153 @@ package repositories
 
 import (
 	"database/sql"
-	"paw-api/database"
+	"time"
+
 	"paw-api/models"
+	"paw-api/pkg/snowflake"
 )
 
-type HistoryRepo struct{}
-
-func (r *HistoryRepo) Create(h *models.History) error {
-	_, err := database.DB.Exec(
-		`INSERT INTO history (id, project_id, request_id, method, url, headers, body, response_status, response_body, response_headers, duration_ms, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-		h.ID, h.ProjectID, h.RequestID, h.Method, h.URL, h.Headers, h.Body, h.ResponseStatus, h.ResponseBody, h.ResponseHeaders, h.DurationMs, h.CreatedAt,
-	)
-	return err
+type HistoryRepository struct {
+	db *sql.DB
+	sf *snowflake.Generator
 }
 
-func (r *HistoryRepo) ListByProject(projectID string, limit int) ([]models.History, error) {
-	if limit <= 0 {
-		limit = 50
-	}
-	var rows *sql.Rows
-	var err error
-	if projectID == "" {
-		rows, err = database.DB.Query(
-			`SELECT id, project_id, request_id, method, url, headers, body, response_status, response_body, response_headers, duration_ms, created_at FROM history ORDER BY created_at DESC LIMIT ?`, limit,
-		)
-	} else {
-		rows, err = database.DB.Query(
-			`SELECT id, project_id, request_id, method, url, headers, body, response_status, response_body, response_headers, duration_ms, created_at FROM history WHERE project_id = ? ORDER BY created_at DESC LIMIT ?`, projectID, limit,
-		)
-	}
+func NewHistoryRepo(db *sql.DB, sf *snowflake.Generator) *HistoryRepository {
+	return &HistoryRepository{db: db, sf: sf}
+}
+
+func (r *HistoryRepository) ListByProject(projectID int64, limit, offset int) ([]models.History, error) {
+	rows, err := r.db.Query(
+		`SELECT id, project_id, request_id, method, url, request_headers, request_body,
+		 response_status, response_headers, response_body, duration_ms, created_at
+		 FROM history WHERE project_id = ? ORDER BY created_at DESC LIMIT ? OFFSET ?`,
+		projectID, limit, offset,
+	)
 	if err != nil {
 		return nil, err
 	}
 	defer rows.Close()
-	history := make([]models.History, 0)
+
+	return scanHistories(rows)
+}
+
+func (r *HistoryRepository) Search(projectID int64, keyword, method string, statusMin, statusMax int, limit, offset int) ([]models.History, int, error) {
+	where := "WHERE project_id = ?"
+	args := []interface{}{projectID}
+
+	if keyword != "" {
+		where += " AND url LIKE ?"
+		args = append(args, "%"+keyword+"%")
+	}
+	if method != "" {
+		where += " AND method = ?"
+		args = append(args, method)
+	}
+	if statusMin > 0 {
+		where += " AND response_status >= ?"
+		args = append(args, statusMin)
+	}
+	if statusMax > 0 {
+		where += " AND response_status < ?"
+		args = append(args, statusMax)
+	}
+
+	var total int
+	countQuery := "SELECT COUNT(*) FROM history " + where
+	if err := r.db.QueryRow(countQuery, args...).Scan(&total); err != nil {
+		return nil, 0, err
+	}
+
+	query := `SELECT id, project_id, request_id, method, url, request_headers, request_body,
+		 response_status, response_headers, response_body, duration_ms, created_at
+		 FROM history ` + where + ` ORDER BY created_at DESC LIMIT ? OFFSET ?`
+	args = append(args, limit, offset)
+
+	rows, err := r.db.Query(query, args...)
+	if err != nil {
+		return nil, 0, err
+	}
+	defer rows.Close()
+
+	items, err := scanHistories(rows)
+	if err != nil {
+		return nil, 0, err
+	}
+
+	return items, total, nil
+}
+
+func (r *HistoryRepository) GetByID(id int64) (*models.History, error) {
+	var h models.History
+	var requestID sql.NullInt64
+	err := r.db.QueryRow(
+		`SELECT id, project_id, request_id, method, url, request_headers, request_body,
+		 response_status, response_headers, response_body, duration_ms, created_at
+		 FROM history WHERE id = ?`, id,
+	).Scan(
+		&h.ID, &h.ProjectID, &requestID, &h.Method, &h.URL,
+		&h.RequestHeaders, &h.RequestBody, &h.ResponseStatus,
+		&h.ResponseHeaders, &h.ResponseBody, &h.DurationMs, &h.CreatedAt,
+	)
+	if err != nil {
+		return nil, err
+	}
+	if requestID.Valid {
+		h.RequestID = &requestID.Int64
+	}
+	return &h, nil
+}
+
+func (r *HistoryRepository) Create(history *models.History) error {
+	now := time.Now().UTC().Format(time.RFC3339)
+	history.ID = r.sf.Next()
+	history.CreatedAt = now
+
+	_, err := r.db.Exec(
+		`INSERT INTO history (id, project_id, request_id, method, url, request_headers, request_body,
+		 response_status, response_headers, response_body, duration_ms, created_at)
+		 VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+		history.ID, history.ProjectID, history.RequestID, history.Method, history.URL,
+		history.RequestHeaders, history.RequestBody, history.ResponseStatus,
+		history.ResponseHeaders, history.ResponseBody, history.DurationMs, history.CreatedAt,
+	)
+	return err
+}
+
+func (r *HistoryRepository) Delete(id int64) error {
+	_, err := r.db.Exec("DELETE FROM history WHERE id = ?", id)
+	return err
+}
+
+func (r *HistoryRepository) DeleteByProject(projectID int64) error {
+	_, err := r.db.Exec("DELETE FROM history WHERE project_id = ?", projectID)
+	return err
+}
+
+func (r *HistoryRepository) DeleteOlderThan(projectID int64, days int) error {
+	_, err := r.db.Exec(
+		"DELETE FROM history WHERE project_id = ? AND created_at < datetime('now', ? || ' days')",
+		projectID, -days,
+	)
+	return err
+}
+
+func scanHistories(rows *sql.Rows) ([]models.History, error) {
+	var items []models.History
 	for rows.Next() {
 		var h models.History
-		var requestID sql.NullString
-		if err := rows.Scan(&h.ID, &h.ProjectID, &requestID, &h.Method, &h.URL, &h.Headers, &h.Body, &h.ResponseStatus, &h.ResponseBody, &h.ResponseHeaders, &h.DurationMs, &h.CreatedAt); err != nil {
+		var requestID sql.NullInt64
+		if err := rows.Scan(
+			&h.ID, &h.ProjectID, &requestID, &h.Method, &h.URL,
+			&h.RequestHeaders, &h.RequestBody, &h.ResponseStatus,
+			&h.ResponseHeaders, &h.ResponseBody, &h.DurationMs, &h.CreatedAt,
+		); err != nil {
 			return nil, err
 		}
 		if requestID.Valid {
-			h.RequestID = &requestID.String
+			h.RequestID = &requestID.Int64
 		}
-		history = append(history, h)
+		items = append(items, h)
 	}
-	return history, rows.Err()
-}
-
-func (r *HistoryRepo) Delete(id string) error {
-	_, err := database.DB.Exec(`DELETE FROM history WHERE id = ?`, id)
-	return err
-}
-
-func (r *HistoryRepo) ClearByProject(projectID string) error {
-	_, err := database.DB.Exec(`DELETE FROM history WHERE project_id = ?`, projectID)
-	return err
+	return items, nil
 }

@@ -2,37 +2,30 @@ package repositories
 
 import (
 	"database/sql"
-	"paw-api/database"
+	"time"
+
 	"paw-api/models"
+	"paw-api/pkg/snowflake"
 )
 
-type ProjectRepo struct{}
+type ProjectRepository struct {
+	db  *sql.DB
+	sf  *snowflake.Generator
+}
 
-func (r *ProjectRepo) Create(project *models.Project) error {
-	_, err := database.DB.Exec(
-		`INSERT INTO projects (id, name, description, created_at, updated_at) VALUES (?, ?, ?, ?, ?)`,
-		project.ID, project.Name, project.Description, project.CreatedAt, project.UpdatedAt,
+func NewProjectRepo(db *sql.DB, sf *snowflake.Generator) *ProjectRepository {
+	return &ProjectRepository{db: db, sf: sf}
+}
+
+func (r *ProjectRepository) List() ([]models.Project, error) {
+	rows, err := r.db.Query(
+		"SELECT id, name, description, created_at, updated_at FROM projects ORDER BY created_at DESC",
 	)
-	return err
-}
-
-func (r *ProjectRepo) GetByID(id string) (*models.Project, error) {
-	p := &models.Project{}
-	err := database.DB.QueryRow(
-		`SELECT id, name, description, created_at, updated_at FROM projects WHERE id = ?`, id,
-	).Scan(&p.ID, &p.Name, &p.Description, &p.CreatedAt, &p.UpdatedAt)
-	if err == sql.ErrNoRows {
-		return nil, nil
-	}
-	return p, err
-}
-
-func (r *ProjectRepo) List() ([]models.Project, error) {
-	rows, err := database.DB.Query(`SELECT id, name, description, created_at, updated_at FROM projects ORDER BY created_at DESC`)
 	if err != nil {
 		return nil, err
 	}
 	defer rows.Close()
+
 	var projects []models.Project
 	for rows.Next() {
 		var p models.Project
@@ -41,18 +34,52 @@ func (r *ProjectRepo) List() ([]models.Project, error) {
 		}
 		projects = append(projects, p)
 	}
-	return projects, rows.Err()
+	return projects, nil
 }
 
-func (r *ProjectRepo) Update(project *models.Project) error {
-	_, err := database.DB.Exec(
-		`UPDATE projects SET name = ?, description = ?, updated_at = ? WHERE id = ?`,
+func (r *ProjectRepository) GetByID(id int64) (*models.Project, error) {
+	var p models.Project
+	err := r.db.QueryRow(
+		"SELECT id, name, description, created_at, updated_at FROM projects WHERE id = ?", id,
+	).Scan(&p.ID, &p.Name, &p.Description, &p.CreatedAt, &p.UpdatedAt)
+	if err != nil {
+		return nil, err
+	}
+	return &p, nil
+}
+
+func (r *ProjectRepository) Create(project *models.Project) error {
+	now := time.Now().UTC().Format(time.RFC3339)
+	project.ID = r.sf.Next()
+	project.CreatedAt = now
+	project.UpdatedAt = now
+
+	_, err := r.db.Exec(
+		"INSERT INTO projects (id, name, description, created_at, updated_at) VALUES (?, ?, ?, ?, ?)",
+		project.ID, project.Name, project.Description, project.CreatedAt, project.UpdatedAt,
+	)
+	return err
+}
+
+func (r *ProjectRepository) Update(project *models.Project) error {
+	project.UpdatedAt = time.Now().UTC().Format(time.RFC3339)
+	_, err := r.db.Exec(
+		"UPDATE projects SET name = ?, description = ?, updated_at = ? WHERE id = ?",
 		project.Name, project.Description, project.UpdatedAt, project.ID,
 	)
 	return err
 }
 
-func (r *ProjectRepo) Delete(id string) error {
-	_, err := database.DB.Exec(`DELETE FROM projects WHERE id = ?`, id)
+func (r *ProjectRepository) Delete(id int64) error {
+	_, err := r.db.Exec("DELETE FROM projects WHERE id = ?", id)
 	return err
+}
+
+func (r *ProjectRepository) GetStats(projectID int64) (models.ProjectStats, error) {
+	var s models.ProjectStats
+	err := r.db.QueryRow(
+		"SELECT (SELECT COUNT(*) FROM requests WHERE collection_id IN (SELECT id FROM collections WHERE project_id = ?)), (SELECT COUNT(*) FROM collections WHERE project_id = ?)",
+		projectID, projectID,
+	).Scan(&s.RequestCount, &s.CollectionCount)
+	return s, err
 }

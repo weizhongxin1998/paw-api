@@ -1,52 +1,53 @@
 package services
 
 import (
-	"time"
 	"paw-api/models"
 	"paw-api/repositories"
-
-	"github.com/google/uuid"
 )
 
 type HistoryService struct {
-	repo *repositories.HistoryRepo
+	repo *repositories.HistoryRepository
 }
 
-func NewHistoryService() *HistoryService {
-	return &HistoryService{repo: &repositories.HistoryRepo{}}
+func NewHistoryService(repo *repositories.HistoryRepository) *HistoryService {
+	return &HistoryService{repo: repo}
 }
 
-func (s *HistoryService) Record(projectID, requestID, method, url, headers, body string, responseStatus int, responseBody, responseHeaders string, durationMs int) (*models.History, error) {
-	now := time.Now()
-	var rid *string
-	if requestID != "" {
-		rid = &requestID
+func (s *HistoryService) List(projectID int64, page, pageSize int) ([]models.History, int, error) {
+	offset := (page - 1) * pageSize
+	items, err := s.repo.ListByProject(projectID, pageSize, offset)
+	if err != nil {
+		return nil, 0, err
 	}
-	h := &models.History{
-		ID:              uuid.New().String(),
-		ProjectID:       projectID,
-		RequestID:       rid,
-		Method:          method,
-		URL:             url,
-		Headers:         headers,
-		Body:            body,
-		ResponseStatus:  responseStatus,
-		ResponseBody:    responseBody,
-		ResponseHeaders: responseHeaders,
-		DurationMs:      durationMs,
-		CreatedAt:       now,
+
+	allItems, err := s.repo.ListByProject(projectID, 0, 0)
+	if err != nil {
+		return nil, 0, err
 	}
-	return h, s.repo.Create(h)
+
+	return items, len(allItems), nil
 }
 
-func (s *HistoryService) ListByProject(projectID string, limit int) ([]models.History, error) {
-	return s.repo.ListByProject(projectID, limit)
+func (s *HistoryService) Search(projectID int64, keyword, method string, statusMin, statusMax int, page, pageSize int) ([]models.History, int, error) {
+	offset := (page - 1) * pageSize
+	return s.repo.Search(projectID, keyword, method, statusMin, statusMax, pageSize, offset)
 }
 
-func (s *HistoryService) Delete(id string) error {
+func (s *HistoryService) Get(id int64) (*models.History, error) {
+	return s.repo.GetByID(id)
+}
+
+func (s *HistoryService) Clear(projectID int64) error {
+	return s.repo.DeleteByProject(projectID)
+}
+
+func (s *HistoryService) Delete(id int64) error {
 	return s.repo.Delete(id)
 }
 
-func (s *HistoryService) ClearByProject(projectID string) error {
-	return s.repo.ClearByProject(projectID)
+func (s *HistoryService) CleanOld(projectID int64, days int) (int, error) {
+	if err := s.repo.DeleteOlderThan(projectID, days); err != nil {
+		return 0, err
+	}
+	return 0, nil
 }

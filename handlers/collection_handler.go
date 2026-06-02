@@ -6,29 +6,33 @@ import (
 )
 
 type CollectionHandler struct {
-	service *services.CollectionService
+	svc *services.CollectionService
 }
 
-func NewCollectionHandler() *CollectionHandler {
-	return &CollectionHandler{service: services.NewCollectionService()}
+func NewCollectionHandler(svc *services.CollectionService) *CollectionHandler {
+	return &CollectionHandler{svc: svc}
 }
 
-func (h *CollectionHandler) CreateCollection(projectID, parentID, name string, sortOrder int) (*models.Collection, error) {
-	return h.service.Create(projectID, parentID, name, sortOrder)
+func (h *CollectionHandler) GetTree(projectID int64) ([]models.TreeItem, error) {
+	return h.svc.GetTree(projectID)
 }
 
-func (h *CollectionHandler) GetCollection(id string) (*models.Collection, error) {
-	return h.service.GetByID(id)
+func (h *CollectionHandler) Get(id int64) (*models.Collection, error) {
+	return h.svc.Get(id)
 }
 
-func (h *CollectionHandler) ListCollections(projectID string) ([]models.Collection, error) {
-	return h.service.ListByProject(projectID)
+func (h *CollectionHandler) Create(projectID int64, parentID *int64, name string) (*models.Collection, error) {
+	return h.svc.Create(projectID, parentID, name)
 }
 
-func (h *CollectionHandler) UpdateCollection(id, name string, parentID *string, sortOrder int) (*models.Collection, error) {
-	return h.service.Update(id, name, parentID, sortOrder)
+func (h *CollectionHandler) Rename(id int64, name string) error {
+	return h.svc.Rename(id, name)
 }
 
-func (h *CollectionHandler) DeleteCollection(id string) error {
-	return h.service.Delete(id)
+func (h *CollectionHandler) Move(id int64, parentID *int64, sortOrder int) error {
+	return h.svc.Move(id, parentID, sortOrder)
+}
+
+func (h *CollectionHandler) Delete(id int64) error {
+	return h.svc.Delete(id)
 }
