@@ -115,7 +115,7 @@ table {
 th {
   text-align: left;
   padding: 5px 6px;
-  font-size: 10px;
+  font-size: var(--fs-xs);
   color: var(--text-muted);
   text-transform: uppercase;
   border-bottom: 1px solid var(--border-primary);
@@ -131,7 +131,7 @@ td {
   text-align: center;
   color: var(--text-muted);
   cursor: pointer;
-  font-size: 15px;
+  font-size: var(--fs-md);
   font-weight: 600;
   transition: color var(--transition);
 }

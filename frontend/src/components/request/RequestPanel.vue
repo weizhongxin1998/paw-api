@@ -31,7 +31,6 @@
             @update:items="onParamsChange"
           />
         </div>
-        <button class="add-param-btn" @click="addQueryParam">+ 添加参数</button>
       </div>
 
       <div v-else-if="activeTab === 'path'" class="params-content">
@@ -188,13 +187,6 @@ function onParamsChange(items: KvItem[]) {
   tabs[0].count = items.filter(i => i.enabled && i.key).length
   sync()
 }
-
-function addQueryParam() {
-  const item: KvItem = { id: String(++iid), key: '', value: '', description: '', enabled: true }
-  const newItems = [...paramsItems.value, item]
-  paramsItems.value = newItems
-  onParamsChange(newItems)
-}
 </script>
 
 <style scoped>
@@ -213,7 +205,7 @@ function addQueryParam() {
 }
 .sub-tabs button {
   padding: 7px 12px;
-  font-size: 11px;
+  font-size: var(--fs-sm);
   cursor: pointer;
   color: var(--text-muted);
   border: none;
@@ -232,7 +224,7 @@ function addQueryParam() {
 }
 .sub-tabs button:hover:not(.active) { color: var(--text-secondary); }
 .cnt {
-  font-size: 9px;
+  font-size: var(--fs-2xs);
   background: var(--bg-hover);
   color: var(--text-muted);
   padding: 0 4px;
@@ -241,7 +233,7 @@ function addQueryParam() {
   font-weight: 600;
 }
 .bulk-btn {
-  font-size: 10px !important;
+  font-size: var(--fs-xs) !important;
   color: var(--accent) !important;
   padding: 7px 8px !important;
 }
@@ -256,22 +248,22 @@ function addQueryParam() {
 }
 .section-toggle {
   display: flex; align-items: center; gap: 4px;
-  font-size: 11px; color: var(--text-secondary);
+  font-size: var(--fs-sm); color: var(--text-secondary);
   font-weight: 600; cursor: pointer; font-family: var(--font-mono);
 }
 .section-toggle input[type="checkbox"] { accent-color: var(--accent); }
-.section-label { font-size: 11px; color: var(--text-secondary); font-weight: 600; font-family: var(--font-mono); }
-.section-hint { font-size: 10px; color: var(--text-muted); }
+.section-label { font-size: var(--fs-sm); color: var(--text-secondary); font-weight: 600; font-family: var(--font-mono); }
+.section-hint { font-size: var(--fs-xs); color: var(--text-muted); }
 .kvt { width: 100%; border-collapse: collapse; }
 .kvt th {
-  text-align: left; padding: 5px 8px; font-size: 10px; color: var(--text-muted);
+  text-align: left; padding: 5px 8px; font-size: var(--fs-xs); color: var(--text-muted);
   text-transform: uppercase; border-bottom: 1px solid var(--border-primary);
   font-weight: 500; background: var(--bg-surface); letter-spacing: 0.3px;
 }
 .kvt td { padding: 2px 8px; }
 .kvt-input {
   width: 100%; padding: 6px 7px; border: 1px solid transparent;
-  font-family: var(--font-mono); font-size: 11px; background: transparent;
+  font-family: var(--font-mono); font-size: var(--fs-sm); background: transparent;
   border-radius: var(--radius-sm); outline: none; color: var(--text-primary);
   transition: border-color var(--transition), background var(--transition);
 }
@@ -279,17 +271,11 @@ function addQueryParam() {
 .kvt-input:focus { border-color: var(--accent); background: var(--bg-surface); }
 .kvt-input.readonly { color: var(--text-muted); background: transparent; cursor: default; }
 .kvt-input.readonly:hover { border-color: transparent; background: transparent; }
-.add-param-btn {
-  padding: 3px 8px; color: var(--accent); cursor: pointer;
-  background: none; border: none; font-size: 11px; margin-top: 2px;
-  font-family: var(--font-mono); transition: color var(--transition);
-}
-.add-param-btn:hover { color: var(--accent-hover); }
 .path-empty { padding: 20px; text-align: center; }
-.hint-text { font-size: 11px; color: var(--text-muted); font-family: var(--font-mono); }
+.hint-text { font-size: var(--fs-sm); color: var(--text-muted); font-family: var(--font-mono); }
 .hint-text code {
   background: var(--bg-elevated); padding: 1px 4px;
-  border-radius: 2px; font-family: var(--font-mono); font-size: 10px;
+  border-radius: 2px; font-family: var(--font-mono); font-size: var(--fs-xs);
   border: 1px solid var(--border-primary);
 }
 </style>

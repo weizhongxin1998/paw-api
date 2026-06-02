@@ -483,16 +483,16 @@ defineExpose({ openTab, previewTab, tabs, activeTabId, selectTab, showHistoryDet
 }
 .empty-logo { margin-bottom: 8px; }
 .empty-state h2 {
-  font-size: 16px; color: var(--text-secondary); margin: 0;
+  font-size: var(--fs-lg); color: var(--text-secondary); margin: 0;
   font-weight: 600; letter-spacing: 1px; text-transform: uppercase;
 }
 .empty-state p {
-  font-size: 12px; color: var(--text-muted); margin: 0;
+  font-size: var(--fs-sm); color: var(--text-muted); margin: 0;
   text-align: center; line-height: 1.7;
 }
 .empty-state kbd {
   background: var(--bg-elevated); border: 1px solid var(--border-primary);
-  padding: 1px 5px; border-radius: 2px; font-size: 10px;
+  padding: 1px 5px; border-radius: 2px; font-size: var(--fs-xs);
   font-family: var(--font-mono); color: var(--text-secondary);
 }
 .workspace-editor {
@@ -513,14 +513,14 @@ defineExpose({ openTab, previewTab, tabs, activeTabId, selectTab, showHistoryDet
   flex-shrink: 0;
 }
 .tabs-msg {
-  font-size: 11px;
+  font-size: var(--fs-sm);
   color: var(--text-muted);
   padding: 5px 12px;
   font-family: var(--font-mono);
 }
 .tab {
   padding: 4px 10px;
-  font-size: 11px;
+  font-size: var(--fs-sm);
   background: var(--bg-elevated);
   border: 1px solid var(--border-primary);
   border-bottom: none;
@@ -540,7 +540,7 @@ defineExpose({ openTab, previewTab, tabs, activeTabId, selectTab, showHistoryDet
 .tab.preview { font-style: italic; }
 .tab:hover:not(.active) { background: var(--bg-hover); color: var(--text-secondary); }
 .tab-method {
-  font-size: 8px; font-weight: 700; padding: 1px 3px; border-radius: 2px; letter-spacing: 0.3px; flex-shrink: 0;
+  font-size: var(--fs-2xs); font-weight: 700; padding: 1px 3px; border-radius: 2px; letter-spacing: 0.3px; flex-shrink: 0;
 }
 .tab-method.get { background: var(--accent-soft); color: var(--accent); }
 .tab-method.post { background: var(--amber-soft); color: var(--amber); }
@@ -548,12 +548,12 @@ defineExpose({ openTab, previewTab, tabs, activeTabId, selectTab, showHistoryDet
 .tab-method.delete { background: var(--red-soft); color: var(--red); }
 .tab-method.patch { background: var(--purple-soft); color: var(--purple); }
 .tab-method.head, .tab-method.options { background: var(--bg-hover); color: var(--text-secondary); }
-.tab-name { font-size: 11px; overflow: hidden; text-overflow: ellipsis; }
+.tab-name { font-size: var(--fs-sm); overflow: hidden; text-overflow: ellipsis; }
 .tab-dirty { width: 5px; height: 5px; background: var(--accent); border-radius: 50%; flex-shrink: 0; }
-.tab-close { color: var(--text-muted); font-size: 14px; margin-left: 1px; padding: 0 2px; border-radius: 2px; transition: all var(--transition); }
+.tab-close { color: var(--text-muted); font-size: var(--fs-md); margin-left: 1px; padding: 0 2px; border-radius: 2px; transition: all var(--transition); }
 .tab-close:hover { color: var(--red); background: var(--red-soft); }
 .tab-plus {
-  padding: 2px 7px; font-size: 15px; cursor: pointer; color: var(--accent);
+  padding: 2px 7px; font-size: var(--fs-md); cursor: pointer; color: var(--accent);
   user-select: none; border-radius: var(--radius-sm); transition: all var(--transition); flex-shrink: 0;
 }
 .tab-plus:hover { background: var(--accent-soft); }
@@ -575,7 +575,7 @@ defineExpose({ openTab, previewTab, tabs, activeTabId, selectTab, showHistoryDet
   flex: 1;
   overflow-y: auto;
   padding: 16px 18px;
-  font-size: 12px;
+  font-size: var(--fs-sm);
   background: var(--bg-base);
 }
 .hist-detail-row {
@@ -589,7 +589,7 @@ defineExpose({ openTab, previewTab, tabs, activeTabId, selectTab, showHistoryDet
   color: var(--text-muted);
   width: 60px;
   flex-shrink: 0;
-  font-size: 10px;
+  font-size: var(--fs-xs);
   text-transform: uppercase;
   letter-spacing: 0.5px;
   font-weight: 500;
@@ -597,7 +597,7 @@ defineExpose({ openTab, previewTab, tabs, activeTabId, selectTab, showHistoryDet
 .hist-detail-value {
   word-break: break-all;
   color: var(--text-primary);
-  font-size: 12px;
+  font-size: var(--fs-sm);
   font-family: var(--font-mono);
 }
 .hist-detail-value.status-2xx { color: var(--accent); font-weight: 600; }
@@ -605,7 +605,7 @@ defineExpose({ openTab, previewTab, tabs, activeTabId, selectTab, showHistoryDet
 .hist-detail-value.status-4xx { color: var(--amber); font-weight: 600; }
 .hist-detail-value.status-5xx { color: var(--red); font-weight: 600; }
 .method-badge {
-  font-size: 9px; font-weight: 700; padding: 2px 5px; border-radius: 2px; letter-spacing: 0.3px;
+  font-size: var(--fs-2xs); font-weight: 700; padding: 2px 5px; border-radius: 2px; letter-spacing: 0.3px;
 }
 .method-badge.get { background: var(--accent-soft); color: var(--accent); }
 .method-badge.post { background: var(--amber-soft); color: var(--amber); }
@@ -614,12 +614,12 @@ defineExpose({ openTab, previewTab, tabs, activeTabId, selectTab, showHistoryDet
 .method-badge.patch { background: var(--purple-soft); color: var(--purple); }
 .hist-detail-section { margin-top: 12px; }
 .hist-detail-section h4 {
-  margin: 0 0 6px; font-size: 10px; color: var(--text-muted);
+  margin: 0 0 6px; font-size: var(--fs-xs); color: var(--text-muted);
   font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px;
 }
 .hist-detail-pre {
   background: var(--bg-surface); border: 1px solid var(--border-primary); border-radius: var(--radius);
-  padding: 10px; font-size: 11px; font-family: var(--font-mono);
+  padding: 10px; font-size: var(--fs-sm); font-family: var(--font-mono);
   white-space: pre-wrap; word-break: break-all; max-height: 180px;
   overflow-y: auto; margin: 0; color: var(--text-primary); line-height: 1.6;
 }

@@ -79,7 +79,7 @@ function onExportHTML() { downloadFile(htmlContent.value, 'api-docs.html', 'text
 .docs-content { min-height: 300px; max-height: 55vh; overflow: auto; border: 1px solid var(--border-primary); border-radius: var(--radius); }
 .docs-iframe { width: 100%; height: 55vh; border: none; }
 .docs-markdown {
-  padding: 16px; margin: 0; font-size: 12px; line-height: 1.6;
+  padding: 16px; margin: 0; font-size: var(--fs-sm); line-height: 1.6;
   white-space: pre-wrap; word-break: break-word;
   font-family: var(--font-mono); background: var(--bg-surface); color: var(--text-primary);
 }

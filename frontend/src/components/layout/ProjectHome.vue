@@ -177,7 +177,7 @@ onMounted(loadProjects)
 }
 .brand-mark { color: var(--accent); }
 .home-title {
-  font-size: 20px;
+  font-size: var(--fs-xl);
   font-weight: 700;
   color: var(--text-primary);
   letter-spacing: 3px;
@@ -185,7 +185,7 @@ onMounted(loadProjects)
   font-family: var(--font-mono);
 }
 .home-version {
-  font-size: 10px;
+  font-size: var(--fs-xs);
   color: var(--text-muted);
   background: var(--bg-elevated);
   padding: 2px 6px;
@@ -213,7 +213,7 @@ onMounted(loadProjects)
   color: #000;
   border: none;
   border-radius: var(--radius);
-  font-size: 12px;
+  font-size: var(--fs-sm);
   font-weight: 600;
   cursor: pointer;
   font-family: var(--font-mono);
@@ -226,7 +226,7 @@ onMounted(loadProjects)
   color: var(--text-secondary);
   border: 1px solid var(--border-primary);
   border-radius: var(--radius);
-  font-size: 12px;
+  font-size: var(--fs-sm);
   cursor: pointer;
   font-family: var(--font-mono);
   display: flex;
@@ -271,7 +271,7 @@ onMounted(loadProjects)
 }
 .card-icon { color: var(--accent); opacity: 0.6; }
 .card-arrow {
-  font-size: 14px;
+  font-size: var(--fs-md);
   color: var(--text-muted);
   opacity: 0;
   transform: translateX(-4px);
@@ -280,7 +280,7 @@ onMounted(loadProjects)
 .project-card:hover .card-arrow { opacity: 0.5; transform: translateX(0); }
 .card-body { flex: 1; }
 .card-name {
-  font-size: 13px;
+  font-size: var(--fs-base);
   font-weight: 600;
   color: var(--text-primary);
   overflow: hidden;
@@ -289,7 +289,7 @@ onMounted(loadProjects)
   font-family: var(--font-mono);
 }
 .card-desc {
-  font-size: 11px;
+  font-size: var(--fs-sm);
   color: var(--text-muted);
   margin-top: 3px;
   overflow: hidden;
@@ -304,8 +304,8 @@ onMounted(loadProjects)
   border-top: 1px solid var(--border-primary);
 }
 .stat { display: flex; align-items: baseline; gap: 3px; }
-.stat-num { font-size: 16px; font-weight: 700; color: var(--accent); font-family: var(--font-mono); }
-.stat-label { font-size: 10px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px; }
+.stat-num { font-size: var(--fs-lg); font-weight: 700; color: var(--accent); font-family: var(--font-mono); }
+.stat-label { font-size: var(--fs-xs); color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px; }
 .stat-divider { width: 1px; height: 16px; background: var(--border-primary); }
 .empty-state {
   width: 100%;
@@ -317,8 +317,8 @@ onMounted(loadProjects)
   gap: 6px;
 }
 .empty-icon { color: var(--text-muted); opacity: 0.3; margin-bottom: 8px; }
-.empty-state h2 { font-size: 18px; color: var(--text-secondary); margin: 0; font-weight: 600; }
-.empty-state p { font-size: 13px; color: var(--text-muted); margin: 0 0 16px; }
+.empty-state h2 { font-size: var(--fs-xl); color: var(--text-secondary); margin: 0; font-weight: 600; }
+.empty-state p { font-size: var(--fs-base); color: var(--text-muted); margin: 0 0 16px; }
 
 .modal-overlay {
   position: fixed; inset: 0;
@@ -331,11 +331,11 @@ onMounted(loadProjects)
   border-radius: var(--radius-lg); padding: 22px; width: 380px;
   box-shadow: 0 12px 40px rgba(0,0,0,0.5);
 }
-.modal-box h3 { margin: 0 0 16px; font-size: 14px; font-weight: 600; color: var(--text-primary); }
-.modal-box label { display: block; font-size: 10px; color: var(--text-muted); margin-bottom: 3px; letter-spacing: 0.5px; text-transform: uppercase; }
+.modal-box h3 { margin: 0 0 16px; font-size: var(--fs-md); font-weight: 600; color: var(--text-primary); }
+.modal-box label { display: block; font-size: var(--fs-xs); color: var(--text-muted); margin-bottom: 3px; letter-spacing: 0.5px; text-transform: uppercase; }
 .modal-box input {
   width: 100%; padding: 7px 10px; border: 1px solid var(--border-primary); border-radius: var(--radius);
-  font-size: 12px; outline: none; background: var(--bg-base); color: var(--text-primary);
+  font-size: var(--fs-sm); outline: none; background: var(--bg-base); color: var(--text-primary);
   margin-bottom: 10px; box-sizing: border-box; font-family: var(--font-mono);
   transition: border-color var(--transition);
 }
@@ -343,14 +343,14 @@ onMounted(loadProjects)
 .modal-acts { display: flex; justify-content: flex-end; gap: 8px; margin-top: 18px; }
 .btn-cancel {
   padding: 6px 16px; border: 1px solid var(--border-primary); border-radius: var(--radius);
-  font-size: 11px; cursor: pointer; background: var(--bg-base); color: var(--text-secondary);
+  font-size: var(--fs-sm); cursor: pointer; background: var(--bg-base); color: var(--text-secondary);
   font-family: var(--font-mono); transition: all var(--transition);
 }
 .btn-cancel:hover { border-color: var(--border-hover); color: var(--text-primary); }
 .btn-save {
   padding: 6px 16px; background: var(--accent); color: #000;
   border: 1px solid var(--accent); border-radius: var(--radius);
-  font-size: 11px; cursor: pointer; font-weight: 600; font-family: var(--font-mono);
+  font-size: var(--fs-sm); cursor: pointer; font-weight: 600; font-family: var(--font-mono);
   transition: all var(--transition);
 }
 .btn-save:disabled { background: var(--bg-elevated); border-color: var(--border-primary); color: var(--text-muted); cursor: not-allowed; }

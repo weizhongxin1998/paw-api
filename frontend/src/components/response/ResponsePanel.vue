@@ -142,7 +142,7 @@ function copyResponse() {
 }
 .status-badge {
   font-weight: 700;
-  font-size: 11px;
+  font-size: var(--fs-sm);
   padding: 2px 8px;
   border-radius: var(--radius-sm);
   font-family: var(--font-mono);
@@ -152,9 +152,9 @@ function copyResponse() {
 .status-badge.blue { background: var(--blue-soft); color: var(--blue); }
 .status-badge.orange { background: var(--amber-soft); color: var(--amber); }
 .status-badge.red { background: var(--red-soft); color: var(--red); }
-.meta { font-size: 10px; color: var(--text-muted); font-family: var(--font-mono); }
+.meta { font-size: var(--fs-xs); color: var(--text-muted); font-family: var(--font-mono); }
 .time-badge { opacity: 0.5; }
-.placeholder { font-size: 10px; color: var(--text-muted); font-family: var(--font-mono); }
+.placeholder { font-size: var(--fs-xs); color: var(--text-muted); font-family: var(--font-mono); }
 .sub-tabs {
   display: flex;
   border-bottom: 1px solid var(--border-primary);
@@ -163,7 +163,7 @@ function copyResponse() {
 }
 .sub-tabs button {
   padding: 6px 12px;
-  font-size: 11px;
+  font-size: var(--fs-sm);
   cursor: pointer;
   color: var(--text-muted);
   border: none;
@@ -194,7 +194,7 @@ function copyResponse() {
 }
 .body-modes button {
   padding: 2px 10px; border: 1px solid var(--border-primary); border-radius: var(--radius-sm);
-  background: var(--bg-surface); font-size: 10px; cursor: pointer;
+  background: var(--bg-surface); font-size: var(--fs-xs); cursor: pointer;
   color: var(--text-muted); outline: none; font-family: var(--font-mono);
   transition: all var(--transition);
 }
@@ -204,14 +204,14 @@ function copyResponse() {
 }
 .copy-btn {
   padding: 2px 8px; border: 1px solid var(--border-primary); border-radius: var(--radius-sm);
-  background: var(--bg-surface); font-size: 10px; cursor: pointer;
+  background: var(--bg-surface); font-size: var(--fs-xs); cursor: pointer;
   color: var(--text-muted); font-family: var(--font-mono);
   transition: all var(--transition);
 }
 .copy-btn:hover { color: var(--accent); border-color: var(--accent); }
 .code-block {
   font-family: var(--font-mono);
-  font-size: 11px; line-height: 1.7; margin: 0;
+  font-size: var(--fs-sm); line-height: 1.7; margin: 0;
   white-space: pre-wrap; word-break: break-all;
   color: var(--text-primary);
   background: var(--bg-surface);
@@ -220,17 +220,17 @@ function copyResponse() {
   padding: 10px;
 }
 .code-block.raw { color: var(--text-secondary); }
-.kv-table { width: 100%; border-collapse: collapse; font-size: 11px; }
+.kv-table { width: 100%; border-collapse: collapse; font-size: var(--fs-sm); }
 .kv-table th, .kv-table td { text-align: left; padding: 4px 8px; border-bottom: 1px solid var(--border-primary); }
-.kv-table th { color: var(--text-muted); font-weight: 500; text-transform: uppercase; font-size: 9px; letter-spacing: 0.5px; }
-.kv-table td { color: var(--text-primary); font-family: var(--font-mono); font-size: 11px; }
+.kv-table th { color: var(--text-muted); font-weight: 500; text-transform: uppercase; font-size: var(--fs-2xs); letter-spacing: 0.5px; }
+.kv-table td { color: var(--text-primary); font-family: var(--font-mono); font-size: var(--fs-sm); }
 .key-cell { color: var(--accent) !important; }
-.preview-hint { color: var(--text-muted); font-size: 11px; padding: 16px; }
+.preview-hint { color: var(--text-muted); font-size: var(--fs-sm); padding: 16px; }
 .preview-iframe { width: 100%; height: 400px; border: none; background: #fff; border-radius: var(--radius); }
-.hint { color: var(--text-muted); font-size: 11px; }
+.hint { color: var(--text-muted); font-size: var(--fs-sm); }
 .copy-curl-btn {
   padding: 3px 10px; border: 1px solid var(--border-primary); border-radius: var(--radius-sm);
-  background: var(--bg-surface); font-size: 10px; cursor: pointer;
+  background: var(--bg-surface); font-size: var(--fs-xs); cursor: pointer;
   color: var(--text-muted); margin-bottom: 6px; font-family: var(--font-mono);
   transition: all var(--transition);
 }

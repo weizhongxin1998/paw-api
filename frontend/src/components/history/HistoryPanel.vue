@@ -162,7 +162,7 @@ onMounted(() => { if (projectStore.currentId) loadHistory() })
   padding: 4px 7px;
   border: 1px solid var(--border-primary);
   border-radius: var(--radius-sm);
-  font-size: 10px;
+  font-size: var(--fs-xs);
   outline: none;
   background: var(--bg-surface);
   color: var(--text-primary);
@@ -173,7 +173,7 @@ onMounted(() => { if (projectStore.currentId) loadHistory() })
 .search-input::placeholder { color: var(--text-muted); }
 .method-filter {
   width: 60px;
-  font-size: 10px;
+  font-size: var(--fs-xs);
   padding: 3px;
   border: 1px solid var(--border-primary);
   border-radius: var(--radius-sm);
@@ -194,7 +194,7 @@ onMounted(() => { if (projectStore.currentId) loadHistory() })
 .history-item.selected { background: var(--accent-soft); border-left: 2px solid var(--accent); }
 .item-row { display: flex; gap: 5px; align-items: center; }
 .hist-url {
-  font-size: 9px;
+  font-size: var(--fs-2xs);
   color: var(--text-muted);
   margin-top: 2px;
   overflow: hidden;
@@ -203,7 +203,7 @@ onMounted(() => { if (projectStore.currentId) loadHistory() })
   font-family: var(--font-mono);
 }
 .item-method {
-  font-size: 8px;
+  font-size: var(--fs-2xs);
   font-weight: 700;
   padding: 1px 4px;
   border-radius: 2px;
@@ -214,7 +214,7 @@ onMounted(() => { if (projectStore.currentId) loadHistory() })
 .item-method.put { background: var(--blue-soft); color: var(--blue); }
 .item-method.delete { background: var(--red-soft); color: var(--red); }
 .item-status {
-  font-size: 11px;
+  font-size: var(--fs-sm);
   font-weight: 700;
   font-family: var(--font-mono);
 }
@@ -222,14 +222,14 @@ onMounted(() => { if (projectStore.currentId) loadHistory() })
 .status-3xx { color: var(--blue); }
 .status-4xx { color: var(--amber); }
 .status-5xx { color: var(--red); }
-.item-time { font-size: 9px; color: var(--text-muted); margin-left: auto; font-family: var(--font-mono); }
+.item-time { font-size: var(--fs-2xs); color: var(--text-muted); margin-left: auto; font-family: var(--font-mono); }
 .history-empty {
   flex: 1;
   display: flex;
   align-items: center;
   justify-content: center;
 }
-.empty-text { color: var(--text-muted); font-size: 11px; font-family: var(--font-mono); }
+.empty-text { color: var(--text-muted); font-size: var(--fs-sm); font-family: var(--font-mono); }
 .history-footer {
   padding: 6px 8px;
   border-top: 1px solid var(--border-primary);
@@ -239,7 +239,7 @@ onMounted(() => { if (projectStore.currentId) loadHistory() })
 }
 .footer-btn {
   flex: 1;
-  font-size: 9px;
+  font-size: var(--fs-2xs);
   padding: 3px 6px;
   background: var(--bg-surface);
   border: 1px solid var(--border-primary);
@@ -251,7 +251,7 @@ onMounted(() => { if (projectStore.currentId) loadHistory() })
 }
 .footer-btn:hover { border-color: var(--red); color: var(--red); }
 .retention-select {
-  font-size: 9px;
+  font-size: var(--fs-2xs);
   padding: 3px;
   border: 1px solid var(--border-primary);
   border-radius: var(--radius-sm);

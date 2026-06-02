@@ -1,5 +1,6 @@
 <template>
   <n-config-provider :theme-overrides="themeOverrides" :theme="nTheme">
+    <n-global-style />
     <n-dialog-provider>
       <n-message-provider>
         <div class="app-container" :class="{ 'theme-light': themeMode === 'light' }">
@@ -26,22 +27,35 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted } from 'vue'
+import { ref, computed, onMounted, watch } from 'vue'
 import { darkTheme, type GlobalThemeOverrides } from 'naive-ui'
-import { NConfigProvider, NMessageProvider, NDialogProvider } from 'naive-ui'
+import { NConfigProvider, NMessageProvider, NDialogProvider, NGlobalStyle } from 'naive-ui'
 import AppHeader from './components/layout/AppHeader.vue'
 import AppBody from './components/layout/AppBody.vue'
 import ProjectHome from './components/layout/ProjectHome.vue'
 import { useProjectStore } from './stores/project'
 import { useCollectionStore } from './stores/collection'
 import { useEnvStore } from './stores/env'
+import { useSettingsStore, buildNaiveOverrides } from './stores/settings'
 
 const projectStore = useProjectStore()
 const collectionStore = useCollectionStore()
 const envStore = useEnvStore()
+const settingsStore = useSettingsStore()
 
 const themeMode = ref<'dark' | 'light'>('dark')
 const nTheme = computed(() => themeMode.value === 'dark' ? darkTheme : null)
+
+const themeOverrides = ref<GlobalThemeOverrides>(
+  buildNaiveOverrides(settingsStore.settings, true)
+)
+
+watch(
+  () => [settingsStore.settings.fontSize, settingsStore.settings.fontFamily, themeMode.value] as const,
+  () => {
+    themeOverrides.value = buildNaiveOverrides(settingsStore.settings, themeMode.value === 'dark')
+  }
+)
 
 async function onEnterProject(id: number) {
   await projectStore.switchProject(id)
@@ -61,104 +75,6 @@ function toggleTheme() {
 
 onMounted(async () => {
   await projectStore.loadProjects()
-})
-
-const themeOverrides = computed<GlobalThemeOverrides>(() => {
-  const dark = themeMode.value === 'dark'
-  return {
-    common: {
-      primaryColor: dark ? '#00e05a' : '#009944',
-      primaryColorHover: dark ? '#00ff66' : '#007a33',
-      primaryColorPressed: dark ? '#00b84a' : '#006b2a',
-      primaryColorSuppl: dark ? '#00e05a' : '#009944',
-      bodyColor: dark ? '#0d0d0d' : '#f5f3f1',
-      cardColor: dark ? '#141414' : '#ffffff',
-      modalColor: dark ? '#141414' : '#ffffff',
-      popoverColor: dark ? '#1a1a1a' : '#f2f2ef',
-      borderColor: dark ? '#2a2a2a' : '#c8c8c2',
-      dividerColor: dark ? '#2a2a2a' : '#c8c8c2',
-      borderRadius: '4px',
-      fontSizeSmall: '12px',
-      fontSizeMedium: '13px',
-      fontSizeLarge: '15px',
-      fontFamilyMono: "'JetBrains Mono','Cascadia Code','Fira Code','SF Mono','Consolas',monospace",
-      fontFamily: "'JetBrains Mono','Cascadia Code','Fira Code','SF Mono','Consolas',monospace",
-      fontWeightStrong: '600',
-      textColor1: dark ? '#e0e0e0' : '#1a1a18',
-      textColor2: dark ? '#b0b0b0' : '#444442',
-      textColor3: dark ? '#707070' : '#666662',
-      placeholderColor: dark ? '#505050' : '#888884',
-      inputColor: dark ? '#141414' : '#ffffff',
-      inputColorFocus: dark ? '#141414' : '#ffffff',
-      inputBorderColor: dark ? '#2a2a2a' : '#c8c8c2',
-      inputBorderColorHover: dark ? '#3a3a3a' : '#a8a8a2',
-      inputBorderColorFocus: dark ? '#00e05a' : '#009944',
-      buttonColor2: dark ? '#1a1a1a' : '#fafaf9',
-      buttonColor2Hover: dark ? '#252525' : '#f0f0ee',
-      buttonColor2Pressed: dark ? '#303030' : '#e8e8e6',
-      scrollbarColor: dark ? '#333' : '#ccc',
-      scrollbarColorHover: dark ? '#444' : '#aaa',
-      closeColor: dark ? '#707070' : '#888',
-      closeColorHover: dark ? '#e0e0e0' : '#333',
-      closeColorPressed: dark ? '#b0b0b0' : '#555',
-    },
-    Button: {
-      textColor: dark ? '#00e05a' : '#009944',
-      textColorHover: dark ? '#00ff66' : '#007a33',
-      textColorPressed: dark ? '#00b84a' : '#006b2a',
-      border: dark ? '1px solid #2a2a2a' : '1px solid #c8c8c2',
-      borderHover: dark ? '1px solid #3a3a3a' : '1px solid #a8a8a2',
-      borderFocus: dark ? '1px solid #00e05a' : '1px solid #009944',
-      color: dark ? '#1a1a1a' : '#fafaf9',
-      colorHover: dark ? '#252525' : '#f0f0ee',
-      colorPressed: dark ? '#303030' : '#e8e8e6',
-      borderRadiusSmall: '3px',
-      borderRadiusMedium: '4px',
-    },
-    Input: {
-      border: dark ? '1px solid #2a2a2a' : '1px solid #c8c8c2',
-      borderHover: dark ? '1px solid #3a3a3a' : '1px solid #a8a8a2',
-      borderFocus: dark ? '1px solid #00e05a' : '1px solid #009944',
-      borderRadius: '4px',
-      color: dark ? '#141414' : '#ffffff',
-      colorFocus: dark ? '#141414' : '#ffffff',
-      textColor: dark ? '#e0e0e0' : '#1a1a18',
-      placeholderColor: dark ? '#505050' : '#999',
-      lineHeight: '1.6',
-      fontSizeSmall: '12px',
-      fontSizeMedium: '13px',
-    },
-    Select: {
-      peers: { InternalSelection: { textColor: dark ? '#e0e0e0' : '#1a1a18' } },
-    },
-    Checkbox: {
-      colorChecked: dark ? '#00e05a' : '#009944',
-      borderChecked: dark ? '#00e05a' : '#009944',
-      border: dark ? '1px solid #3a3a3a' : '1px solid #bbb',
-      checkMarkColor: dark ? '#0d0d0d' : '#fff',
-    },
-    Dropdown: {
-      color: dark ? '#1a1a1a' : '#ffffff',
-      dividerColor: dark ? '#2a2a2a' : '#e0e0da',
-      optionColorActive: dark ? '#1a2a1a' : '#e6f7ec',
-      optionTextColorActive: dark ? '#00e05a' : '#009944',
-    },
-    Modal: {
-      color: dark ? '#141414' : '#ffffff',
-      textColor: dark ? '#e0e0e0' : '#1a1a18',
-      titleTextColor: dark ? '#e0e0e0' : '#1a1a18',
-    },
-    Tabs: {
-      tabTextColorActiveLine: dark ? '#00e05a' : '#009944',
-      tabTextColorActiveBar: dark ? '#00e05a' : '#009944',
-      barColor: dark ? '#00e05a' : '#009944',
-    },
-    Spin: { color: dark ? '#00e05a' : '#009944' },
-    Result: {
-      titleTextColor: dark ? '#e0e0e0' : '#1a1a18',
-      textColor: dark ? '#b0b0b0' : '#555552',
-    },
-  }
 })
 
 defineExpose({ toggleTheme, themeMode })
@@ -194,10 +110,20 @@ defineExpose({ toggleTheme, themeMode })
   --radius-sm: 3px;
   --radius: 4px;
   --radius-lg: 6px;
-  --font-mono: 'JetBrains Mono', 'Cascadia Code', 'Fira Code', 'SF Mono', 'Consolas', monospace;
-  --font-ui: 'JetBrains Mono', 'Cascadia Code', 'Fira Code', 'SF Mono', 'Consolas', monospace;
   --transition: 0.12s ease;
   --transition-slow: 0.2s ease;
+
+  /* Typography — set by settings store via JS */
+  --fs-2xs: 9px;
+  --fs-xs: 10px;
+  --fs-sm: 11px;
+  --fs-base: 13px;
+  --fs-md: 14px;
+  --fs-lg: 16px;
+  --fs-xl: 18px;
+  --fs-2xl: 22px;
+  --font-family: 'JetBrains Mono', 'Cascadia Code', 'Fira Code', 'SF Mono', 'Consolas', monospace;
+  --font-mono: 'JetBrains Mono', 'Cascadia Code', 'Fira Code', 'SF Mono', 'Consolas', monospace;
 }
 
 .theme-light {
@@ -230,7 +156,7 @@ defineExpose({ toggleTheme, themeMode })
 
 html, body, #app {
   margin: 0; padding: 0; height: 100%;
-  font-family: var(--font-ui); font-size: 13px;
+  font-family: var(--font-family); font-size: var(--fs-base);
   color: var(--text-primary); background: var(--bg-base);
   -webkit-font-smoothing: antialiased; overflow: hidden;
 }

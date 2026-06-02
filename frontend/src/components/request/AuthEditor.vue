@@ -107,7 +107,7 @@ watch([authType, token, username, password, apiKey, apiValue, apiAddTo], syncAut
   gap: 7px;
 }
 .auth-form label {
-  font-size: 10px;
+  font-size: var(--fs-xs);
   color: var(--text-muted);
   text-transform: uppercase;
   letter-spacing: 0.5px;
@@ -115,13 +115,13 @@ watch([authType, token, username, password, apiKey, apiValue, apiAddTo], syncAut
   font-weight: 500;
 }
 .hint-suffix {
-  font-size: 10px;
+  font-size: var(--fs-xs);
   color: var(--text-muted);
   font-family: var(--font-mono);
 }
 .hint {
   color: var(--text-muted);
-  font-size: 11px;
+  font-size: var(--fs-sm);
   font-family: var(--font-mono);
 }
 </style>

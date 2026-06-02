@@ -126,16 +126,16 @@ onUnmounted(() => { cleanupListeners(); if (connected.value) WSDisconnect(wsUrl.
 .ws-toolbar { padding: 8px; border-bottom: 1px solid var(--border-primary); flex-shrink: 0; }
 .ws-url-row { display: flex; gap: 6px; align-items: center; }
 .ws-url-input { flex: 1; }
-.ws-status { font-size: 11px; color: var(--text-muted); display: flex; align-items: center; gap: 4px; white-space: nowrap; font-family: var(--font-mono); }
+.ws-status { font-size: var(--fs-sm); color: var(--text-muted); display: flex; align-items: center; gap: 4px; white-space: nowrap; font-family: var(--font-mono); }
 .ws-status.connected { color: var(--accent); }
 .ws-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--border-hover); }
 .ws-status.connected .ws-dot { background: var(--accent); box-shadow: 0 0 6px var(--accent); }
 .ws-messages { flex: 1; overflow-y: auto; padding: 8px; display: flex; flex-direction: column; gap: 4px; }
 .ws-empty { flex: 1; display: flex; align-items: center; justify-content: center; }
-.ws-message { max-width: 85%; padding: 5px 9px; border-radius: var(--radius); font-size: 11px; line-height: 1.4; word-break: break-word; font-family: var(--font-mono); }
+.ws-message { max-width: 85%; padding: 5px 9px; border-radius: var(--radius); font-size: var(--fs-sm); line-height: 1.4; word-break: break-word; font-family: var(--font-mono); }
 .ws-message.sent { align-self: flex-end; background: var(--accent-soft); color: var(--accent); border: 1px solid rgba(0,224,90,0.15); }
 .ws-message.received { align-self: flex-start; background: var(--bg-elevated); color: var(--text-primary); border: 1px solid var(--border-primary); }
-.ws-message.system { align-self: center; background: transparent; color: var(--text-muted); font-size: 10px; padding: 1px 6px; }
-.ws-msg-time { font-size: 8px; opacity: 0.5; margin-bottom: 1px; }
+.ws-message.system { align-self: center; background: transparent; color: var(--text-muted); font-size: var(--fs-xs); padding: 1px 6px; }
+.ws-msg-time { font-size: var(--fs-2xs); opacity: 0.5; margin-bottom: 1px; }
 .ws-input-row { padding: 8px; border-top: 1px solid var(--border-primary); display: flex; gap: 6px; flex-shrink: 0; }
 </style>

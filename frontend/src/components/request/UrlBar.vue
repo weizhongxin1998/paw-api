@@ -1,8 +1,13 @@
 <template>
   <div class="url-bar">
-    <select v-model="method" class="method-select">
-      <option v-for="opt in methodOptions" :key="opt" :value="opt">{{ opt }}</option>
-    </select>
+    <n-select
+      v-model:value="method"
+      :options="methodSelectOptions"
+      :render-label="renderMethodLabel"
+      size="small"
+      :consistent-menu-width="false"
+      class="method-select"
+    />
     <div class="url-input-wrapper" @click="startEdit">
       <span v-if="baseURLPrefix" class="url-prefix">{{ baseURLPrefix }}</span>
       <input
@@ -31,7 +36,9 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, watch, nextTick } from 'vue'
+import { ref, computed, watch, nextTick, h } from 'vue'
+import { NSelect } from 'naive-ui'
+import type { SelectOption } from 'naive-ui'
 import { ResolveVariable } from '../../../wailsjs/go/main/App'
 import { useEnvStore } from '../../stores/env'
 
@@ -107,7 +114,28 @@ const urlSegments = computed<UrlSegment[]>(() => {
   return segments
 })
 
-const methodOptions = ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'HEAD', 'OPTIONS']
+const methodColors: Record<string, string> = {
+  GET: 'var(--accent)',
+  POST: 'var(--amber)',
+  PUT: 'var(--blue)',
+  DELETE: 'var(--red)',
+  PATCH: 'var(--purple)',
+  HEAD: 'var(--text-secondary)',
+  OPTIONS: 'var(--text-secondary)',
+}
+
+const methodSelectOptions: SelectOption[] = [
+  'GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'HEAD', 'OPTIONS',
+].map(m => ({
+  label: m,
+  value: m,
+  class: 'urlbar-method-opt-' + m.toLowerCase(),
+}))
+
+function renderMethodLabel(option: SelectOption) {
+  const m = option.value as string
+  return h('span', { style: { color: methodColors[m] || 'inherit', fontWeight: '700', fontFamily: 'var(--font-mono)', fontSize: 'var(--fs-sm)', letterSpacing: '0.5px' } }, m)
+}
 
 function fullURL(relative: string): string {
   const prefix = baseURLPrefix.value
@@ -172,26 +200,19 @@ function onVarLeave(e: MouseEvent) {
   background: var(--bg-base);
 }
 .method-select {
-  width: 80px;
-  padding: 6px 8px;
-  border: 1px solid var(--border-primary);
+  width: 96px;
+  flex-shrink: 0;
+}
+.method-select :deep(.n-base-selection) {
+  border-top-right-radius: 0;
+  border-bottom-right-radius: 0;
   border-right: none;
-  border-radius: var(--radius) 0 0 var(--radius);
+}
+.method-select :deep(.n-base-selection-label) {
   font-family: var(--font-mono);
-  font-size: 11px;
   font-weight: 700;
-  background: var(--bg-elevated);
-  cursor: pointer;
-  outline: none;
-  color: var(--accent);
-  appearance: none;
-  -webkit-appearance: none;
-  text-align: center;
-  text-align-last: center;
-  transition: border-color var(--transition);
   letter-spacing: 0.5px;
 }
-.method-select:focus { border-color: var(--accent); }
 .url-input-wrapper {
   flex: 1;
   position: relative;
@@ -205,7 +226,7 @@ function onVarLeave(e: MouseEvent) {
   background: var(--accent-soft);
   color: var(--accent);
   font-family: var(--font-mono);
-  font-size: 11px;
+  font-size: var(--fs-sm);
   font-weight: 500;
   border: 1px solid var(--border-primary);
   border-left: none;
@@ -220,7 +241,7 @@ function onVarLeave(e: MouseEvent) {
   border-left: none;
   border-right: none;
   font-family: var(--font-mono);
-  font-size: 11px;
+  font-size: var(--fs-sm);
   outline: none;
   box-sizing: border-box;
   min-width: 0;
@@ -237,7 +258,7 @@ function onVarLeave(e: MouseEvent) {
   border: 1px solid var(--border-primary);
   border-left: none;
   border-right: none;
-  font-size: 11px;
+  font-size: var(--fs-sm);
   overflow: hidden;
   white-space: nowrap;
   cursor: text;
@@ -265,7 +286,7 @@ function onVarLeave(e: MouseEvent) {
   color: var(--text-primary);
   padding: 4px 9px;
   border-radius: var(--radius-sm);
-  font-size: 10px;
+  font-size: var(--fs-xs);
   white-space: nowrap;
   z-index: 100;
   font-family: var(--font-mono);
@@ -280,7 +301,7 @@ function onVarLeave(e: MouseEvent) {
   border-radius: 0 var(--radius) var(--radius) 0;
   font-weight: 700;
   cursor: pointer;
-  font-size: 11px;
+  font-size: var(--fs-sm);
   white-space: nowrap;
   font-family: var(--font-mono);
   letter-spacing: 1px;
@@ -299,4 +320,14 @@ function onVarLeave(e: MouseEvent) {
   0%, 100% { opacity: 1; }
   50% { opacity: 0.3; }
 }
+</style>
+
+<style>
+.urlbar-method-opt-get { color: var(--accent) !important; font-weight: 700 !important; }
+.urlbar-method-opt-post { color: var(--amber) !important; font-weight: 700 !important; }
+.urlbar-method-opt-put { color: var(--blue) !important; font-weight: 700 !important; }
+.urlbar-method-opt-delete { color: var(--red) !important; font-weight: 700 !important; }
+.urlbar-method-opt-patch { color: var(--purple) !important; font-weight: 700 !important; }
+.urlbar-method-opt-head { color: var(--text-secondary) !important; font-weight: 700 !important; }
+.urlbar-method-opt-options { color: var(--text-secondary) !important; font-weight: 700 !important; }
 </style>

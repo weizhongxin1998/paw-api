@@ -144,12 +144,12 @@ function onSelectFile() {
 }
 .hint {
   color: var(--text-muted);
-  font-size: 11px;
+  font-size: var(--fs-sm);
   font-family: var(--font-mono);
 }
 .file-name {
   color: var(--blue);
-  font-size: 11px;
+  font-size: var(--fs-sm);
 }
 .raw-editor {
   display: flex;
@@ -166,6 +166,6 @@ function onSelectFile() {
 }
 .raw-input {
   font-family: var(--font-mono);
-  font-size: 12px;
+  font-size: var(--fs-sm);
 }
 </style>

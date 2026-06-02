@@ -167,20 +167,20 @@ async function saveVariables() {
 .manager-body { display: flex; gap: 16px; height: 420px; }
 .env-list-panel { width: 200px; border-right: 1px solid var(--border-primary); padding-right: 12px; display: flex; flex-direction: column; }
 .var-list-panel { flex: 1; display: flex; flex-direction: column; overflow: hidden; }
-.panel-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; font-weight: 600; font-size: 13px; color: var(--text-primary); }
+.panel-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; font-weight: 600; font-size: var(--fs-base); color: var(--text-primary); }
 .base-url-section { margin-bottom: 10px; }
-.base-url-section label { display: block; font-size: 10px; color: var(--text-muted); margin-bottom: 3px; text-transform: uppercase; letter-spacing: 0.3px; }
+.base-url-section label { display: block; font-size: var(--fs-xs); color: var(--text-muted); margin-bottom: 3px; text-transform: uppercase; letter-spacing: 0.3px; }
 .env-list { flex: 1; overflow-y: auto; }
-.env-item { display: flex; align-items: center; padding: 5px 8px; border-radius: 4px; cursor: pointer; font-size: 12px; color: var(--text-secondary); transition: background var(--transition); }
+.env-item { display: flex; align-items: center; padding: 5px 8px; border-radius: 4px; cursor: pointer; font-size: var(--fs-sm); color: var(--text-secondary); transition: background var(--transition); }
 .env-item:hover { background: var(--bg-hover); }
 .env-item.active { background: var(--accent-soft); color: var(--accent); }
 .var-table { flex: 1; overflow-y: auto; }
 .var-row { display: flex; align-items: center; padding: 3px 0; gap: 6px; }
-.var-row.var-header { font-size: 11px; font-weight: 600; color: var(--text-muted); padding-bottom: 6px; border-bottom: 1px solid var(--border-primary); margin-bottom: 4px; }
+.var-row.var-header { font-size: var(--fs-sm); font-weight: 600; color: var(--text-muted); padding-bottom: 6px; border-bottom: 1px solid var(--border-primary); margin-bottom: 4px; }
 .col-check { width: 24px; text-align: center; flex-shrink: 0; }
 .col-key { width: 150px; flex-shrink: 0; }
 .col-value { flex: 1; }
 .col-action { width: 28px; text-align: center; flex-shrink: 0; }
 .panel-footer { margin-top: 10px; text-align: right; }
-.panel-empty { flex: 1; display: flex; align-items: center; justify-content: center; color: var(--text-muted); font-size: 12px; }
+.panel-empty { flex: 1; display: flex; align-items: center; justify-content: center; color: var(--text-muted); font-size: var(--fs-sm); }
 </style>

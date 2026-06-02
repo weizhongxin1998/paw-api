@@ -7,13 +7,7 @@
       </div>
       <div class="settings-body">
         <div class="settings-nav">
-          <div
-            v-for="tab in navTabs"
-            :key="tab.key"
-            class="nav-item"
-            :class="{ active: activeNav === tab.key }"
-            @click="activeNav = tab.key"
-          >{{ tab.label }}</div>
+          <div v-for="tab in navTabs" :key="tab.key" class="nav-item" :class="{ active: activeNav === tab.key }" @click="activeNav = tab.key">{{ tab.label }}</div>
         </div>
         <div class="settings-content">
           <div v-if="activeNav === 'general'" class="settings-section">
@@ -56,13 +50,25 @@
                 <option value="purple">紫色</option>
               </select>
             </div>
-            <div class="setting-row">
-              <span>字号</span>
-              <select v-model="fontSize" class="setting-select">
-                <option :value="12">12px</option>
-                <option :value="13">13px</option>
-                <option :value="14">14px</option>
-              </select>
+            <div class="setting-group">
+              <div class="setting-group-hdr">字体</div>
+              <div class="setting-row">
+                <span>字体大小</span>
+                <div class="font-size-ctrl">
+                  <button class="fs-btn" @click="changeFontSize(-1)" :disabled="fontSize <= 12">&minus;</button>
+                  <span class="fs-val">{{ fontSize }}px</span>
+                  <button class="fs-btn" @click="changeFontSize(+1)" :disabled="fontSize >= 16">+</button>
+                </div>
+              </div>
+              <div class="setting-row">
+                <span>字体族</span>
+                <select v-model="fontFamily" class="setting-select" style="width:180px" @change="onFontFamilyChange">
+                  <option v-for="f in fontOptions" :key="f.value" :value="f.value">{{ f.label }}</option>
+                </select>
+              </div>
+              <div class="font-sample" :style="{ fontFamily: sampleFontStack, fontSize: fontSize + 'px' }">
+                ABC abc 0123 &lt;tag&gt; {json}
+              </div>
             </div>
           </div>
           <div v-else-if="activeNav === 'data'" class="settings-section">
@@ -80,7 +86,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue'
+import { ref, computed } from 'vue'
 import { useSettingsStore } from '../../stores/settings'
 
 defineProps<{ show: boolean }>()
@@ -103,41 +109,78 @@ const sslVerify = ref(settingsStore.settings.sslVerify ?? true)
 const theme = ref(settingsStore.settings.theme ?? 'dark')
 const accentColor = ref(settingsStore.settings.accentColor ?? 'green')
 const fontSize = ref(settingsStore.settings.fontSize ?? 13)
+const fontFamily = ref(settingsStore.settings.fontFamily ?? 'JetBrains Mono')
+
+const fontOptions = settingsStore.FONT_FAMILIES
+
+const sampleFontStack = computed(() =>
+  `'${fontFamily.value}', 'Cascadia Code', 'Fira Code', 'SF Mono', 'Consolas', monospace`
+)
+
+function changeFontSize(delta: number) {
+  const v = fontSize.value + delta
+  if (v >= 12 && v <= 16) {
+    fontSize.value = v
+    document.documentElement.style.fontSize = v + 'px'
+  }
+}
+
+function onFontFamilyChange() {
+  const fam = `'${fontFamily.value}', 'Cascadia Code', 'Fira Code', 'SF Mono', 'Consolas', monospace`
+  document.documentElement.style.fontFamily = fam
+}
 
 function onClose() { emit('update:show', false) }
 function onSave() {
-  settingsStore.settings = { ...settingsStore.settings, timeout: timeout.value, followRedirects: followRedirects.value, maxRedirects: maxRedirects.value, sslVerify: sslVerify.value, theme: theme.value, accentColor: accentColor.value, fontSize: fontSize.value }
+  const s = settingsStore.settings
+  s.timeout = timeout.value
+  s.followRedirects = followRedirects.value
+  s.maxRedirects = maxRedirects.value
+  s.sslVerify = sslVerify.value
+  s.theme = theme.value
+  s.accentColor = accentColor.value
+  s.fontSize = fontSize.value
+  s.fontFamily = fontFamily.value
   onClose()
 }
+
 function onBackup() {}
 function onRestore() {}
 </script>
 
 <style scoped>
 .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.6); display: flex; align-items: center; justify-content: center; z-index: 200; }
-.settings-box { background: var(--bg-surface); border: 1px solid var(--border-primary); border-radius: var(--radius-lg); width: 660px; max-height: 80vh; box-shadow: 0 12px 40px rgba(0,0,0,0.5); overflow: hidden; display: flex; flex-direction: column; }
+.settings-box { background: var(--bg-surface); border: 1px solid var(--border-primary); border-radius: var(--radius-lg); width: 680px; max-height: 80vh; box-shadow: 0 12px 40px rgba(0,0,0,0.5); overflow: hidden; display: flex; flex-direction: column; }
 .settings-hdr { display: flex; align-items: center; justify-content: space-between; padding: 14px 18px; border-bottom: 1px solid var(--border-primary); }
-.settings-hdr h3 { margin: 0; font-size: 14px; font-weight: 600; color: var(--text-primary); }
-.close-btn { background: none; border: none; font-size: 20px; color: var(--text-muted); cursor: pointer; padding: 0 4px; line-height: 1; }
+.settings-hdr h3 { margin: 0; font-size: var(--fs-lg); font-weight: 600; color: var(--text-primary); }
+.close-btn { background: none; border: none; font-size: var(--fs-xl); color: var(--text-muted); cursor: pointer; padding: 0 4px; line-height: 1; }
 .close-btn:hover { color: var(--text-primary); }
 .settings-body { display: flex; flex: 1; min-height: 280px; overflow: hidden; }
 .settings-nav { width: 90px; border-right: 1px solid var(--border-primary); padding: 4px 0; flex-shrink: 0; }
-.nav-item { padding: 7px 14px; font-size: 12px; cursor: pointer; color: var(--text-muted); border-right: 2px solid transparent; transition: all var(--transition); font-family: var(--font-mono); }
+.nav-item { padding: 7px 14px; font-size: var(--fs-sm); cursor: pointer; color: var(--text-muted); border-right: 2px solid transparent; transition: all var(--transition); font-family: var(--font-family); }
 .nav-item:hover { color: var(--text-secondary); background: var(--bg-hover); }
 .nav-item.active { color: var(--accent); font-weight: 600; border-right-color: var(--accent); background: var(--accent-soft); }
 .settings-content { flex: 1; padding: 14px 18px; overflow-y: auto; }
 .settings-section { display: flex; flex-direction: column; gap: 2px; }
-.setting-row { display: flex; align-items: center; justify-content: space-between; padding: 3px 0; font-size: 12px; }
+.setting-group { border: 1px solid var(--border-primary); border-radius: var(--radius); padding: 12px; margin-top: 8px; }
+.setting-group-hdr { font-size: var(--fs-xs); color: var(--text-muted); margin-bottom: 8px; text-transform: uppercase; letter-spacing: 0.5px; font-weight: 600; }
+.setting-row { display: flex; align-items: center; justify-content: space-between; padding: 3px 0; font-size: var(--fs-sm); }
 .setting-row span { color: var(--text-secondary); }
-.setting-input-num { width: 70px; padding: 4px 6px; border: 1px solid var(--border-primary); border-radius: var(--radius-sm); text-align: right; font-size: 12px; outline: none; background: var(--bg-base); color: var(--text-primary); font-family: var(--font-mono); }
+.setting-input-num { width: 70px; padding: 4px 6px; border: 1px solid var(--border-primary); border-radius: var(--radius-sm); text-align: right; font-size: var(--fs-sm); outline: none; background: var(--bg-base); color: var(--text-primary); font-family: var(--font-family); }
 .setting-input-num:focus { border-color: var(--accent); }
-.setting-select { padding: 4px 6px; border: 1px solid var(--border-primary); border-radius: var(--radius-sm); font-size: 12px; outline: none; cursor: pointer; background: var(--bg-base); color: var(--text-secondary); font-family: var(--font-mono); }
-.setting-muted { color: var(--text-muted); font-size: 12px; padding: 10px 0; }
-.data-btn { display: block; width: 100%; text-align: left; padding: 8px 12px; border: 1px solid var(--border-primary); border-radius: var(--radius-sm); background: var(--bg-base); cursor: pointer; font-size: 12px; margin-bottom: 8px; color: var(--text-secondary); font-family: var(--font-mono); transition: all var(--transition); }
+.setting-select { padding: 4px 6px; border: 1px solid var(--border-primary); border-radius: var(--radius-sm); font-size: var(--fs-sm); outline: none; cursor: pointer; background: var(--bg-base); color: var(--text-secondary); font-family: var(--font-family); }
+.setting-muted { color: var(--text-muted); font-size: var(--fs-sm); padding: 10px 0; }
+.data-btn { display: block; width: 100%; text-align: left; padding: 8px 12px; border: 1px solid var(--border-primary); border-radius: var(--radius-sm); background: var(--bg-base); cursor: pointer; font-size: var(--fs-sm); margin-bottom: 8px; color: var(--text-secondary); font-family: var(--font-family); transition: all var(--transition); }
 .data-btn:hover { background: var(--bg-elevated); border-color: var(--border-hover); }
 .settings-footer { display: flex; justify-content: flex-end; gap: 8px; padding: 12px 18px; border-top: 1px solid var(--border-primary); }
-.btn-cancel { padding: 5px 16px; border: 1px solid var(--border-primary); border-radius: var(--radius); background: var(--bg-base); font-size: 11px; cursor: pointer; color: var(--text-secondary); font-family: var(--font-mono); transition: all var(--transition); }
+.btn-cancel { padding: 5px 16px; border: 1px solid var(--border-primary); border-radius: var(--radius); background: var(--bg-base); font-size: var(--fs-sm); cursor: pointer; color: var(--text-secondary); font-family: var(--font-family); transition: all var(--transition); }
 .btn-cancel:hover { border-color: var(--border-hover); color: var(--text-primary); }
-.btn-save { padding: 5px 16px; background: var(--accent); color: #000; border: 1px solid var(--accent); border-radius: var(--radius); font-size: 11px; cursor: pointer; font-weight: 600; font-family: var(--font-mono); }
+.btn-save { padding: 5px 16px; background: var(--accent); color: #000; border: 1px solid var(--accent); border-radius: var(--radius); font-size: var(--fs-sm); cursor: pointer; font-weight: 600; font-family: var(--font-family); }
 .btn-save:hover { background: var(--accent-hover); }
+.font-size-ctrl { display: flex; align-items: center; gap: 8px; }
+.fs-btn { width: 24px; height: 24px; border: 1px solid var(--border-primary); border-radius: var(--radius-sm); background: var(--bg-base); color: var(--text-secondary); cursor: pointer; font-size: var(--fs-md); display: flex; align-items: center; justify-content: center; line-height: 1; transition: all var(--transition); }
+.fs-btn:hover:not(:disabled) { border-color: var(--accent); color: var(--accent); }
+.fs-btn:disabled { opacity: 0.3; cursor: not-allowed; }
+.fs-val { font-size: var(--fs-md); font-weight: 600; color: var(--accent); min-width: 36px; text-align: center; font-family: var(--font-family); }
+.font-sample { margin-top: 10px; padding: 10px 12px; background: var(--bg-base); border: 1px solid var(--border-primary); border-radius: var(--radius); color: var(--text-primary); white-space: nowrap; overflow: hidden; }
 </style>
