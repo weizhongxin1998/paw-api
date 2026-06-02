@@ -65,20 +65,11 @@ async function onTreeAction(action: string, node: TreeItem) {
       break
     }
     case 'new-folder': {
-      const name = prompt('文件夹名称:')
-      if (name) {
-        await collectionStore.createCollection(props.projectId, node.id, name)
-        await sidebarRef.value?.refreshTree()
-      }
+      // delegate to sidebar
       break
     }
     case 'new-request': {
-      const name = prompt('请求名称:')
-      const method = prompt('方法 (GET/POST/PUT/DELETE):', 'GET')
-      if (name && method) {
-        await collectionStore.createRequest(node.id, name, method)
-        await sidebarRef.value?.refreshTree()
-      }
+      // delegate to sidebar
       break
     }
   }

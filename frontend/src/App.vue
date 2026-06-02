@@ -1,43 +1,45 @@
 <template>
   <n-config-provider :theme-overrides="themeOverrides">
-    <n-message-provider>
-      <div class="app-container">
-        <AppHeader :project-id="projectStore.currentId" @project-changed="onProjectChanged" />
+    <n-dialog-provider>
+      <n-message-provider>
+        <div class="app-container">
+          <AppHeader :project-id="projectStore.currentId" @project-changed="onProjectChanged" />
 
-        <div v-if="!projectStore.currentId && projectStore.projects.length === 0" class="welcome-screen">
-          <div class="welcome-icon">📦</div>
-          <h2>欢迎使用 Paw API</h2>
-          <p>创建你的第一个项目，开始调试 API</p>
-          <button class="welcome-btn" @click="showCreateModal = true">+ 新建项目</button>
-        </div>
+          <div v-if="!projectStore.currentId && projectStore.projects.length === 0" class="welcome-screen">
+            <div class="welcome-icon">📦</div>
+            <h2>欢迎使用 Paw API</h2>
+            <p>创建你的第一个项目，开始调试 API</p>
+            <button class="welcome-btn" @click="showCreateModal = true">+ 新建项目</button>
+          </div>
 
-        <div v-else-if="!projectStore.currentId && projectStore.projects.length > 0" class="welcome-screen">
-          <p>请从标题栏选择一个项目</p>
-        </div>
+          <div v-else-if="!projectStore.currentId && projectStore.projects.length > 0" class="welcome-screen">
+            <p>请从标题栏选择一个项目</p>
+          </div>
 
-        <AppBody v-else :project-id="projectStore.currentId" />
+          <AppBody v-else :project-id="projectStore.currentId" />
 
-        <div v-if="showCreateModal" class="modal-overlay" @click.self="showCreateModal = false">
-          <div class="modal-box">
-            <h3>新建项目</h3>
-            <label>名称</label>
-            <input v-model="newProjectName" placeholder="项目名称" />
-            <label>描述</label>
-            <input v-model="newProjectDesc" placeholder="描述（可选）" />
-            <div class="modal-acts">
-              <button @click="showCreateModal = false">取消</button>
-              <button class="btn-primary" @click="onCreateProject" :disabled="!newProjectName.trim()">创建</button>
+          <div v-if="showCreateModal" class="modal-overlay" @click.self="showCreateModal = false">
+            <div class="modal-box">
+              <h3>新建项目</h3>
+              <label>名称</label>
+              <input v-model="newProjectName" placeholder="项目名称" />
+              <label>描述</label>
+              <input v-model="newProjectDesc" placeholder="描述（可选）" />
+              <div class="modal-acts">
+                <button @click="showCreateModal = false">取消</button>
+                <button class="btn-primary" @click="onCreateProject" :disabled="!newProjectName.trim()">创建</button>
+              </div>
             </div>
           </div>
         </div>
-      </div>
-    </n-message-provider>
+      </n-message-provider>
+    </n-dialog-provider>
   </n-config-provider>
 </template>
 
 <script setup lang="ts">
 import { ref, onMounted } from 'vue'
-import { NConfigProvider, NMessageProvider } from 'naive-ui'
+import { NConfigProvider, NMessageProvider, NDialogProvider } from 'naive-ui'
 import AppHeader from './components/layout/AppHeader.vue'
 import AppBody from './components/layout/AppBody.vue'
 import { useProjectStore } from './stores/project'
