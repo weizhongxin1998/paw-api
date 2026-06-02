@@ -2,26 +2,28 @@ package main
 
 import (
 	"context"
-	"fmt"
+	"log"
+
+	"paw-api/database"
+	"paw-api/pkg/snowflake"
 )
 
-// App struct
 type App struct {
-	ctx context.Context
+	ctx       context.Context
+	snowflake *snowflake.Generator
 }
 
-// NewApp creates a new App application struct
 func NewApp() *App {
 	return &App{}
 }
 
-// startup is called when the app starts. The context is saved
-// so we can call the runtime methods
 func (a *App) startup(ctx context.Context) {
 	a.ctx = ctx
-}
+	a.snowflake = snowflake.New()
 
-// Greet returns a greeting for the given name
-func (a *App) Greet(name string) string {
-	return fmt.Sprintf("Hello %s, It's show time!", name)
+	db, err := database.Init()
+	if err != nil {
+		log.Fatal("failed to init database:", err)
+	}
+	_ = db
 }
