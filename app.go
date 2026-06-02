@@ -65,7 +65,7 @@ func (a *App) startup(ctx context.Context) {
 	_ = projectSvc
 	_ = collectionSvc
 
-	importSvc := services.NewImportService(collectionRepo, requestRepo, a.snowflake)
+	importSvc := services.NewImportService(projectRepo, collectionRepo, requestRepo, a.snowflake)
 	exportSvc := services.NewExportService(projectRepo, collectionRepo, requestRepo, a.snowflake)
 
 	a.settingsH = handlers.NewSettingsHandler(settingsSvc)

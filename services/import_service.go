@@ -13,6 +13,7 @@ import (
 )
 
 type ImportService struct {
+	projectRepo    *repositories.ProjectRepository
 	collectionRepo *repositories.CollectionRepository
 	requestRepo    *repositories.RequestRepository
 	sf             *snowflake.Generator
@@ -24,11 +25,13 @@ type ImportResult struct {
 }
 
 func NewImportService(
+	projectRepo *repositories.ProjectRepository,
 	collectionRepo *repositories.CollectionRepository,
 	requestRepo *repositories.RequestRepository,
 	sf *snowflake.Generator,
 ) *ImportService {
 	return &ImportService{
+		projectRepo:    projectRepo,
 		collectionRepo: collectionRepo,
 		requestRepo:    requestRepo,
 		sf:             sf,
@@ -171,6 +174,113 @@ func (s *ImportService) ImportOpenAPI(projectID int64, filePath string) (*Import
 	}
 
 	return s.processOpenAPI(projectID, &doc)
+}
+
+func (s *ImportService) ImportPaw(filePath string) (*ImportResult, error) {
+	data, err := os.ReadFile(filePath)
+	if err != nil {
+		return nil, err
+	}
+
+	var paw PawExport
+	if err := json.Unmarshal(data, &paw); err != nil {
+		return nil, err
+	}
+
+	projects, err := s.projectRepo.List()
+	if err != nil {
+		return nil, err
+	}
+
+	var projectID int64
+	found := false
+	for _, p := range projects {
+		if p.Name == paw.Project.Name {
+			projectID = p.ID
+			found = true
+			break
+		}
+	}
+
+	if !found {
+		proj := &models.Project{
+			Name:        paw.Project.Name,
+			Description: paw.Project.Description,
+		}
+		if err := s.projectRepo.Create(proj); err != nil {
+			return nil, err
+		}
+		projectID = proj.ID
+	}
+
+	result := &ImportResult{}
+
+	idMap := make(map[int64]int64)
+	remaining := make([]models.Collection, len(paw.Collections))
+	copy(remaining, paw.Collections)
+
+	for len(remaining) > 0 {
+		var stillRemaining []models.Collection
+		for _, c := range remaining {
+			if c.ParentID == nil {
+				coll := &models.Collection{
+					ProjectID: projectID,
+					Name:      c.Name,
+					SortOrder: c.SortOrder,
+				}
+				if err := s.collectionRepo.Create(coll); err != nil {
+					return nil, err
+				}
+				idMap[c.ID] = coll.ID
+				result.Collections++
+			} else if mappedParentID, ok := idMap[*c.ParentID]; ok {
+				coll := &models.Collection{
+					ProjectID: projectID,
+					ParentID:  &mappedParentID,
+					Name:      c.Name,
+					SortOrder: c.SortOrder,
+				}
+				if err := s.collectionRepo.Create(coll); err != nil {
+					return nil, err
+				}
+				idMap[c.ID] = coll.ID
+				result.Collections++
+			} else {
+				stillRemaining = append(stillRemaining, c)
+			}
+		}
+
+		if len(stillRemaining) == len(remaining) {
+			break
+		}
+		remaining = stillRemaining
+	}
+
+	for _, r := range paw.Requests {
+		newCollID, ok := idMap[r.CollectionID]
+		if !ok {
+			continue
+		}
+		req := &models.Request{
+			CollectionID: newCollID,
+			Name:         r.Name,
+			Description:  r.Description,
+			Method:       r.Method,
+			URL:          r.URL,
+			Headers:      r.Headers,
+			Params:       r.Params,
+			BodyType:     r.BodyType,
+			Body:         r.Body,
+			Auth:         r.Auth,
+			SortOrder:    r.SortOrder,
+		}
+		if err := s.requestRepo.Create(req); err != nil {
+			return nil, err
+		}
+		result.Requests++
+	}
+
+	return result, nil
 }
 
 // ---------- Internal ----------

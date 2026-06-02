@@ -3,8 +3,10 @@ package services
 import (
 	"encoding/json"
 	"net/url"
+	"os"
 	"sort"
 	"strings"
+	"time"
 
 	"paw-api/models"
 	"paw-api/pkg/snowflake"
@@ -80,6 +82,95 @@ func (s *ExportService) ExportPostman(projectID int64) (string, error) {
 		return "", err
 	}
 	return string(jsonBytes), nil
+}
+
+// ========== Paw 自有格式 ==========
+
+type PawExport struct {
+	Version     string             `json:"version"`
+	Type        string             `json:"type"`
+	ExportedAt  string             `json:"exported_at"`
+	Project     models.Project     `json:"project"`
+	Collections []models.Collection `json:"collections"`
+	Requests    []models.Request   `json:"requests"`
+}
+
+func (s *ExportService) ExportPaw(projectID int64, collectionID *int64, filePath string) error {
+	project, err := s.projectRepo.GetByID(projectID)
+	if err != nil {
+		return err
+	}
+
+	var collections []models.Collection
+	if collectionID != nil {
+		collections, err = s.getCollectionTree(*collectionID)
+	} else {
+		collections, err = s.collectionRepo.ListByProject(projectID)
+	}
+	if err != nil {
+		return err
+	}
+
+	var requests []models.Request
+	for _, coll := range collections {
+		reqs, err := s.requestRepo.ListByCollection(coll.ID)
+		if err != nil {
+			return err
+		}
+		requests = append(requests, reqs...)
+	}
+
+	paw := PawExport{
+		Version:     "1.0",
+		Type:        "paw-api-export",
+		ExportedAt:  time.Now().UTC().Format(time.RFC3339),
+		Project:     *project,
+		Collections: collections,
+		Requests:    requests,
+	}
+
+	data, err := json.MarshalIndent(paw, "", "  ")
+	if err != nil {
+		return err
+	}
+
+	return os.WriteFile(filePath, data, 0644)
+}
+
+func (s *ExportService) getCollectionTree(rootID int64) ([]models.Collection, error) {
+	coll, err := s.collectionRepo.GetByID(rootID)
+	if err != nil {
+		return nil, err
+	}
+
+	all, err := s.collectionRepo.ListByProject(coll.ProjectID)
+	if err != nil {
+		return nil, err
+	}
+
+	childrenMap := make(map[int64][]models.Collection)
+	for _, c := range all {
+		if c.ParentID != nil {
+			childrenMap[*c.ParentID] = append(childrenMap[*c.ParentID], c)
+		}
+	}
+
+	var result []models.Collection
+	var gather func(id int64)
+	gather = func(id int64) {
+		for _, c := range all {
+			if c.ID == id {
+				result = append(result, c)
+				for _, child := range childrenMap[id] {
+					gather(child.ID)
+				}
+				return
+			}
+		}
+	}
+	gather(rootID)
+
+	return result, nil
 }
 
 func (s *ExportService) buildCollectionItem(coll *models.Collection, childrenMap map[int64][]*models.Collection) postmanItem {
