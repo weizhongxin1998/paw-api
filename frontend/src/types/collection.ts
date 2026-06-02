@@ -1,7 +1,7 @@
 export interface TreeItem {
   id: number
   name: string
-  type: 'folder' | 'request'
+  type: 'root' | 'folder' | 'request'
   method?: string
   url?: string
   children: TreeItem[]

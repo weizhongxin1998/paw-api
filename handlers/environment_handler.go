@@ -17,8 +17,8 @@ func (h *EnvironmentHandler) List(projectID int64) ([]models.Environment, error)
 	return h.svc.List(projectID)
 }
 
-func (h *EnvironmentHandler) Create(projectID int64, name string, cloneFromID *int64) (*models.Environment, error) {
-	return h.svc.Create(projectID, name, cloneFromID)
+func (h *EnvironmentHandler) Create(projectID int64, name string, baseURL string, cloneFromID *int64) (*models.Environment, error) {
+	return h.svc.Create(projectID, name, baseURL, cloneFromID)
 }
 
 func (h *EnvironmentHandler) Rename(id int64, name string) error {
@@ -43,4 +43,8 @@ func (h *EnvironmentHandler) ListVariables(envID int64) ([]models.EnvVariable, e
 
 func (h *EnvironmentHandler) SaveVariables(envID int64, variables []models.EnvVariable) error {
 	return h.svc.SaveVariables(envID, variables)
+}
+
+func (h *EnvironmentHandler) SaveBaseURL(envID int64, baseURL string) error {
+	return h.svc.SaveBaseURL(envID, baseURL)
 }

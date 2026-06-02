@@ -110,15 +110,15 @@ watch([authType, token, username, password, apiKey, apiValue, apiAddTo], syncAut
   gap: 6px;
 }
 .auth-form label {
-  font-size: 11px;
+  font-size: 12px;
   color: #888;
 }
 .hint-suffix {
-  font-size: 10px;
+  font-size: 11px;
   color: #aaa;
 }
 .hint {
   color: #aaa;
-  font-size: 12px;
+  font-size: 13px;
 }
 </style>

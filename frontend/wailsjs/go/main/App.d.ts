@@ -13,7 +13,7 @@ export function CloneRequest(arg1:number):Promise<models.Request>;
 
 export function CreateCollection(arg1:number,arg2:any,arg3:string):Promise<models.Collection>;
 
-export function CreateEnvironment(arg1:number,arg2:string,arg3:any):Promise<models.Environment>;
+export function CreateEnvironment(arg1:number,arg2:string,arg3:string,arg4:any):Promise<models.Environment>;
 
 export function CreateProject(arg1:string,arg2:string):Promise<models.Project>;
 
@@ -39,7 +39,11 @@ export function GetAllSettings():Promise<Record<string, string>>;
 
 export function GetCollectionTree(arg1:number):Promise<Array<models.TreeItem>>;
 
+export function GetMockServerURL():Promise<string>;
+
 export function GetProject(arg1:number):Promise<models.Project>;
+
+export function GetProjectStats(arg1:number):Promise<models.ProjectStats>;
 
 export function GetRequest(arg1:number):Promise<models.Request>;
 
@@ -64,6 +68,8 @@ export function RenameEnvironment(arg1:number,arg2:string):Promise<void>;
 export function ResolveVariable(arg1:string,arg2:number):Promise<string>;
 
 export function ResolveVariableMap(arg1:Record<string, string>,arg2:number):Promise<Record<string, string>>;
+
+export function SaveEnvBaseURL(arg1:number,arg2:string):Promise<void>;
 
 export function SaveEnvVariables(arg1:number,arg2:Array<models.EnvVariable>):Promise<void>;
 

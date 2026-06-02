@@ -52,13 +52,18 @@ const props = defineProps<{
   items: KvItem[]
   showType?: boolean
   showBulkEdit?: boolean
+  bulkMode?: boolean
 }>()
 
 const emit = defineEmits<{
   'update:items': [items: KvItem[]]
 }>()
 
-const isBulkEdit = ref(false)
+const isBulkEditInternal = ref(false)
+const isBulkEdit = computed({
+  get: () => props.bulkMode ?? isBulkEditInternal.value,
+  set: (v) => { isBulkEditInternal.value = v },
+})
 const typeOptions = [
   { label: 'text', value: 'text' },
   { label: 'file', value: 'file' },
@@ -116,7 +121,7 @@ table {
 th {
   text-align: left;
   padding: 5px 8px;
-  font-size: 10px;
+  font-size: 11px;
   color: #999;
   text-transform: uppercase;
   border-bottom: 1px solid #eee;

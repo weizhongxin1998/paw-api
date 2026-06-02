@@ -1,6 +1,9 @@
 <template>
   <div class="header">
     <div class="header-left">
+      <button class="back-btn" @click="goHome" title="返回项目列表">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+      </button>
       <div class="project-btn-wrapper" ref="projectBtnRef">
         <button class="project-btn" @click="dropdownShow = !dropdownShow">
           {{ projectStore.currentProject?.name || '未选择项目' }}
@@ -21,6 +24,9 @@
           <div class="dropdown-create-btn" @click="showCreateModal = true; dropdownShow = false">
             + 新建项目
           </div>
+          <div class="dropdown-create-btn" style="color:#888" @click="goHome">
+            返回项目列表
+          </div>
         </div>
       </div>
       <EnvSelector
@@ -30,8 +36,9 @@
     </div>
     <div class="header-right">
       <button class="header-btn">日间</button>
-      <button class="header-btn">设置</button>
+      <button class="header-btn" @click="showSettings = true">设置</button>
     </div>
+    <SettingsModal v-model:show="showSettings" />
 
     <div v-if="showCreateModal" class="modal-overlay" @click.self="showCreateModal = false">
       <div class="modal-box">
@@ -56,16 +63,19 @@ import { ref, onMounted, onUnmounted } from 'vue'
 import { useProjectStore } from '../../stores/project'
 import { useEnvStore } from '../../stores/env'
 import EnvSelector from '../environment/EnvSelector.vue'
+import SettingsModal from '../modals/SettingsModal.vue'
 
 const projectStore = useProjectStore()
 const envStore = useEnvStore()
 
 const emit = defineEmits<{
   'projectChanged': [id: number]
+  'backToHome': []
 }>()
 
 const dropdownShow = ref(false)
 const showCreateModal = ref(false)
+const showSettings = ref(false)
 const newProjectName = ref('')
 const newProjectDesc = ref('')
 const projectBtnRef = ref<HTMLElement | null>(null)
@@ -74,6 +84,11 @@ const dropdownRef = ref<HTMLElement | null>(null)
 function selectProject(id: number) {
   dropdownShow.value = false
   emit('projectChanged', id)
+}
+
+function goHome() {
+  dropdownShow.value = false
+  emit('backToHome')
 }
 
 async function onCreateProject() {
@@ -140,7 +155,7 @@ onUnmounted(() => {
   border-radius: 6px;
   background: #fff;
   cursor: pointer;
-  font-size: 12px;
+  font-size: 13px;
   font-weight: 600;
   color: #333;
   outline: none;
@@ -203,7 +218,7 @@ onUnmounted(() => {
   background: #f0faf3;
 }
 .header-btn {
-  font-size: 11px;
+  font-size: 12px;
   padding: 3px 10px;
   background: transparent;
   border: 1px solid transparent;
@@ -215,6 +230,16 @@ onUnmounted(() => {
 .header-btn:hover {
   background: #e8e8e8;
 }
+.back-btn {
+  background: transparent;
+  border: none;
+  font-size: 18px;
+  cursor: pointer;
+  color: #888;
+  padding: 0 6px;
+  line-height: 1;
+}
+.back-btn:hover { color: #18a058; }
 
 .modal-overlay {
   position: fixed;

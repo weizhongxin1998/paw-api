@@ -32,3 +32,7 @@ func (h *ProjectHandler) Update(id int64, name, description string) (*models.Pro
 func (h *ProjectHandler) Delete(id int64) error {
 	return h.svc.Delete(id)
 }
+
+func (h *ProjectHandler) GetStats(id int64) (models.ProjectStats, error) {
+	return h.svc.GetStats(id)
+}

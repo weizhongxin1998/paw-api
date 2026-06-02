@@ -2,18 +2,24 @@
   <div>
     <div
       class="tree-node"
-      :class="node.type"
-      :style="{ paddingLeft: 8 + depth * 16 + 'px' }"
+      :class="[node.type, { 'tree-active': node.type === 'request' && false }]"
+      :style="{ paddingLeft: node.type === 'request' ? (12 + depth * 14 + 10) + 'px' : (8 + depth * 14) + 'px' }"
+      @click="onNodeClick"
+      @dblclick="onNodeDblClick"
       @contextmenu.prevent="onCtxMenu($event)"
     >
       <span v-if="node.type === 'folder'" class="arrow" @click.stop="expanded = !expanded">
         {{ expanded ? '\u25BC' : '\u25BA' }}
       </span>
-      <span v-if="node.type === 'request'" class="method-tag" :class="node.method?.toLowerCase()">
-        {{ node.method }}
-      </span>
-      <span class="node-name" @dblclick="onDblClick">{{ node.name }}</span>
-      <span v-if="node.type === 'request'" class="node-url">{{ node.url }}</span>
+      <span v-if="node.type === 'root'" class="node-name root-name">{{ node.name }}</span>
+      <template v-else-if="node.type === 'folder'">
+        <span class="node-name folder-name">{{ node.name }}</span>
+      </template>
+      <template v-else-if="node.type === 'request'">
+        <span class="method-tag" :class="node.method?.toLowerCase()">{{ node.method }}</span>
+        <span class="node-name">{{ node.name }}</span>
+        <span class="node-url">{{ node.url }}</span>
+      </template>
     </div>
     <div v-if="node.type === 'folder' && expanded">
       <TreeNode
@@ -21,19 +27,22 @@
         :key="child.id"
         :node="child"
         :depth="depth + 1"
+        @click="onChildClick"
         @dbl-click="onChildDblClick"
         @ctx-menu="onChildCtxMenu"
+        @action="onChildAction"
       />
     </div>
   </div>
 
   <div v-if="ctxVisible" class="ctx-overlay" @click="ctxVisible = false">
     <div class="ctx-menu" :style="{ left: ctxX + 'px', top: ctxY + 'px' }" @click.stop>
-      <template v-if="node.type === 'folder'">
+      <template v-if="node.type === 'root' || node.type === 'folder'">
         <div class="ctx-item" @click="onAction('new-request')">+ 新建请求</div>
         <div class="ctx-item" @click="onAction('new-folder')">新建文件夹</div>
         <div class="ctx-sep"></div>
         <div class="ctx-item" @click="onAction('rename')">重命名</div>
+        <div v-if="node.type === 'folder'" class="ctx-item" @click="onAction('export')">导出此集合</div>
         <div class="ctx-sep"></div>
         <div class="ctx-item danger" @click="onAction('delete')">删除</div>
       </template>
@@ -57,6 +66,7 @@ const props = defineProps<{
 }>()
 
 const emit = defineEmits<{
+  (e: 'click', node: TreeItem): void
   (e: 'dbl-click', node: TreeItem): void
   (e: 'ctx-menu', node: TreeItem, event: MouseEvent): void
   (e: 'action', action: string, node: TreeItem): void
@@ -67,7 +77,11 @@ const ctxVisible = ref(false)
 const ctxX = ref(0)
 const ctxY = ref(0)
 
-function onDblClick() {
+function onNodeClick() {
+  emit('click', props.node)
+}
+
+function onNodeDblClick() {
   emit('dbl-click', props.node)
 }
 
@@ -82,8 +96,16 @@ function onChildDblClick(node: TreeItem) {
   emit('dbl-click', node)
 }
 
+function onChildClick(node: TreeItem) {
+  emit('click', node)
+}
+
 function onChildCtxMenu(node: TreeItem, event: MouseEvent) {
   emit('ctx-menu', node, event)
+}
+
+function onChildAction(action: string, node: TreeItem) {
+  emit('action', action, node)
 }
 
 function onAction(action: string) {
@@ -102,32 +124,47 @@ onUnmounted(() => document.removeEventListener('keydown', onKeydown))
 .tree-node {
   display: flex;
   align-items: center;
-  padding: 4px 8px;
+  padding: 5px 10px;
   cursor: pointer;
   white-space: nowrap;
-  font-size: 12px;
+  font-size: 13px;
   gap: 4px;
   user-select: none;
 }
 .tree-node:hover { background: #f0f0f0; }
-.arrow { font-size: 9px; width: 12px; color: #888; cursor: pointer; }
+.tree-node.root { font-weight: 600; color: #18a058; }
+.arrow { font-size: 9px; width: 10px; color: #888; cursor: pointer; }
 .method-tag {
-  display: inline-block; width: 36px; font-size: 9px; font-weight: 700;
-  text-align: center; padding: 0 2px; border-radius: 2px;
+  display: inline-block;
+  width: 32px;
+  font-size: 10px;
+  font-weight: 700;
+  text-align: center;
+  padding: 2px 3px;
+  border-radius: 3px;
+  flex-shrink: 0;
 }
-.method-tag.get { color: #18a058; }
-.method-tag.post { color: #f0a020; }
-.method-tag.put { color: #2080f0; }
-.method-tag.delete { color: #d03050; }
-.method-tag.patch { color: #9c27b0; }
+.method-tag.get { background: #d4edda; color: #155724; }
+.method-tag.post { background: #fff3cd; color: #856404; }
+.method-tag.put { background: #d0e8ff; color: #004085; }
+.method-tag.delete { background: #f8d7da; color: #721c24; }
+.method-tag.patch { background: #f3e5f5; color: #6a1b9a; }
+.root-name { font-weight: 600; color: #18a058; }
+.folder-name { color: #333; }
 .node-name { overflow: hidden; text-overflow: ellipsis; }
-.node-url { color: #aaa; font-size: 10px; margin-left: 4px; overflow: hidden; text-overflow: ellipsis; }
+.node-url { color: #aaa; margin-left: 3px; font-size: 11px; overflow: hidden; text-overflow: ellipsis; }
 .ctx-overlay { position: fixed; inset: 0; z-index: 1000; }
 .ctx-menu {
-  position: fixed; background: #fff; border: 1px solid #e0e0e0; border-radius: 8px;
-  box-shadow: 0 3px 12px rgba(0,0,0,0.12); padding: 4px 0; min-width: 160px; z-index: 1001;
+  position: fixed;
+  background: #fff;
+  border: 1px solid #e0e0e0;
+  border-radius: 8px;
+  box-shadow: 0 3px 12px rgba(0,0,0,0.12);
+  padding: 4px 0;
+  min-width: 160px;
+  z-index: 1001;
 }
-.ctx-item { padding: 6px 14px; cursor: pointer; font-size: 12px; color: #333; }
+.ctx-item { padding: 6px 14px; cursor: pointer; font-size: 13px; color: #333; }
 .ctx-item:hover { background: #f0f0f0; }
 .ctx-item.danger { color: #d03050; }
 .ctx-sep { border-top: 1px solid #eee; margin: 4px 0; }

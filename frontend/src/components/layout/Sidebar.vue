@@ -3,26 +3,28 @@
     <div class="sidebar-tabs">
       <button :class="{ active: activePanel === 'collection' }" @click="switchPanel('collection')">Collections</button>
       <button :class="{ active: activePanel === 'history' }" @click="switchPanel('history')">History</button>
+      <span class="sidebar-add" @click="showAddMenu = !showAddMenu">+</span>
+    </div>
+    <div v-if="showAddMenu" class="add-menu" @click.self="showAddMenu = false">
+      <div class="add-menu-item" @click="showRequestModal = true; showAddMenu = false">新建请求</div>
+      <div class="add-menu-item" @click="showCollectionModal = true; showAddMenu = false">新建集合</div>
+      <div class="add-menu-item" @click="$emit('open-docs'); showAddMenu = false">API 文档</div>
     </div>
 
     <CollectionTree
       v-if="activePanel === 'collection'"
       :tree="tree"
-      @open-request="onOpenRequest"
+      @open-request="onPreviewRequest"
+      @dbl-click="onPersistRequest"
       @ctx-menu="onContextMenu"
       @action="onTreeAction"
     />
     <HistoryPanel
       v-else-if="activePanel === 'history'"
       @open-tab="onHistoryReplay"
+      @select-detail="onHistorySelect"
       ref="historyPanelRef"
     />
-
-    <div v-if="activePanel === 'collection'" class="sidebar-footer">
-      <button class="footer-btn" @click="showRequestModal = true">+ 新建请求</button>
-      <button class="footer-btn" @click="showCollectionModal = true">+ 新建集合</button>
-      <button class="footer-btn" @click="onOpenDocs">Docs</button>
-    </div>
 
     <div v-if="showCollectionModal" class="modal-overlay" @click.self="showCollectionModal = false">
       <div class="modal-box">
@@ -72,7 +74,9 @@ const collectionStore = useCollectionStore()
 
 const emit = defineEmits<{
   (e: 'open-request', node: TreeItem): void
+  (e: 'open-request-persist', node: TreeItem): void
   (e: 'history-replay', item: any): void
+  (e: 'history-select', item: any | null): void
   (e: 'open-docs'): void
   (e: 'tree-action', action: string, node: TreeItem): void
 }>()
@@ -80,12 +84,16 @@ const emit = defineEmits<{
 const tree = ref<TreeItem[]>([])
 const showCollectionModal = ref(false)
 const showRequestModal = ref(false)
+const showAddMenu = ref(false)
 const collectionName = ref('')
 const requestName = ref('')
 const requestMethod = ref('GET')
 
 function switchPanel(panel: 'collection' | 'history') {
   activePanel.value = panel
+  if (panel === 'collection') {
+    emit('history-select', null)
+  }
 }
 
 watch(() => props.projectId, async (id) => {
@@ -102,8 +110,14 @@ async function refreshTree() {
   }
 }
 
-function onOpenRequest(node: TreeItem) {
+function onPreviewRequest(node: TreeItem) {
   emit('open-request', node)
+}
+
+function onPersistRequest(node: TreeItem) {
+  if (node.type === 'request') {
+    emit('open-request-persist', node)
+  }
 }
 
 function onContextMenu(_: TreeItem, _ev: MouseEvent) {}
@@ -137,8 +151,8 @@ function onHistoryReplay(item: any) {
   emit('history-replay', item)
 }
 
-function onOpenDocs() {
-  emit('open-docs')
+function onHistorySelect(item: any) {
+  emit('history-select', item)
 }
 
 defineExpose({ refreshTree })
@@ -146,34 +160,57 @@ defineExpose({ refreshTree })
 
 <style scoped>
 .sidebar {
-  width: 240px;
+  width: 220px;
   background: #fafafa;
   border-right: 1px solid #e0e0e0;
   display: flex;
   flex-direction: column;
   flex-shrink: 0;
+  position: relative;
 }
 .sidebar-tabs {
   display: flex;
   border-bottom: 1px solid #e8e8e8;
 }
 .sidebar-tabs button {
-  flex: 1; padding: 8px; text-align: center; font-size: 11px; cursor: pointer;
+  flex: 1; padding: 8px; text-align: center; font-size: 13px; cursor: pointer;
   background: #fafafa; border: none; color: #888; outline: none;
   border-bottom: 2px solid transparent;
 }
 .sidebar-tabs button.active {
   background: #fff; color: #18a058; border-bottom-color: #18a058; font-weight: 600;
 }
-.sidebar-footer {
-  padding: 6px 10px; border-top: 1px solid #e8e8e8;
-  display: flex; justify-content: flex-start; gap: 12px;
+.sidebar-add {
+  padding: 5px 10px;
+  font-size: 18px;
+  color: #18a058;
+  cursor: pointer;
+  user-select: none;
+  line-height: 1;
+  font-weight: 700;
 }
-.footer-btn {
-  background: none; border: none; color: #18a058;
-  font-size: 11px; cursor: pointer; padding: 0;
+.sidebar-add:hover { color: #0c7a43; }
+.add-menu {
+  position: absolute;
+  top: 36px;
+  left: 4px;
+  z-index: 50;
+  background: #fff;
+  border: 1px solid #e0e0e0;
+  border-radius: 8px;
+  box-shadow: 0 3px 12px rgba(0,0,0,0.12);
+  padding: 4px 0;
+  min-width: 140px;
 }
-.footer-btn:hover { text-decoration: underline; }
+.add-menu-item {
+  padding: 6px 14px;
+  cursor: pointer;
+  font-size: 13px;
+  color: #333;
+}
+.add-menu-item:hover {
+  background: #f0f0f0;
+}
 
 .modal-overlay {
   position: fixed; inset: 0; background: rgba(0,0,0,0.3);

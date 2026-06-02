@@ -22,8 +22,8 @@ export function CreateCollection(arg1, arg2, arg3) {
   return window['go']['main']['App']['CreateCollection'](arg1, arg2, arg3);
 }
 
-export function CreateEnvironment(arg1, arg2, arg3) {
-  return window['go']['main']['App']['CreateEnvironment'](arg1, arg2, arg3);
+export function CreateEnvironment(arg1, arg2, arg3, arg4) {
+  return window['go']['main']['App']['CreateEnvironment'](arg1, arg2, arg3, arg4);
 }
 
 export function CreateProject(arg1, arg2) {
@@ -74,8 +74,16 @@ export function GetCollectionTree(arg1) {
   return window['go']['main']['App']['GetCollectionTree'](arg1);
 }
 
+export function GetMockServerURL() {
+  return window['go']['main']['App']['GetMockServerURL']();
+}
+
 export function GetProject(arg1) {
   return window['go']['main']['App']['GetProject'](arg1);
+}
+
+export function GetProjectStats(arg1) {
+  return window['go']['main']['App']['GetProjectStats'](arg1);
 }
 
 export function GetRequest(arg1) {
@@ -124,6 +132,10 @@ export function ResolveVariable(arg1, arg2) {
 
 export function ResolveVariableMap(arg1, arg2) {
   return window['go']['main']['App']['ResolveVariableMap'](arg1, arg2);
+}
+
+export function SaveEnvBaseURL(arg1, arg2) {
+  return window['go']['main']['App']['SaveEnvBaseURL'](arg1, arg2);
 }
 
 export function SaveEnvVariables(arg1, arg2) {

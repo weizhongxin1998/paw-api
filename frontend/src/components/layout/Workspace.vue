@@ -1,18 +1,46 @@
 <template>
   <div class="workspace">
-    <div v-if="!activeTab" class="empty-state">
+    <div v-if="!activeTab && !historyItem" class="empty-state">
       <div class="empty-icon">📦</div>
       <h2>Paw API</h2>
       <p>点击左侧集合中的请求开始调试</p>
     </div>
 
-    <div v-else class="workspace-editor">
+    <div v-if="historyItem" class="workspace-editor">
+      <div class="tabs-bar">
+        <span class="tabs-msg">选择一条历史记录查看详情，或双击在新 Tab 中回放</span>
+      </div>
+      <div class="history-detail">
+        <div class="hist-detail-row"><span class="hist-detail-label">方法</span><span class="method-badge" :class="historyItem.method?.toLowerCase()">{{ historyItem.method }}</span></div>
+        <div class="hist-detail-row"><span class="hist-detail-label">URL</span><span class="hist-detail-value">{{ historyItem.url }}</span></div>
+        <div class="hist-detail-row"><span class="hist-detail-label">状态码</span><span class="hist-detail-value" :class="statusClass(historyItem.response_status)">{{ historyItem.response_status }}</span></div>
+        <div class="hist-detail-row"><span class="hist-detail-label">耗时</span><span class="hist-detail-value">{{ historyItem.duration_ms }}ms</span></div>
+        <div v-if="historyItem.request_headers" class="hist-detail-section">
+          <h4>请求头</h4>
+          <pre class="hist-detail-pre">{{ formatJson(historyItem.request_headers) }}</pre>
+        </div>
+        <div v-if="historyItem.request_body" class="hist-detail-section">
+          <h4>请求体</h4>
+          <pre class="hist-detail-pre">{{ formatJson(historyItem.request_body) }}</pre>
+        </div>
+        <div v-if="historyItem.response_headers" class="hist-detail-section">
+          <h4>响应头</h4>
+          <pre class="hist-detail-pre">{{ formatJson(historyItem.response_headers) }}</pre>
+        </div>
+        <div v-if="historyItem.response_body" class="hist-detail-section">
+          <h4>响应体</h4>
+          <pre class="hist-detail-pre">{{ formatJson(historyItem.response_body) }}</pre>
+        </div>
+      </div>
+    </div>
+
+    <div v-else-if="activeTab" class="workspace-editor">
       <div class="tabs-bar">
         <div
           v-for="(tab, idx) in tabs"
           :key="tab.id"
           class="tab"
-          :class="{ active: tab.id === activeTabId, dirty: tab.isDirty }"
+          :class="{ active: tab.id === activeTabId, dirty: tab.isDirty, preview: tab.isPreview }"
           draggable="true"
           @click="selectTab(tab.id)"
           @contextmenu.prevent="onTabContextMenu($event, tab, idx)"
@@ -27,6 +55,7 @@
           <span v-if="tab.isDirty" class="tab-dirty"></span>
           <span class="tab-close" @click.stop="onCloseTab(tab)">x</span>
         </div>
+        <span class="tab-plus" @click="addNewTab">+</span>
       </div>
 
       <UrlBar
@@ -43,14 +72,27 @@
         :body-type="currentBodyType"
         :body-data="currentBodyData"
         :auth-data="currentAuthData"
+        :url="currentUrl"
+        :path-vars="currentPathVars"
         @update:headers="onHeadersChange"
         @update:params="onParamsChange"
         @update:body-type="onBodyTypeChange"
         @update:body-data="onBodyDataChange"
         @update:auth-data="onAuthDataChange"
+        @update:path-vars="onPathVarsChange"
       />
 
-      <ResponsePanel :response="response" />
+      <div
+        v-if="response"
+        class="resize-handle"
+        @mousedown="onResizeStart"
+      ></div>
+
+      <ResponsePanel
+        v-if="response"
+        :response="response"
+        :style="{ height: responseHeight + 'px' }"
+      />
     </div>
 
     <n-dropdown
@@ -83,6 +125,8 @@ interface Tab {
   name: string
   url: string
   isDirty: boolean
+  isPreview: boolean
+  pathVars: string
   headers: string
   params: string
   bodyType: string
@@ -103,9 +147,11 @@ const activeTabId = ref<string | null>(null)
 const tabs = ref<Tab[]>([])
 const response = ref<HttpResponse | null>(null)
 const isSending = ref(false)
+const historyItem = ref<any>(null)
 
 const currentMethod = ref('GET')
 const currentUrl = ref('')
+const currentPathVars = ref('[]')
 const currentHeaders = ref('[]')
 const currentParams = ref('[]')
 const currentBodyType = ref('none')
@@ -113,13 +159,19 @@ const currentBodyData = ref('{}')
 const currentAuthData = ref('{"type":"none"}')
 
 let sessionCounter = 0
+let tabIdCounter = 0
 
 function markDirty() {
-  if (activeTab.value) activeTab.value.isDirty = true
+  if (!activeTab.value) return
+  activeTab.value.isDirty = true
+  if (activeTab.value.isPreview) {
+    activeTab.value.isPreview = false
+  }
 }
 
 function onMethodChange(v: string) { currentMethod.value = v; markDirty() }
 function onUrlChange(v: string) { currentUrl.value = v; markDirty() }
+function onPathVarsChange(v: string) { currentPathVars.value = v }
 function onHeadersChange(v: string) { currentHeaders.value = v; markDirty() }
 function onParamsChange(v: string) { currentParams.value = v; markDirty() }
 function onBodyTypeChange(v: string) { currentBodyType.value = v; markDirty() }
@@ -130,6 +182,7 @@ function syncToActiveTab() {
   if (!activeTab.value) return
   activeTab.value.method = currentMethod.value
   activeTab.value.url = currentUrl.value
+  activeTab.value.pathVars = currentPathVars.value
   activeTab.value.headers = currentHeaders.value
   activeTab.value.params = currentParams.value
   activeTab.value.bodyType = currentBodyType.value
@@ -137,10 +190,67 @@ function syncToActiveTab() {
   activeTab.value.authData = currentAuthData.value
 }
 
+function addNewTab() {
+  const id = 'tab-' + (++tabIdCounter) + '-' + Date.now()
+  const tab: Tab = {
+    id,
+    requestId: 0,
+    method: 'GET',
+    name: '新建请求',
+    url: '',
+    pathVars: '[]',
+    isDirty: true,
+    isPreview: false,
+    headers: '[]',
+    params: '[]',
+    bodyType: 'none',
+    bodyData: '{}',
+    authData: '{"type":"none"}',
+    collectionId: 0,
+  }
+  tabs.value.push(tab)
+  selectTab(tab.id)
+}
+
+function showHistoryDetail(item: any) {
+  historyItem.value = item
+}
+
+function clearHistoryDetail() {
+  historyItem.value = null
+}
+
+function statusClass(code: number): string {
+  if (code < 300) return 'status-2xx'
+  if (code < 400) return 'status-3xx'
+  if (code < 500) return 'status-4xx'
+  return 'status-5xx'
+}
+
+function formatJson(raw: string): string {
+  try {
+    return JSON.stringify(JSON.parse(raw), null, 2)
+  } catch {
+    return raw
+  }
+}
+
 async function onSend() {
   if (isSending.value) return
   isSending.value = true
   syncToActiveTab()
+
+  // Resolve path variables in URL
+  let resolvedUrl = currentUrl.value
+  try {
+    const pv = JSON.parse(currentPathVars.value || '[]') as { key: string; value: string }[]
+    for (const v of pv) {
+      if (v.value) {
+        resolvedUrl = resolvedUrl.replace(':' + v.key, v.value)
+        resolvedUrl = resolvedUrl.replace('{' + v.key + '}', v.value)
+      }
+    }
+  } catch {}
 
   const envId = envStore.activeEnvId ?? 0
   const reqModel = {
@@ -149,7 +259,7 @@ async function onSend() {
     name: activeTab.value?.name || '',
     description: '',
     method: currentMethod.value,
-    url: currentUrl.value,
+    url: resolvedUrl,
     headers: currentHeaders.value,
     params: currentParams.value,
     body_type: currentBodyType.value,
@@ -162,6 +272,7 @@ async function onSend() {
     const sid = ++sessionCounter
     const resp = await SendRequest(sid, reqModel as any, envId)
     response.value = resp as any
+    if (responseHeight.value < 150) responseHeight.value = 200
   } catch (e: any) {
     response.value = {
       status: 0,
@@ -213,6 +324,7 @@ function selectTab(id: string) {
   if (activeTab.value) {
     currentMethod.value = activeTab.value.method
     currentUrl.value = activeTab.value.url
+    currentPathVars.value = activeTab.value.pathVars || '[]'
     currentHeaders.value = activeTab.value.headers
     currentParams.value = activeTab.value.params
     currentBodyType.value = activeTab.value.bodyType
@@ -307,7 +419,6 @@ function closeAll() {
   }
 }
 
-// Context menu
 const ctxMenuShow = ref(false)
 const ctxMenuX = ref(0)
 const ctxMenuY = ref(0)
@@ -338,7 +449,6 @@ function onCtxMenuSelect(key: string) {
   }
 }
 
-// Drag
 const dragIdx = ref<number | null>(null)
 const dragOverId = ref<string | null>(null)
 
@@ -358,15 +468,54 @@ function onDrop(_e: DragEvent, targetIdx: number) {
 }
 function onDragEnd() { dragIdx.value = null; dragOverId.value = null }
 
-// Exposed
 function openTab(tab: Tab) {
-  const existing = tabs.value.find(t => t.id === tab.id)
-  if (existing) { selectTab(existing.id); return }
+  historyItem.value = null
+  const existing = tabs.value.find(t => t.requestId > 0 && t.requestId === tab.requestId)
+  if (existing) {
+    if (existing.isPreview) existing.isPreview = false
+    selectTab(existing.id)
+    return
+  }
+  tab.isPreview = false
   tabs.value.push(tab)
   selectTab(tab.id)
 }
 
-// Keyboard shortcuts
+function previewTab(tab: Tab) {
+  historyItem.value = null
+  const existing = tabs.value.find(t => t.requestId > 0 && t.requestId === tab.requestId)
+  if (existing) { selectTab(existing.id); return }
+  const oldPreview = tabs.value.findIndex(t => t.isPreview)
+  if (oldPreview !== -1) {
+    tabs.value.splice(oldPreview, 1)
+  }
+  tab.isPreview = true
+  tabs.value.push(tab)
+  selectTab(tab.id)
+}
+
+const responseHeight = ref(200)
+let resizeStartY = 0
+let resizeStartH = 0
+
+function onResizeStart(e: MouseEvent) {
+  e.preventDefault()
+  resizeStartY = e.clientY
+  resizeStartH = responseHeight.value
+  document.addEventListener('mousemove', onResizeMove)
+  document.addEventListener('mouseup', onResizeEnd)
+}
+
+function onResizeMove(e: MouseEvent) {
+  const delta = resizeStartY - e.clientY
+  responseHeight.value = Math.max(80, Math.min(800, resizeStartH + delta))
+}
+
+function onResizeEnd() {
+  document.removeEventListener('mousemove', onResizeMove)
+  document.removeEventListener('mouseup', onResizeEnd)
+}
+
 function onKeydown(e: KeyboardEvent) {
   if ((e.ctrlKey || e.metaKey) && e.key === 's') {
     e.preventDefault()
@@ -377,7 +526,7 @@ function onKeydown(e: KeyboardEvent) {
 onMounted(() => document.addEventListener('keydown', onKeydown))
 onUnmounted(() => document.removeEventListener('keydown', onKeydown))
 
-defineExpose({ openTab, tabs, activeTabId, selectTab })
+defineExpose({ openTab, previewTab, tabs, activeTabId, selectTab, showHistoryDetail, clearHistoryDetail })
 </script>
 
 <style scoped>
@@ -416,9 +565,14 @@ defineExpose({ openTab, tabs, activeTabId, selectTab })
   overflow-x: auto;
   flex-shrink: 0;
 }
+.tabs-msg {
+  font-size: 12px;
+  color: #aaa;
+  padding: 5px 12px;
+}
 .tab {
   padding: 5px 12px;
-  font-size: 11px;
+  font-size: 13px;
   background: #e2e2e2;
   border: 1px solid #ddd;
   border-bottom: none;
@@ -431,18 +585,97 @@ defineExpose({ openTab, tabs, activeTabId, selectTab })
   user-select: none;
 }
 .tab.active { background: #fff; border-bottom: 2px solid #18a058; }
+.tab.preview { font-style: italic; color: #888; }
 .tab:hover { background: #d9d9d9; }
 .tab.active:hover { background: #fff; }
 .tab-method {
-  font-size: 9px; font-weight: 700; padding: 0 4px; border-radius: 2px;
+  font-size: 10px; font-weight: 700; padding: 0 4px; border-radius: 2px;
 }
 .tab-method.get { background: #d4edda; color: #155724; }
 .tab-method.post { background: #fff3cd; color: #856404; }
 .tab-method.put { background: #d0e8ff; color: #004085; }
 .tab-method.delete { background: #f8d7da; color: #721c24; }
 .tab-method.patch { background: #f3e5f5; color: #6a1b9a; }
-.tab-name { font-size: 11px; }
+.tab-name { font-size: 13px; }
 .tab-dirty { width: 6px; height: 6px; background: #bbb; border-radius: 50%; }
 .tab-close { color: #aaa; font-size: 13px; margin-left: 4px; }
 .tab-close:hover { color: #d03050; }
+.tab-plus {
+  padding: 5px 8px;
+  font-size: 16px;
+  cursor: pointer;
+  color: #18a058;
+  user-select: none;
+}
+.resize-handle {
+  height: 5px;
+  background: #e0e0e0;
+  cursor: ns-resize;
+  flex-shrink: 0;
+  border-top: 1px solid #d0d0d0;
+  border-bottom: 1px solid #d0d0d0;
+}
+.resize-handle:hover {
+  background: #18a058;
+}
+
+.history-detail {
+  flex: 1;
+  overflow-y: auto;
+  padding: 12px 16px;
+  font-size: 13px;
+}
+.hist-detail-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 6px 0;
+  border-bottom: 1px solid #f0f0f0;
+}
+.hist-detail-label {
+  color: #999;
+  width: 80px;
+  flex-shrink: 0;
+  font-size: 12px;
+}
+.hist-detail-value {
+  word-break: break-all;
+  color: #333;
+}
+.hist-detail-value.status-2xx { color: #18a058; font-weight: 600; }
+.hist-detail-value.status-3xx { color: #0288d1; font-weight: 600; }
+.hist-detail-value.status-4xx { color: #f0a020; font-weight: 600; }
+.hist-detail-value.status-5xx { color: #d03050; font-weight: 600; }
+.method-badge {
+  font-size: 10px;
+  font-weight: 700;
+  padding: 1px 6px;
+  border-radius: 2px;
+}
+.method-badge.get { background: #d4edda; color: #155724; }
+.method-badge.post { background: #fff3cd; color: #856404; }
+.method-badge.put { background: #d0e8ff; color: #004085; }
+.method-badge.delete { background: #f8d7da; color: #721c24; }
+.hist-detail-section {
+  margin-top: 12px;
+}
+.hist-detail-section h4 {
+  margin: 0 0 6px;
+  font-size: 12px;
+  color: #666;
+  font-weight: 600;
+}
+.hist-detail-pre {
+  background: #f8f9fa;
+  border: 1px solid #e8e8e8;
+  border-radius: 4px;
+  padding: 10px;
+  font-size: 11px;
+  font-family: 'SF Mono', Consolas, monospace;
+  white-space: pre-wrap;
+  word-break: break-all;
+  max-height: 200px;
+  overflow-y: auto;
+  margin: 0;
+}
 </style>

@@ -3,11 +3,15 @@ package main
 import (
 	"context"
 	"database/sql"
+	"fmt"
+	"os"
+	"time"
 
 	"paw-api/database"
 	"paw-api/handlers"
 	"paw-api/models"
 	"paw-api/pkg/httpclient"
+	"paw-api/pkg/mockserver"
 	"paw-api/pkg/snowflake"
 	"paw-api/repositories"
 	"paw-api/services"
@@ -18,6 +22,7 @@ type App struct {
 	db        *sql.DB
 	snowflake *snowflake.Generator
 	httpClient *httpclient.Client
+	mockServer *mockserver.Server
 
 	projectH     *handlers.ProjectHandler
 	collectionH  *handlers.CollectionHandler
@@ -33,7 +38,9 @@ type App struct {
 }
 
 func NewApp() *App {
-	return &App{}
+	return &App{
+		mockServer: mockserver.New(),
+	}
 }
 
 func (a *App) startup(ctx context.Context) {
@@ -60,7 +67,7 @@ func (a *App) startup(ctx context.Context) {
 
 	historySvc := services.NewHistoryService(historyRepo)
 	envSvc := services.NewEnvironmentService(envRepo, varRepo, a.snowflake)
-	requestSvc := services.NewRequestService(requestRepo, historyRepo, a.snowflake, a.httpClient)
+	requestSvc := services.NewRequestService(requestRepo, historyRepo, envRepo, a.snowflake, a.httpClient)
 	collectionSvc := services.NewCollectionService(collectionRepo, requestRepo, a.snowflake)
 	projectSvc := services.NewProjectService(projectRepo, a.snowflake)
 
@@ -96,6 +103,167 @@ func (a *App) startup(ctx context.Context) {
 	if err == nil {
 		a.httpClient.ApplySettings(settings)
 	}
+
+	// Start mock server
+	go func() {
+		if err := a.mockServer.Start(ctx); err != nil {
+			fmt.Printf("mock server stopped: %v\n", err)
+		}
+	}()
+	// wait for it to start
+	for a.mockServer.Port() == 0 {
+		time.Sleep(10 * time.Millisecond)
+	}
+	fmt.Printf("mock server started on port %d\n", a.mockServer.Port())
+
+	// Ensure all projects have "内置环境" pointing to mock server
+	a.ensureBuiltinEnvForAll()
+
+	// Seed demo data on first run
+	if a.mockServer.Port() > 0 {
+		a.seedDemoData()
+	}
+}
+
+func (a *App) ensureBuiltinEnvForAll() {
+	projects, err := a.projectH.List()
+	if err != nil {
+		return
+	}
+	for _, p := range projects {
+		envs, err := a.environmentH.List(p.ID)
+		if err != nil {
+			continue
+		}
+		hasBuiltin := false
+		for _, e := range envs {
+			if e.Name == "内置环境" {
+				hasBuiltin = true
+				break
+			}
+		}
+		if !hasBuiltin {
+			mockURL := fmt.Sprintf("http://localhost:%d", a.mockServer.Port())
+			if _, err := a.environmentH.Create(p.ID, "内置环境", mockURL, nil); err != nil {
+				fmt.Printf("failed to add built-in env for project %d: %v\n", p.ID, err)
+			}
+		}
+	}
+}
+
+func (a *App) seedDemoData() {
+	// Dev mode (wails.json exists in cwd): always ensure demo project exists
+	// Production mode: only seed on first run (no projects)
+	_, isDev := os.Stat("wails.json")
+	if isDev == nil {
+		a.ensureDemoProject()
+		return
+	}
+	// Production: only on first launch
+	projects, err := a.projectH.List()
+	if err != nil || len(projects) > 0 {
+		return
+	}
+	fmt.Println("seeding demo data (first launch)...")
+	a.ensureDemoProject()
+}
+
+func (a *App) ensureDemoProject() {
+	projects, err := a.projectH.List()
+	if err != nil {
+		return
+	}
+	for _, p := range projects {
+		if p.Name == "演示项目" {
+			return
+		}
+	}
+	// Reuse the same seeding logic by temporarily setting up
+	// We call CreateProject which also creates "内置环境"
+	project, err := a.CreateProject("演示项目", "内置演示项目，包含用户和订单模块")
+	if err != nil {
+		fmt.Printf("seed: failed to create project: %v\n", err)
+		return
+	}
+	a.seedRequests(project)
+}
+
+func (a *App) seedRequests(project *models.Project) {
+	userColl, err := a.collectionH.Create(project.ID, nil, "用户模块")
+	if err != nil {
+		return
+	}
+	orderColl, err := a.collectionH.Create(project.ID, nil, "订单模块")
+	if err != nil {
+		return
+	}
+	healthColl, err := a.collectionH.Create(project.ID, nil, "通用")
+	if err != nil {
+		return
+	}
+
+	type reqData struct {
+		name     string
+		method   string
+		url      string
+		params   string
+		headers  string
+		bodyType string
+		body     string
+	}
+
+	createReq := func(collectionID int64, d reqData) {
+		r, err := a.requestH.Create(collectionID, d.name, d.method)
+		if err != nil {
+			return
+		}
+		headers := d.headers
+		if headers == "" {
+			headers = `[{"key":"Accept","value":"application/json","enabled":true}]`
+		}
+		params := d.params
+		if params == "" {
+			params = `[]`
+		}
+		r.URL = d.url
+		r.Headers = headers
+		r.Params = params
+		r.BodyType = d.bodyType
+		r.Body = d.body
+		a.requestH.Update(r)
+	}
+
+	jsonHdr := `[{"key":"Content-Type","value":"application/json","enabled":true}]`
+
+	for _, d := range []reqData{
+		{"用户列表", "GET", "/api/users", `[{"key":"page","value":"1","enabled":true,"description":"页码"},{"key":"size","value":"20","enabled":true,"description":"每页条数"}]`, "", "", ""},
+		{"用户详情", "GET", "/api/users/{id}", "", "", "", ""},
+		{"创建用户", "POST", "/api/users", "", jsonHdr, "raw", `{"name":"张三","email":"zhangsan@example.com","age":28,"role":"user"}`},
+		{"更新用户", "PUT", "/api/users/{id}", "", jsonHdr, "raw", `{"name":"张三","email":"zhangsan@example.com","age":29,"role":"admin"}`},
+		{"部分更新用户", "PATCH", "/api/users/{id}", "", jsonHdr, "raw", `{"name":"张三(已修改)"}`},
+		{"删除用户", "DELETE", "/api/users/{id}", "", "", "", ""},
+	} {
+		createReq(userColl.ID, d)
+	}
+
+	for _, d := range []reqData{
+		{"订单列表", "GET", "/api/orders", "", "", "", ""},
+		{"订单详情", "GET", "/api/orders/{id}", "", "", "", ""},
+		{"创建订单", "POST", "/api/orders", "", jsonHdr, "raw", `{"user_id":1,"items":[{"name":"Widget A","price":19.99,"quantity":2},{"name":"Widget B","price":9.99,"quantity":1}]}`},
+		{"取消订单", "DELETE", "/api/orders/{id}", "", "", "", ""},
+	} {
+		createReq(orderColl.ID, d)
+	}
+
+	for _, d := range []reqData{
+		{"健康检查", "GET", "/api/health", "", "", "", ""},
+		{"健康检查(HEAD)", "HEAD", "/api/health", "", "", "", ""},
+		{"查看支持方法", "OPTIONS", "/api/users", "", "", "", ""},
+	} {
+		createReq(healthColl.ID, d)
+	}
+
+	fmt.Println("demo project ensured successfully")
 }
 
 // ========== Project Handlers ==========
@@ -109,7 +277,26 @@ func (a *App) GetProject(id int64) (*models.Project, error) {
 }
 
 func (a *App) CreateProject(name, description string) (*models.Project, error) {
-	return a.projectH.Create(name, description)
+	project, err := a.projectH.Create(name, description)
+	if err != nil {
+		return nil, err
+	}
+	// Auto-create built-in environment with mock server URL
+	if a.mockServer.Port() > 0 {
+		mockURL := fmt.Sprintf("http://localhost:%d", a.mockServer.Port())
+		if _, err := a.environmentH.Create(project.ID, "内置环境", mockURL, nil); err != nil {
+			// non-fatal: environment creation failure shouldn't block project creation
+			fmt.Printf("failed to create built-in env: %v\n", err)
+		}
+	}
+	return project, nil
+}
+
+func (a *App) GetMockServerURL() string {
+	if a.mockServer.Port() == 0 {
+		return ""
+	}
+	return fmt.Sprintf("http://localhost:%d", a.mockServer.Port())
 }
 
 func (a *App) UpdateProject(id int64, name, description string) (*models.Project, error) {
@@ -118,6 +305,10 @@ func (a *App) UpdateProject(id int64, name, description string) (*models.Project
 
 func (a *App) DeleteProject(id int64) error {
 	return a.projectH.Delete(id)
+}
+
+func (a *App) GetProjectStats(id int64) (models.ProjectStats, error) {
+	return a.projectH.GetStats(id)
 }
 
 // ========== Collection Handlers ==========
@@ -182,8 +373,8 @@ func (a *App) ListEnvironments(projectID int64) ([]models.Environment, error) {
 	return a.environmentH.List(projectID)
 }
 
-func (a *App) CreateEnvironment(projectID int64, name string, cloneFromID *int64) (*models.Environment, error) {
-	return a.environmentH.Create(projectID, name, cloneFromID)
+func (a *App) CreateEnvironment(projectID int64, name string, baseURL string, cloneFromID *int64) (*models.Environment, error) {
+	return a.environmentH.Create(projectID, name, baseURL, cloneFromID)
 }
 
 func (a *App) RenameEnvironment(id int64, name string) error {
@@ -204,6 +395,10 @@ func (a *App) ListEnvVariables(envID int64) ([]models.EnvVariable, error) {
 
 func (a *App) SaveEnvVariables(envID int64, variables []models.EnvVariable) error {
 	return a.environmentH.SaveVariables(envID, variables)
+}
+
+func (a *App) SaveEnvBaseURL(envID int64, baseURL string) error {
+	return a.environmentH.SaveBaseURL(envID, baseURL)
 }
 
 // ========== History Handlers ==========

@@ -24,10 +24,11 @@ func (s *EnvironmentService) List(projectID int64) ([]models.Environment, error)
 	return s.envRepo.ListByProject(projectID)
 }
 
-func (s *EnvironmentService) Create(projectID int64, name string, cloneFromID *int64) (*models.Environment, error) {
+func (s *EnvironmentService) Create(projectID int64, name string, baseURL string, cloneFromID *int64) (*models.Environment, error) {
 	env := &models.Environment{
 		ProjectID: projectID,
 		Name:      name,
+		BaseURL:   baseURL,
 	}
 	if err := s.envRepo.Create(env); err != nil {
 		return nil, err
@@ -80,4 +81,8 @@ func (s *EnvironmentService) ListVariables(envID int64) ([]models.EnvVariable, e
 
 func (s *EnvironmentService) SaveVariables(envID int64, variables []models.EnvVariable) error {
 	return s.varRepo.BatchReplace(envID, variables)
+}
+
+func (s *EnvironmentService) SaveBaseURL(envID int64, baseURL string) error {
+	return s.envRepo.SaveBaseURL(envID, baseURL)
 }

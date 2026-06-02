@@ -3,8 +3,10 @@
     <Sidebar
       ref="sidebarRef"
       :project-id="projectId"
-      @open-request="onOpenFromCollection"
+      @open-request="onPreviewFromCollection"
+      @open-request-persist="onOpenFromCollection"
       @history-replay="onHistoryReplay"
+      @history-select="onHistorySelect"
       @open-docs="docsModalShow = true"
       @tree-action="onTreeAction"
     />
@@ -36,7 +38,14 @@ const docsModalShow = ref(false)
 const currentProjectId = computed(() => props.projectId)
 const collectionStore = useCollectionStore()
 
-function onPanelChange(_: string) {}
+function onHistorySelect(item: any) {
+  if (!workspaceRef.value) return
+  if (item) {
+    workspaceRef.value.showHistoryDetail(item)
+  } else {
+    workspaceRef.value.clearHistoryDetail()
+  }
+}
 
 async function onTreeAction(action: string, node: TreeItem) {
   if (!props.projectId) return
@@ -51,7 +60,7 @@ async function onTreeAction(action: string, node: TreeItem) {
     }
     case 'delete': {
       if (confirm(`确定删除 "${node.name}"?`)) {
-        if (node.type === 'folder')
+        if (node.type === 'folder' || node.type === 'root')
           await collectionStore.removeCollection(node.id)
         else
           await collectionStore.removeRequest(node.id)
@@ -64,12 +73,20 @@ async function onTreeAction(action: string, node: TreeItem) {
       await sidebarRef.value?.refreshTree()
       break
     }
-    case 'new-folder': {
-      // delegate to sidebar
+    case 'new-request': {
+      const parentId = (node.type === 'folder' || node.type === 'root') ? node.id : 0
+      if (parentId) {
+        await collectionStore.createRequest(parentId, '新建请求', 'GET')
+        await sidebarRef.value?.refreshTree()
+      }
       break
     }
-    case 'new-request': {
-      // delegate to sidebar
+    case 'new-folder': {
+      const parentId = (node.type === 'folder' || node.type === 'root') ? node.id : 0
+      if (parentId) {
+        await collectionStore.createCollection(props.projectId, parentId, '新建文件夹')
+        await sidebarRef.value?.refreshTree()
+      }
       break
     }
   }
@@ -78,6 +95,33 @@ async function onTreeAction(action: string, node: TreeItem) {
 let tabCounter = 0
 function newTabId(): string {
   return 'tab-' + (++tabCounter) + '-' + Date.now()
+}
+
+async function onPreviewFromCollection(node: TreeItem) {
+  if (!workspaceRef.value) return
+  let request: models.Request | null = null
+  try {
+    request = await GetRequest(node.id)
+  } catch {
+    // ignore
+  }
+  const tab = {
+    id: newTabId(),
+    requestId: node.id,
+    method: request?.method || node.method || 'GET',
+    name: node.name || '',
+    url: request?.url || node.url || '',
+    pathVars: '[]',
+    isDirty: false,
+    isPreview: true,
+    headers: request?.headers || '[]',
+    params: request?.params || '[]',
+    bodyType: request?.body_type || 'none',
+    bodyData: request?.body || '{}',
+    authData: request?.auth || '{"type":"none"}',
+    collectionId: request?.collection_id || 0,
+  }
+  workspaceRef.value.previewTab(tab)
 }
 
 async function onOpenFromCollection(node: TreeItem) {
@@ -94,7 +138,9 @@ async function onOpenFromCollection(node: TreeItem) {
     method: request?.method || node.method || 'GET',
     name: node.name || '',
     url: request?.url || node.url || '',
+    pathVars: '[]',
     isDirty: false,
+    isPreview: false,
     headers: request?.headers || '[]',
     params: request?.params || '[]',
     bodyType: request?.body_type || 'none',
@@ -121,7 +167,9 @@ async function onHistoryReplay(item: any) {
     method: request?.method || item.method || 'GET',
     name: 'Replay: ' + (request?.name || item.url || ''),
     url: request?.url || item.url || '',
+    pathVars: '[]',
     isDirty: false,
+    isPreview: false,
     headers: request?.headers || item.request_headers || '[]',
     params: request?.params || '[]',
     bodyType: request?.body_type || 'none',

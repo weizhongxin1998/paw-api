@@ -74,3 +74,12 @@ func (r *ProjectRepository) Delete(id int64) error {
 	_, err := r.db.Exec("DELETE FROM projects WHERE id = ?", id)
 	return err
 }
+
+func (r *ProjectRepository) GetStats(projectID int64) (models.ProjectStats, error) {
+	var s models.ProjectStats
+	err := r.db.QueryRow(
+		"SELECT (SELECT COUNT(*) FROM requests WHERE collection_id IN (SELECT id FROM collections WHERE project_id = ?)), (SELECT COUNT(*) FROM collections WHERE project_id = ?)",
+		projectID, projectID,
+	).Scan(&s.RequestCount, &s.CollectionCount)
+	return s, err
+}

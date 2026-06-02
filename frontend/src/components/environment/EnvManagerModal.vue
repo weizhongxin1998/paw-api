@@ -42,6 +42,10 @@
             <span>变量</span>
             <n-button size="tiny" @click="addVariable">添加</n-button>
           </div>
+          <div class="base-url-section">
+            <label>前置 URL</label>
+            <n-input v-model:value="baseURL" size="small" placeholder="https://api.example.com" />
+          </div>
           <div class="var-table">
             <div class="var-row var-header">
               <span class="col-check"></span>
@@ -86,6 +90,7 @@ import {
   NInput,
   NCheckbox,
   NDropdown,
+  useMessage,
 } from 'naive-ui'
 import {
   ListEnvironments,
@@ -94,7 +99,9 @@ import {
   DeleteEnvironment,
   ListEnvVariables,
   SaveEnvVariables,
+  SaveEnvBaseURL,
 } from '../../../wailsjs/go/main/App'
+import { useEnvStore } from '../../stores/env'
 import type { Environment, EnvVariable } from '../../types/environment'
 
 interface Props {
@@ -115,6 +122,9 @@ const renamingId = ref<number | null>(null)
 const renameText = ref('')
 const variables = ref<EnvVariable[]>([])
 const saving = ref(false)
+const baseURL = ref('')
+const message = useMessage()
+const envStore = useEnvStore()
 
 watch(() => props.show, async (v) => {
   if (v) {
@@ -125,12 +135,13 @@ watch(() => props.show, async (v) => {
 async function loadEnvs() {
   if (!props.projectId) return
   try {
-    environments.value = await ListEnvironments(props.projectId)
-  } catch {}
+    environments.value = await ListEnvironments(props.projectId) || []
+  } catch { environments.value = [] }
 }
 
 async function selectEnv(env: Environment) {
   editingEnvId.value = env.id
+  baseURL.value = env.base_url || ''
   try {
     const vars = await ListEnvVariables(env.id)
     variables.value = vars.map(v => ({
@@ -148,7 +159,7 @@ async function addEnv() {
   if (!props.projectId) return
   const name = `环境 ${environments.value.length + 1}`
   try {
-    await CreateEnvironment(props.projectId, name, null)
+    await CreateEnvironment(props.projectId, name, '', null)
     await loadEnvs()
     emit('refresh')
   } catch {}
@@ -171,7 +182,7 @@ async function onEnvMenu(key: string, env: Environment) {
     case 'copy':
       if (!props.projectId) return
       try {
-        await CreateEnvironment(props.projectId, env.name + ' (副本)', env.id as any)
+        await CreateEnvironment(props.projectId, env.name + ' (副本)', env.base_url || '', env.id as any)
         await loadEnvs()
         emit('refresh')
       } catch {}
@@ -227,8 +238,13 @@ async function saveVariables() {
       sort_order: 0,
       created_at: '',
     } as any)))
-    await selectEnv({ id: editingEnvId.value } as Environment)
-  } catch {}
+    await SaveEnvBaseURL(editingEnvId.value, baseURL.value)
+    if (props.projectId) await envStore.loadEnvironments(props.projectId)
+    message.success('环境变量已保存')
+    await selectEnv({ id: editingEnvId.value, project_id: 0, name: '', base_url: baseURL.value, is_active: false, created_at: '', updated_at: '' })
+  } catch (e: any) {
+    message.error('保存失败: ' + (e?.message || String(e)))
+  }
   saving.value = false
 }
 </script>
@@ -259,6 +275,15 @@ async function saveVariables() {
   margin-bottom: 8px;
   font-weight: 600;
   font-size: 13px;
+}
+.base-url-section {
+  margin-bottom: 10px;
+}
+.base-url-section label {
+  display: block;
+  font-size: 11px;
+  color: #888;
+  margin-bottom: 4px;
 }
 .env-list {
   flex: 1;

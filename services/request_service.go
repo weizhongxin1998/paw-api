@@ -3,6 +3,8 @@ package services
 import (
 	"context"
 	"encoding/json"
+	"regexp"
+	"strings"
 
 	"paw-api/models"
 	"paw-api/pkg/httpclient"
@@ -13,6 +15,7 @@ import (
 type RequestService struct {
 	requestRepo *repositories.RequestRepository
 	historyRepo *repositories.HistoryRepository
+	envRepo     *repositories.EnvironmentRepository
 	sf          *snowflake.Generator
 	httpClient  *httpclient.Client
 }
@@ -20,12 +23,14 @@ type RequestService struct {
 func NewRequestService(
 	requestRepo *repositories.RequestRepository,
 	historyRepo *repositories.HistoryRepository,
+	envRepo *repositories.EnvironmentRepository,
 	sf *snowflake.Generator,
 	httpClient *httpclient.Client,
 ) *RequestService {
 	return &RequestService{
 		requestRepo: requestRepo,
 		historyRepo: historyRepo,
+		envRepo:     envRepo,
 		sf:          sf,
 		httpClient:  httpClient,
 	}
@@ -81,9 +86,23 @@ func (s *RequestService) Delete(id int64) error {
 }
 
 func (s *RequestService) Send(ctx context.Context, req *models.Request, envID int64) (*models.HTTPResponse, error) {
+	url := req.URL
+
+	if envID > 0 {
+		env, err := s.envRepo.GetByID(envID)
+		if err == nil && env.BaseURL != "" {
+			base := strings.TrimRight(env.BaseURL, "/")
+			if !strings.HasPrefix(url, "http://") && !strings.HasPrefix(url, "https://") {
+				url = base + "/" + strings.TrimLeft(url, "/")
+			}
+		}
+	}
+
+	url = resolveEnvVars(url)
+
 	headers := parseKvJSON(req.Headers)
 
-	resp, err := s.httpClient.Execute(ctx, req.Method, req.URL, headers, []byte(req.Body))
+	resp, err := s.httpClient.Execute(ctx, req.Method, url, headers, []byte(req.Body))
 	if err != nil {
 		return nil, err
 	}
@@ -101,7 +120,7 @@ func (s *RequestService) Send(ctx context.Context, req *models.Request, envID in
 	history := &models.History{
 		ProjectID:       0,
 		Method:          req.Method,
-		URL:             req.URL,
+		URL:             url,
 		RequestHeaders:  req.Headers,
 		RequestBody:     extractBodyContent(req.Body, req.BodyType),
 		ResponseStatus:  resp.Status,
@@ -171,4 +190,12 @@ func extractBodyContent(bodyJSON, bodyType string) string {
 func toJSON(v interface{}) string {
 	b, _ := json.Marshal(v)
 	return string(b)
+}
+
+var varRe = regexp.MustCompile(`\{\{(\w+)\}\}`)
+
+func resolveEnvVars(s string) string {
+	return varRe.ReplaceAllStringFunc(s, func(match string) string {
+		return match
+	})
 }

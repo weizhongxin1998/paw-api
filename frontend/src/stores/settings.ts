@@ -1,8 +1,26 @@
 import { defineStore } from 'pinia'
-import { ref } from 'vue'
+import { reactive } from 'vue'
+
+interface Settings {
+  timeout: number
+  followRedirects: boolean
+  maxRedirects: number
+  sslVerify: boolean
+  theme: string
+  accentColor: string
+  fontSize: number
+}
 
 export const useSettingsStore = defineStore('settings', () => {
-  const settings = ref<Record<string, any>>({})
+  const settings = reactive<Settings>({
+    timeout: 30,
+    followRedirects: true,
+    maxRedirects: 10,
+    sslVerify: true,
+    theme: 'light',
+    accentColor: 'green',
+    fontSize: 14,
+  })
 
   return { settings }
 })

@@ -2,6 +2,7 @@ export interface Environment {
   id: number
   project_id: number
   name: string
+  base_url: string
   is_active: boolean
   created_at: string
   updated_at: string

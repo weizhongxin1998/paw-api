@@ -19,7 +19,7 @@ func NewEnvironmentRepo(db *sql.DB, sf *snowflake.Generator) *EnvironmentReposit
 
 func (r *EnvironmentRepository) ListByProject(projectID int64) ([]models.Environment, error) {
 	rows, err := r.db.Query(
-		"SELECT id, project_id, name, is_active, created_at, updated_at FROM environments WHERE project_id = ? ORDER BY created_at ASC",
+		"SELECT id, project_id, name, base_url, is_active, created_at, updated_at FROM environments WHERE project_id = ? ORDER BY created_at ASC",
 		projectID,
 	)
 	if err != nil {
@@ -31,7 +31,7 @@ func (r *EnvironmentRepository) ListByProject(projectID int64) ([]models.Environ
 	for rows.Next() {
 		var e models.Environment
 		var isActive int
-		if err := rows.Scan(&e.ID, &e.ProjectID, &e.Name, &isActive, &e.CreatedAt, &e.UpdatedAt); err != nil {
+		if err := rows.Scan(&e.ID, &e.ProjectID, &e.Name, &e.BaseURL, &isActive, &e.CreatedAt, &e.UpdatedAt); err != nil {
 			return nil, err
 		}
 		e.IsActive = isActive == 1
@@ -44,8 +44,8 @@ func (r *EnvironmentRepository) GetByID(id int64) (*models.Environment, error) {
 	var e models.Environment
 	var isActive int
 	err := r.db.QueryRow(
-		"SELECT id, project_id, name, is_active, created_at, updated_at FROM environments WHERE id = ?", id,
-	).Scan(&e.ID, &e.ProjectID, &e.Name, &isActive, &e.CreatedAt, &e.UpdatedAt)
+		"SELECT id, project_id, name, base_url, is_active, created_at, updated_at FROM environments WHERE id = ?", id,
+	).Scan(&e.ID, &e.ProjectID, &e.Name, &e.BaseURL, &isActive, &e.CreatedAt, &e.UpdatedAt)
 	if err != nil {
 		return nil, err
 	}
@@ -65,8 +65,8 @@ func (r *EnvironmentRepository) Create(env *models.Environment) error {
 	}
 
 	_, err := r.db.Exec(
-		"INSERT INTO environments (id, project_id, name, is_active, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?)",
-		env.ID, env.ProjectID, env.Name, isActive, env.CreatedAt, env.UpdatedAt,
+		"INSERT INTO environments (id, project_id, name, base_url, is_active, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?)",
+		env.ID, env.ProjectID, env.Name, env.BaseURL, isActive, env.CreatedAt, env.UpdatedAt,
 	)
 	return err
 }
@@ -78,8 +78,8 @@ func (r *EnvironmentRepository) Update(env *models.Environment) error {
 		isActive = 1
 	}
 	_, err := r.db.Exec(
-		"UPDATE environments SET name = ?, is_active = ?, updated_at = ? WHERE id = ?",
-		env.Name, isActive, env.UpdatedAt, env.ID,
+		"UPDATE environments SET name = ?, base_url = ?, is_active = ?, updated_at = ? WHERE id = ?",
+		env.Name, env.BaseURL, isActive, env.UpdatedAt, env.ID,
 	)
 	return err
 }
@@ -110,12 +110,18 @@ func (r *EnvironmentRepository) GetActive(projectID int64) (*models.Environment,
 	var e models.Environment
 	var isActive int
 	err := r.db.QueryRow(
-		"SELECT id, project_id, name, is_active, created_at, updated_at FROM environments WHERE project_id = ? AND is_active = 1",
+		"SELECT id, project_id, name, base_url, is_active, created_at, updated_at FROM environments WHERE project_id = ? AND is_active = 1",
 		projectID,
-	).Scan(&e.ID, &e.ProjectID, &e.Name, &isActive, &e.CreatedAt, &e.UpdatedAt)
+	).Scan(&e.ID, &e.ProjectID, &e.Name, &e.BaseURL, &isActive, &e.CreatedAt, &e.UpdatedAt)
 	if err != nil {
 		return nil, err
 	}
 	e.IsActive = isActive == 1
 	return &e, nil
+}
+
+func (r *EnvironmentRepository) SaveBaseURL(id int64, baseURL string) error {
+	_, err := r.db.Exec("UPDATE environments SET base_url = ?, updated_at = ? WHERE id = ?",
+		baseURL, time.Now().UTC().Format(time.RFC3339), id)
+	return err
 }

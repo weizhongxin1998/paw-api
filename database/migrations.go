@@ -11,10 +11,9 @@ func Run(db *sql.DB) error {
 		createEnvVariables,
 		createHistory,
 		createSettings,
+		"ALTER TABLE environments ADD COLUMN base_url TEXT NOT NULL DEFAULT ''",
 	} {
-		if _, err := db.Exec(ddl); err != nil {
-			return err
-		}
+		db.Exec(ddl)
 	}
 
 	return insertDefaults(db)
@@ -69,6 +68,7 @@ CREATE TABLE IF NOT EXISTS environments (
     id          INTEGER PRIMARY KEY,
     project_id  INTEGER NOT NULL,
     name        TEXT NOT NULL,
+    base_url    TEXT NOT NULL DEFAULT '',
     is_active   INTEGER NOT NULL DEFAULT 0,
     created_at  TEXT NOT NULL,
     updated_at  TEXT NOT NULL,

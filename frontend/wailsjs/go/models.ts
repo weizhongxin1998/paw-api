@@ -70,6 +70,7 @@ export namespace models {
 	    id: number;
 	    project_id: number;
 	    name: string;
+	    base_url: string;
 	    is_active: boolean;
 	    created_at: string;
 	    updated_at: string;
@@ -83,6 +84,7 @@ export namespace models {
 	        this.id = source["id"];
 	        this.project_id = source["project_id"];
 	        this.name = source["name"];
+	        this.base_url = source["base_url"];
 	        this.is_active = source["is_active"];
 	        this.created_at = source["created_at"];
 	        this.updated_at = source["updated_at"];
@@ -186,6 +188,20 @@ export namespace models {
 	        this.description = source["description"];
 	        this.created_at = source["created_at"];
 	        this.updated_at = source["updated_at"];
+	    }
+	}
+	export class ProjectStats {
+	    request_count: number;
+	    collection_count: number;
+	
+	    static createFrom(source: any = {}) {
+	        return new ProjectStats(source);
+	    }
+	
+	    constructor(source: any = {}) {
+	        if ('string' === typeof source) source = JSON.parse(source);
+	        this.request_count = source["request_count"];
+	        this.collection_count = source["collection_count"];
 	    }
 	}
 	export class Request {

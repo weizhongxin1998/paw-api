@@ -109,10 +109,10 @@ function copyCurl() {
 
 <style scoped>
 .response-panel {
-  border-top: 1px solid #e0e0e0;
   display: flex;
   flex-direction: column;
-  flex-shrink: 0;
+  min-height: 100px;
+  background: #fff;
 }
 .status-bar {
   display: flex;
@@ -124,7 +124,7 @@ function copyCurl() {
 }
 .status-badge {
   font-weight: 700;
-  font-size: 12px;
+  font-size: 13px;
   padding: 2px 8px;
   border-radius: 4px;
 }
@@ -132,8 +132,8 @@ function copyCurl() {
 .status-badge.blue { background: #d0e8ff; color: #004085; }
 .status-badge.orange { background: #fff3cd; color: #856404; }
 .status-badge.red { background: #f8d7da; color: #721c24; }
-.meta { font-size: 11px; color: #999; }
-.placeholder { font-size: 11px; color: #aaa; }
+.meta { font-size: 12px; color: #999; }
+.placeholder { font-size: 12px; color: #aaa; }
 .sub-tabs {
   display: flex;
   border-bottom: 1px solid #eee;
@@ -142,7 +142,7 @@ function copyCurl() {
 }
 .sub-tabs button {
   padding: 6px 14px;
-  font-size: 12px;
+  font-size: 13px;
   cursor: pointer;
   color: #888;
   border: none;
@@ -158,7 +158,6 @@ function copyCurl() {
 .body-content {
   flex: 1;
   overflow-y: auto;
-  max-height: 200px;
   padding: 8px 12px;
 }
 .body-empty {
@@ -177,7 +176,7 @@ function copyCurl() {
   border: 1px solid #ddd;
   border-radius: 4px;
   background: #fff;
-  font-size: 11px;
+  font-size: 12px;
   cursor: pointer;
   color: #888;
   outline: none;
@@ -189,7 +188,7 @@ function copyCurl() {
 }
 .code-block {
   font-family: 'SF Mono', 'Consolas', monospace;
-  font-size: 12px;
+  font-size: 13px;
   line-height: 1.6;
   margin: 0;
   white-space: pre-wrap;
@@ -203,7 +202,7 @@ function copyCurl() {
 .kv-table {
   width: 100%;
   border-collapse: collapse;
-  font-size: 11px;
+  font-size: 12px;
 }
 .kv-table th, .kv-table td {
   text-align: left;

@@ -4,6 +4,7 @@ type Environment struct {
 	ID        int64  `json:"id"`
 	ProjectID int64  `json:"project_id"`
 	Name      string `json:"name"`
+	BaseURL   string `json:"base_url"`
 	IsActive  bool   `json:"is_active"`
 	CreatedAt string `json:"created_at"`
 	UpdatedAt string `json:"updated_at"`

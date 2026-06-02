@@ -141,7 +141,15 @@ function onSelectFile() {
 }
 .hint {
   color: #aaa;
-  font-size: 12px;
+  font-size: 13px;
+}
+.raw-input {
+  font-family: 'SF Mono', 'Consolas', monospace;
+  font-size: 13px;
+}
+.file-name {
+  color: #2080f0;
+  font-size: 13px;
 }
 .raw-editor {
   display: flex;

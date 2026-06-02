@@ -60,3 +60,7 @@ func (s *ProjectService) Update(id int64, name, description string) (*models.Pro
 func (s *ProjectService) Delete(id int64) error {
 	return s.repo.Delete(id)
 }
+
+func (s *ProjectService) GetStats(id int64) (models.ProjectStats, error) {
+	return s.repo.GetStats(id)
+}

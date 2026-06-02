@@ -17,16 +17,56 @@
     </div>
 
     <div class="sub-content">
-      <KeyValueTable
-        v-if="activeTab === 'params'"
-        :items="paramsItems"
-        @update:items="onParamsChange"
-      />
+      <div v-if="activeTab === 'params'" class="params-content">
+        <div class="params-section">
+          <div class="params-section-hdr">
+            <label class="section-toggle">
+              <input type="checkbox" v-model="queryParamsEnabled" />
+              <span>Query Params</span>
+            </label>
+          </div>
+          <KeyValueTable
+            v-if="queryParamsEnabled"
+            :items="paramsItems"
+            @update:items="onParamsChange"
+          />
+        </div>
+        <button class="add-param-btn" @click="addQueryParam">+ 添加参数</button>
+      </div>
+
+      <div v-else-if="activeTab === 'path'" class="params-content">
+        <div v-if="pathVariables.length > 0" class="params-section">
+          <div class="params-section-hdr">
+            <span class="section-label">Path Variables</span>
+            <span class="section-hint">(URL 中 :param 自动识别)</span>
+          </div>
+          <table class="kvt">
+            <thead>
+              <tr>
+                <th>Key</th>
+                <th>Value</th>
+                <th>Description</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr v-for="pv in pathVariables" :key="pv.key">
+                <td><input class="kvt-input readonly" :value="pv.key" readonly /></td>
+                <td><input class="kvt-input" v-model="pv.value" placeholder="值" @input="onPathVarChange" /></td>
+                <td><input class="kvt-input" v-model="pv.description" placeholder="描述" @input="onPathVarChange" /></td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+        <div v-else class="path-empty">
+          <span class="hint-text">URL 中未检测到路径参数，使用 <code>:param</code> 或 <code>{param}</code> 语法</span>
+        </div>
+      </div>
+
       <KeyValueTable
         v-else-if="activeTab === 'headers'"
         :items="headersItems"
         :show-bulk-edit="false"
-        :force-bulk="isBulkEdit"
+        :bulk-mode="isBulkEdit"
         @update:items="onHeadersChange"
       />
       <BodyEditor
@@ -46,11 +86,17 @@
 </template>
 
 <script setup lang="ts">
-import { ref, watch } from 'vue'
+import { ref, computed, watch } from 'vue'
 import KeyValueTable from '../shared/KeyValueTable.vue'
 import BodyEditor from './BodyEditor.vue'
 import AuthEditor from './AuthEditor.vue'
 import type { KvItem } from '../../types/request'
+
+interface PathVariable {
+  key: string
+  value: string
+  description: string
+}
 
 const props = defineProps<{
   headers: string
@@ -58,6 +104,8 @@ const props = defineProps<{
   bodyType: string
   bodyData: string
   authData: string
+  url: string
+  pathVars: string
 }>()
 
 const emit = defineEmits<{
@@ -66,10 +114,12 @@ const emit = defineEmits<{
   (e: 'update:bodyType', v: string): void
   (e: 'update:bodyData', v: string): void
   (e: 'update:authData', v: string): void
+  (e: 'update:pathVars', v: string): void
 }>()
 
 const tabs = [
   { key: 'params', label: 'Params', count: undefined as number | undefined },
+  { key: 'path', label: 'Path Vars', count: undefined as number | undefined },
   { key: 'headers', label: 'Headers', count: undefined as number | undefined },
   { key: 'body', label: 'Body' },
   { key: 'auth', label: 'Auth' },
@@ -77,6 +127,7 @@ const tabs = [
 
 const activeTab = ref('params')
 const isBulkEdit = ref(false)
+const queryParamsEnabled = ref(true)
 
 const bodyType = ref(props.bodyType)
 const bodyData = ref(props.bodyData)
@@ -84,8 +135,48 @@ const authData = ref(props.authData)
 
 const paramsItems = ref<KvItem[]>([])
 const headersItems = ref<KvItem[]>([])
+const pathVariables = ref<PathVariable[]>([])
 
 let iid = Date.now()
+
+const pathVarPatterns = computed(() => {
+  const url = props.url || ''
+  const patterns: string[] = []
+  const re = /:([a-zA-Z_]\w*)/g
+  let match: RegExpExecArray | null
+  while ((match = re.exec(url)) !== null) {
+    if (!patterns.includes(match[1])) patterns.push(match[1])
+  }
+  const re2 = /\{([a-zA-Z_]\w*)\}/g
+  while ((match = re2.exec(url)) !== null) {
+    if (!patterns.includes(match[1])) patterns.push(match[1])
+  }
+  return patterns
+})
+
+watch(pathVarPatterns, (patterns) => {
+  // Try to restore from stored pathVars prop
+  let stored: PathVariable[] = []
+  try { stored = JSON.parse(props.pathVars || '[]') } catch {}
+  const storedMap = new Map(stored.map(p => [p.key, p]))
+
+  const existing = new Map(pathVariables.value.map(p => [p.key, p]))
+  pathVariables.value = patterns.map(key => {
+    const s = storedMap.get(key)
+    const e = existing.get(key)
+    return { key, value: s?.value || e?.value || '', description: s?.description || e?.description || '' }
+  })
+  tabs[1].count = patterns.length > 0 ? patterns.length : undefined
+  syncPathVars()
+}, { immediate: true })
+
+function onPathVarChange() {
+  syncPathVars()
+}
+
+function syncPathVars() {
+  emit('update:pathVars', JSON.stringify(pathVariables.value))
+}
 
 function parseKv(raw: string): KvItem[] {
   try {
@@ -111,7 +202,7 @@ function sync() {
 
 function onHeadersChange(items: KvItem[]) {
   headersItems.value = items
-  tabs[1].count = items.filter(i => i.enabled && i.key).length
+  tabs[2].count = items.filter(i => i.enabled && i.key).length
   sync()
 }
 
@@ -119,6 +210,19 @@ function onParamsChange(items: KvItem[]) {
   paramsItems.value = items
   tabs[0].count = items.filter(i => i.enabled && i.key).length
   sync()
+}
+
+function addQueryParam() {
+  const item: KvItem = {
+    id: String(++iid),
+    key: '',
+    value: '',
+    description: '',
+    enabled: true,
+  }
+  const newItems = [...paramsItems.value, item]
+  paramsItems.value = newItems
+  onParamsChange(newItems)
 }
 </script>
 
@@ -137,7 +241,7 @@ function onParamsChange(items: KvItem[]) {
 }
 .sub-tabs button {
   padding: 7px 14px;
-  font-size: 12px;
+  font-size: 13px;
   cursor: pointer;
   color: #888;
   border: none;
@@ -167,5 +271,113 @@ function onParamsChange(items: KvItem[]) {
 .sub-content {
   flex: 1;
   overflow-y: auto;
+}
+.params-content {
+  padding: 8px;
+}
+.params-section {
+  margin-bottom: 12px;
+}
+.params-section-hdr {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 2px;
+}
+.section-toggle {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  color: #888;
+  font-weight: 600;
+  cursor: pointer;
+}
+.section-toggle input[type="checkbox"] {
+  accent-color: #18a058;
+}
+.section-label {
+  font-size: 12px;
+  color: #888;
+  font-weight: 600;
+}
+.section-hint {
+  font-size: 9px;
+  color: #aaa;
+}
+.kvt {
+  width: 100%;
+  border-collapse: collapse;
+}
+.kvt th {
+  text-align: left;
+  padding: 5px 10px;
+  font-size: 11px;
+  color: #999;
+  text-transform: uppercase;
+  border-bottom: 1px solid #eee;
+  font-weight: 500;
+  background: #fafafa;
+  letter-spacing: 0.3px;
+}
+.kvt td {
+  padding: 2px 10px;
+}
+.kvt-input {
+  width: 100%;
+  padding: 5px 6px;
+  border: 1px solid transparent;
+  font-family: 'SF Mono', 'Consolas', monospace;
+  font-size: 12px;
+  background: transparent;
+  border-radius: 5px;
+  outline: none;
+  transition: border-color .12s, background .12s;
+}
+.kvt-input:hover {
+  border-color: #e0e0e0;
+  background: #fafafa;
+}
+.kvt-input:focus {
+  border-color: #18a058;
+  background: #fff;
+  box-shadow: 0 0 0 2px rgba(24,160,88,0.08);
+}
+.kvt-input.readonly {
+  color: #999;
+  background: transparent;
+  cursor: default;
+}
+.kvt-input.readonly:hover {
+  border-color: transparent;
+  background: transparent;
+}
+.add-param-btn {
+  padding: 4px 10px;
+  color: #18a058;
+  cursor: pointer;
+  background: none;
+  border: none;
+  font-size: 11px;
+  margin-top: 4px;
+  transition: color .12s;
+}
+.add-param-btn:hover {
+  color: #0c7a43;
+}
+.path-empty {
+  padding: 24px;
+  text-align: center;
+}
+.hint-text {
+  font-size: 12px;
+  color: #aaa;
+}
+.hint-text code {
+  background: #f0f0f0;
+  padding: 1px 5px;
+  border-radius: 3px;
+  font-family: 'SF Mono', Consolas, monospace;
+  font-size: 11px;
 }
 </style>

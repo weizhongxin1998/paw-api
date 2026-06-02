@@ -8,8 +8,10 @@
       :key="node.id"
       :node="node"
       :depth="0"
+      @click="onClick"
       @dbl-click="onDblClick"
       @ctx-menu="onCtxMenu"
+      @action="onAction"
     />
   </div>
 </template>
@@ -27,18 +29,25 @@ const emit = defineEmits<{
   (e: 'open-request', node: TreeItem): void
   (e: 'dbl-click', node: TreeItem): void
   (e: 'ctx-menu', node: TreeItem, event: MouseEvent): void
+  (e: 'action', action: string, node: TreeItem): void
 }>()
 
-function onDblClick(node: TreeItem) {
+function onClick(node: TreeItem) {
   if (node.type === 'request') {
     emit('open-request', node)
-  } else {
-    emit('dbl-click', node)
   }
+}
+
+function onDblClick(node: TreeItem) {
+  emit('dbl-click', node)
 }
 
 function onCtxMenu(node: TreeItem, event: MouseEvent) {
   emit('ctx-menu', node, event)
+}
+
+function onAction(action: string, node: TreeItem) {
+  emit('action', action, node)
 }
 </script>
 
