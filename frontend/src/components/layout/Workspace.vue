@@ -4,11 +4,24 @@
     <div v-else class="workspace-editor">
       <div class="tabs-bar">
         <div v-if="tabs.length === 0" class="no-tabs">无打开 Tab</div>
-        <div v-for="tab in tabs" :key="tab.id" class="tab" :class="{ active: tab.id === activeTabId }" @click="activeTabId = tab.id">
+        <div
+          v-for="(tab, idx) in tabs"
+          :key="tab.id"
+          class="tab"
+          :class="{ active: tab.id === activeTabId, 'drag-over': dragOverId === tab.id }"
+          draggable="true"
+          @click="activeTabId = tab.id"
+          @contextmenu.prevent="onTabContextMenu($event, tab, idx)"
+          @dragstart="onDragStart($event, idx)"
+          @dragover.prevent="onDragOver($event, tab.id)"
+          @dragleave="onDragLeave(tab.id)"
+          @drop="onDrop($event, idx)"
+          @dragend="onDragEnd"
+        >
           <span class="tab-method" :class="tab.method?.toLowerCase()">{{ tab.method }}</span>
           <span class="tab-name">{{ tab.name }}</span>
           <span v-if="tab.isDirty" class="tab-dirty"></span>
-          <span class="tab-close" @click.stop="closeTab(tab.id)">x</span>
+          <span class="tab-close" @click.stop="onCloseTab(tab)">x</span>
         </div>
       </div>
 
@@ -35,16 +48,28 @@
 
       <ResponsePanel :response="response" />
     </div>
+
+    <n-dropdown
+      placement="bottom-start"
+      trigger="manual"
+      :x="ctxMenuX"
+      :y="ctxMenuY"
+      :options="ctxMenuOptions"
+      :show="ctxMenuShow"
+      :on-clickoutside="onCtxMenuClose"
+      @select="onCtxMenuSelect"
+    />
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue'
-import { NEmpty } from 'naive-ui'
+import { ref, computed } from 'vue'
+import { NEmpty, NDropdown, NDialog } from 'naive-ui'
 import UrlBar from '../request/UrlBar.vue'
 import RequestPanel from '../request/RequestPanel.vue'
 import ResponsePanel from '../response/ResponsePanel.vue'
 import type { HttpResponse } from '../../types/response'
+import type { DropdownOption } from 'naive-ui'
 
 interface Tab {
   id: string
@@ -104,13 +129,199 @@ function onSend() {
   }
 }
 
-function closeTab(id: string) {
-  tabs.value = tabs.value.filter(t => t.id !== id)
-  if (activeTabId.value === id) {
-    activeTabId.value = tabs.value.length > 0 ? tabs.value[0].id : null
-    activeTab.value = tabs.value.length > 0 ? tabs.value[0] : null
+// ---- Tab management ----
+
+function selectTab(id: string) {
+  activeTabId.value = id
+  activeTab.value = tabs.value.find(t => t.id === id) || null
+  if (activeTab.value) {
+    currentMethod.value = activeTab.value.method
+    currentUrl.value = activeTab.value.url
+    currentHeaders.value = activeTab.value.headers
+    currentParams.value = activeTab.value.params
+    currentBodyType.value = activeTab.value.bodyType
+    currentBodyData.value = activeTab.value.bodyData
+    currentAuthData.value = activeTab.value.authData
   }
 }
+
+function onCloseTab(tab: Tab) {
+  if (tab.isDirty) {
+    showCloseConfirm(() => closeTab(tab.id))
+  } else {
+    closeTab(tab.id)
+  }
+}
+
+function closeTab(id: string) {
+  const idx = tabs.value.findIndex(t => t.id === id)
+  tabs.value = tabs.value.filter(t => t.id !== id)
+  if (activeTabId.value === id) {
+    if (tabs.value.length > 0) {
+      const nextIdx = Math.min(idx, tabs.value.length - 1)
+      selectTab(tabs.value[nextIdx].id)
+    } else {
+      activeTabId.value = null
+      activeTab.value = null
+    }
+  }
+}
+
+function closeOthers(tabId: string) {
+  const dirtyOthers = tabs.value.some(t => t.id !== tabId && t.isDirty)
+  if (dirtyOthers) {
+    showCloseConfirm(() => {
+      tabs.value = tabs.value.filter(t => t.id === tabId)
+      selectTab(tabId)
+    })
+  } else {
+    tabs.value = tabs.value.filter(t => t.id === tabId)
+    selectTab(tabId)
+  }
+}
+
+function closeRight(idx: number) {
+  const dirtyRight = tabs.value.slice(idx + 1).some(t => t.isDirty)
+  if (dirtyRight) {
+    showCloseConfirm(() => {
+      tabs.value = tabs.value.slice(0, idx + 1)
+      if (activeTabId.value && !tabs.value.find(t => t.id === activeTabId.value)) {
+        selectTab(tabs.value[tabs.value.length - 1].id)
+      }
+    })
+  } else {
+    tabs.value = tabs.value.slice(0, idx + 1)
+    if (activeTabId.value && !tabs.value.find(t => t.id === activeTabId.value)) {
+      selectTab(tabs.value[tabs.value.length - 1].id)
+    }
+  }
+}
+
+function closeAll() {
+  const dirtyAny = tabs.value.some(t => t.isDirty)
+  if (dirtyAny) {
+    showCloseConfirm(() => {
+      tabs.value = []
+      activeTabId.value = null
+      activeTab.value = null
+    })
+  } else {
+    tabs.value = []
+    activeTabId.value = null
+    activeTab.value = null
+  }
+}
+
+// ---- Close confirmation ----
+
+function showCloseConfirm(onOk: () => void) {
+  const dialog = (NDialog as any).warning ?? (NDialog as any).create
+  if (typeof dialog !== 'function') {
+    onOk()
+    return
+  }
+  dialog({
+    title: '确认关闭',
+    content: '未保存的修改将丢失，确定关闭？',
+    positiveText: '确定',
+    negativeText: '取消',
+    onPositiveClick: () => { onOk() },
+  })
+}
+
+// ---- Context menu ----
+
+const ctxMenuShow = ref(false)
+const ctxMenuX = ref(0)
+const ctxMenuY = ref(0)
+const ctxMenuTarget = ref<{ tab: Tab; idx: number } | null>(null)
+
+const ctxMenuOptions = computed<DropdownOption[]>(() => [
+  { label: '关闭', key: 'close' },
+  { label: '关闭其他', key: 'close-others' },
+  { label: '关闭右侧', key: 'close-right' },
+  { label: '关闭全部', key: 'close-all' },
+])
+
+function onTabContextMenu(e: MouseEvent, tab: Tab, idx: number) {
+  ctxMenuTarget.value = { tab, idx }
+  ctxMenuX.value = e.clientX
+  ctxMenuY.value = e.clientY
+  ctxMenuShow.value = true
+}
+
+function onCtxMenuClose() {
+  ctxMenuShow.value = false
+  ctxMenuTarget.value = null
+}
+
+function onCtxMenuSelect(key: string) {
+  const t = ctxMenuTarget.value
+  if (!t) return
+  switch (key) {
+    case 'close': onCloseTab(t.tab); break
+    case 'close-others': closeOthers(t.tab.id); break
+    case 'close-right': closeRight(t.idx); break
+    case 'close-all': closeAll(); break
+  }
+  ctxMenuShow.value = false
+  ctxMenuTarget.value = null
+}
+
+// ---- Drag and drop ----
+
+const dragIdx = ref<number | null>(null)
+const dragOverId = ref<string | null>(null)
+
+function onDragStart(e: DragEvent, idx: number) {
+  dragIdx.value = idx
+  if (e.dataTransfer) {
+    e.dataTransfer.effectAllowed = 'move'
+    e.dataTransfer.setData('text/plain', String(idx))
+  }
+}
+
+function onDragOver(_e: DragEvent, tabId: string) {
+  dragOverId.value = tabId
+}
+
+function onDragLeave(tabId: string) {
+  if (dragOverId.value === tabId) {
+    dragOverId.value = null
+  }
+}
+
+function onDrop(_e: DragEvent, targetIdx: number) {
+  dragOverId.value = null
+  if (dragIdx.value == null || dragIdx.value === targetIdx) {
+    dragIdx.value = null
+    return
+  }
+  const arr = [...tabs.value]
+  const [moved] = arr.splice(dragIdx.value, 1)
+  arr.splice(targetIdx, 0, moved)
+  tabs.value = arr
+  dragIdx.value = null
+}
+
+function onDragEnd() {
+  dragIdx.value = null
+  dragOverId.value = null
+}
+
+// ---- Expose for other components ----
+
+function openTab(tab: Tab) {
+  const existing = tabs.value.find(t => t.id === tab.id)
+  if (existing) {
+    selectTab(existing.id)
+    return
+  }
+  tabs.value.push(tab)
+  selectTab(tab.id)
+}
+
+defineExpose({ openTab, tabs, activeTabId, selectTab })
 </script>
 
 <style scoped>
@@ -160,10 +371,21 @@ function closeTab(id: string) {
   align-items: center;
   gap: 5px;
   white-space: nowrap;
+  user-select: none;
 }
 .tab.active {
   background: #fff;
   border-bottom: 2px solid #18a058;
+}
+.tab.drag-over {
+  background: #d0e8ff;
+  border-color: #18a058;
+}
+.tab:hover {
+  background: #d9d9d9;
+}
+.tab.active:hover {
+  background: #fff;
 }
 .tab-method {
   font-size: 9px;

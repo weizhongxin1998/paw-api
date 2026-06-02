@@ -1,14 +1,31 @@
 <template>
   <div class="sidebar">
     <div class="sidebar-tabs">
-      <n-button type="primary" size="small" block>Collections</n-button>
+      <n-button
+        :type="activePanel === 'collection' ? 'primary' : 'default'"
+        size="small"
+        @click="activePanel = 'collection'"
+      >Collections</n-button>
+      <n-button
+        :type="activePanel === 'history' ? 'primary' : 'default'"
+        size="small"
+        @click="activePanel = 'history'"
+      >History</n-button>
     </div>
+
     <CollectionTree
+      v-if="activePanel === 'collection'"
       :tree="tree"
       @open-request="onOpenRequest"
       @ctx-menu="onContextMenu"
     />
-    <div class="sidebar-footer">
+    <HistoryPanel
+      v-else
+      @open-tab="onHistoryReplay"
+      ref="historyPanelRef"
+    />
+
+    <div v-if="activePanel === 'collection'" class="sidebar-footer">
       <n-button text size="tiny" @click="onNewCollection">+ 新建集合</n-button>
     </div>
   </div>
@@ -18,12 +35,20 @@
 import { ref } from 'vue'
 import { NButton } from 'naive-ui'
 import CollectionTree from '../collection/CollectionTree.vue'
+import HistoryPanel from '../history/HistoryPanel.vue'
 import type { TreeItem } from '../../types/collection'
 
+const activePanel = ref<'collection' | 'history'>('collection')
 const tree = ref<TreeItem[]>([])
+const historyPanelRef = ref<InstanceType<typeof HistoryPanel> | null>(null)
+
+const emit = defineEmits<{
+  (e: 'open-request', node: TreeItem): void
+  (e: 'history-replay', item: any): void
+}>()
 
 function onOpenRequest(node: TreeItem) {
-  // TODO: open tab
+  emit('open-request', node)
 }
 
 function onContextMenu(node: TreeItem, event: MouseEvent) {
@@ -32,6 +57,10 @@ function onContextMenu(node: TreeItem, event: MouseEvent) {
 
 function onNewCollection() {
   // TODO: create collection
+}
+
+function onHistoryReplay(item: any) {
+  emit('history-replay', item)
 }
 </script>
 
@@ -47,6 +76,8 @@ function onNewCollection() {
 .sidebar-tabs {
   padding: 8px;
   border-bottom: 1px solid #e8e8e8;
+  display: flex;
+  gap: 4px;
 }
 .sidebar-footer {
   padding: 6px 10px;
