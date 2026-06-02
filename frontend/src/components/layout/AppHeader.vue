@@ -4,12 +4,9 @@
       <n-button text class="project-btn">
         {{ projectName || '未选择项目' }}
       </n-button>
-      <n-select
-        v-model:value="activeEnv"
-        :options="envOptions"
-        size="small"
-        placeholder="环境"
-        style="width: 140px"
+      <EnvSelector
+        :project-id="projectId"
+        @update:active-env-id="onActiveEnvChange"
       />
     </div>
     <div class="header-right">
@@ -21,11 +18,17 @@
 
 <script setup lang="ts">
 import { ref } from 'vue'
-import { NButton, NSelect } from 'naive-ui'
+import { NButton } from 'naive-ui'
+import { useEnvStore } from '../../stores/env'
+import EnvSelector from '../environment/EnvSelector.vue'
 
 const projectName = ref('')
-const activeEnv = ref<string | null>(null)
-const envOptions = ref<{ label: string; value: string }[]>([])
+const projectId = ref<number | null>(null)
+const envStore = useEnvStore()
+
+function onActiveEnvChange(id: number | null) {
+  envStore.activeEnvId = id
+}
 </script>
 
 <style scoped>

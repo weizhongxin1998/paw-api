@@ -110,6 +110,14 @@ export function RenameEnvironment(arg1, arg2) {
   return window['go']['main']['App']['RenameEnvironment'](arg1, arg2);
 }
 
+export function ResolveVariable(arg1, arg2) {
+  return window['go']['main']['App']['ResolveVariable'](arg1, arg2);
+}
+
+export function ResolveVariableMap(arg1, arg2) {
+  return window['go']['main']['App']['ResolveVariableMap'](arg1, arg2);
+}
+
 export function SaveEnvVariables(arg1, arg2) {
   return window['go']['main']['App']['SaveEnvVariables'](arg1, arg2);
 }

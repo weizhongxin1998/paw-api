@@ -27,6 +27,7 @@ type App struct {
 	settingsH    *handlers.SettingsHandler
 	importH      *handlers.ImportHandler
 	exportH      *handlers.ExportHandler
+	variableH    *handlers.VariableHandler
 }
 
 func NewApp() *App {
@@ -68,6 +69,8 @@ func (a *App) startup(ctx context.Context) {
 	importSvc := services.NewImportService(projectRepo, collectionRepo, requestRepo, a.snowflake)
 	exportSvc := services.NewExportService(projectRepo, collectionRepo, requestRepo, a.snowflake)
 
+	variableSvc := services.NewVariableService(varRepo)
+
 	a.settingsH = handlers.NewSettingsHandler(settingsSvc)
 	a.historyH = handlers.NewHistoryHandler(historySvc)
 	a.environmentH = handlers.NewEnvironmentHandler(envSvc)
@@ -76,6 +79,7 @@ func (a *App) startup(ctx context.Context) {
 	a.projectH = handlers.NewProjectHandler(projectSvc)
 	a.importH = handlers.NewImportHandler(importSvc)
 	a.exportH = handlers.NewExportHandler(exportSvc)
+	a.variableH = handlers.NewVariableHandler(variableSvc)
 
 	// Load settings into http client
 	settings, err := settingsSvc.GetAll()
@@ -234,4 +238,14 @@ func (a *App) ImportPostman(projectID int64, filePath string) (*services.ImportR
 
 func (a *App) ExportPostman(projectID int64) (string, error) {
 	return a.exportH.ExportPostman(projectID)
+}
+
+// ========== Variable Handlers ==========
+
+func (a *App) ResolveVariable(text string, envID int64) (string, error) {
+	return a.variableH.Resolve(text, envID)
+}
+
+func (a *App) ResolveVariableMap(m map[string]string, envID int64) (map[string]string, error) {
+	return a.variableH.ResolveMap(m, envID)
 }

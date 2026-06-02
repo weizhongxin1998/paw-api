@@ -3,7 +3,8 @@ export interface Environment {
   project_id: number
   name: string
   is_active: boolean
-  variables: EnvVariable[]
+  created_at: string
+  updated_at: string
 }
 
 export interface EnvVariable {

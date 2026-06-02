@@ -57,6 +57,10 @@ export function RenameCollection(arg1:number,arg2:string):Promise<void>;
 
 export function RenameEnvironment(arg1:number,arg2:string):Promise<void>;
 
+export function ResolveVariable(arg1:string,arg2:number):Promise<string>;
+
+export function ResolveVariableMap(arg1:Record<string, string>,arg2:number):Promise<Record<string, string>>;
+
 export function SaveEnvVariables(arg1:number,arg2:Array<models.EnvVariable>):Promise<void>;
 
 export function SearchHistory(arg1:number,arg2:string,arg3:string,arg4:number,arg5:number,arg6:number,arg7:number):Promise<Array<models.History>>;
