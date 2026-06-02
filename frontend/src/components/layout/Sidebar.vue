@@ -1,33 +1,38 @@
 <template>
   <div class="sidebar">
     <div class="sidebar-tabs">
-      <n-button
-        :type="activeTab === 'collections' ? 'primary' : 'default'"
-        size="small"
-        @click="activeTab = 'collections'"
-      >
-        Collections
-      </n-button>
-      <n-button
-        :type="activeTab === 'history' ? 'primary' : 'default'"
-        size="small"
-        @click="activeTab = 'history'"
-      >
-        History
-      </n-button>
+      <n-button type="primary" size="small" block>Collections</n-button>
     </div>
-    <div class="sidebar-content">
-      <n-empty v-if="activeTab === 'collections'" description="暂无集合" />
-      <n-empty v-else description="暂无历史记录" />
+    <CollectionTree
+      :tree="tree"
+      @open-request="onOpenRequest"
+      @ctx-menu="onContextMenu"
+    />
+    <div class="sidebar-footer">
+      <n-button text size="tiny" @click="onNewCollection">+ 新建集合</n-button>
     </div>
   </div>
 </template>
 
 <script setup lang="ts">
 import { ref } from 'vue'
-import { NButton, NEmpty } from 'naive-ui'
+import { NButton } from 'naive-ui'
+import CollectionTree from '../collection/CollectionTree.vue'
+import type { TreeItem } from '../../types/collection'
 
-const activeTab = ref('collections')
+const tree = ref<TreeItem[]>([])
+
+function onOpenRequest(node: TreeItem) {
+  // TODO: open tab
+}
+
+function onContextMenu(node: TreeItem, event: MouseEvent) {
+  // TODO: show context menu
+}
+
+function onNewCollection() {
+  // TODO: create collection
+}
 </script>
 
 <style scoped>
@@ -40,19 +45,11 @@ const activeTab = ref('collections')
   flex-shrink: 0;
 }
 .sidebar-tabs {
-  display: flex;
   padding: 8px;
-  gap: 4px;
   border-bottom: 1px solid #e8e8e8;
 }
-.sidebar-tabs .n-button {
-  flex: 1;
-}
-.sidebar-content {
-  flex: 1;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 16px;
+.sidebar-footer {
+  padding: 6px 10px;
+  border-top: 1px solid #e8e8e8;
 }
 </style>
