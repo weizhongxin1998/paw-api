@@ -25,12 +25,15 @@ defineProps<{
 
 const emit = defineEmits<{
   (e: 'open-request', node: TreeItem): void
+  (e: 'dbl-click', node: TreeItem): void
   (e: 'ctx-menu', node: TreeItem, event: MouseEvent): void
 }>()
 
 function onDblClick(node: TreeItem) {
   if (node.type === 'request') {
     emit('open-request', node)
+  } else {
+    emit('dbl-click', node)
   }
 }
 

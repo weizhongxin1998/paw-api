@@ -1,12 +1,13 @@
 <template>
   <div class="body">
     <Sidebar
+      :project-id="projectId"
       @open-request="onOpenFromCollection"
       @history-replay="onHistoryReplay"
       @panel-change="onPanelChange"
       @open-docs="docsModalShow = true"
     />
-    <Workspace ref="workspaceRef" />
+    <Workspace ref="workspaceRef" :project-id="projectId" />
     <DocsPreviewModal
       v-model:show="docsModalShow"
       :project-id="currentProjectId"
@@ -15,7 +16,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue'
+import { ref, computed } from 'vue'
 import Sidebar from './Sidebar.vue'
 import Workspace from './Workspace.vue'
 import DocsPreviewModal from '../modals/DocsPreviewModal.vue'
@@ -23,9 +24,13 @@ import { GetRequest } from '../../../wailsjs/go/main/App'
 import { models } from '../../../wailsjs/go/models'
 import type { TreeItem } from '../../types/collection'
 
+const props = defineProps<{
+  projectId: number | null
+}>()
+
 const workspaceRef = ref<InstanceType<typeof Workspace> | null>(null)
 const docsModalShow = ref(false)
-const currentProjectId = ref<number | null>(null)
+const currentProjectId = computed(() => props.projectId)
 
 function onPanelChange(_: string) {}
 
@@ -54,6 +59,7 @@ async function onOpenFromCollection(node: TreeItem) {
     bodyType: request?.body_type || 'none',
     bodyData: request?.body || '{}',
     authData: request?.auth || '{"type":"none"}',
+    collectionId: request?.collection_id || 0,
   }
   workspaceRef.value.openTab(tab)
 }
@@ -80,6 +86,7 @@ async function onHistoryReplay(item: any) {
     bodyType: request?.body_type || 'none',
     bodyData: request?.body || item.request_body || '{}',
     authData: request?.auth || '{"type":"none"}',
+    collectionId: request?.collection_id || 0,
   }
   workspaceRef.value.openTab(tab)
 }

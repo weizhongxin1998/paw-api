@@ -1,5 +1,5 @@
 <template>
-  <div class="workspace">
+  <div class="workspace" @keydown="onGlobalKeydown" tabindex="0">
     <n-empty v-if="!activeTab" description="点击左侧集合中的请求开始调试" class="empty-state" />
     <div v-else class="workspace-editor">
       <div class="tabs-bar">
@@ -8,9 +8,9 @@
           v-for="(tab, idx) in tabs"
           :key="tab.id"
           class="tab"
-          :class="{ active: tab.id === activeTabId, 'drag-over': dragOverId === tab.id }"
+          :class="{ active: tab.id === activeTabId, 'drag-over': dragOverId === tab.id, dirty: tab.isDirty }"
           draggable="true"
-          @click="activeTabId = tab.id"
+          @click="selectTab(tab.id)"
           @contextmenu.prevent="onTabContextMenu($event, tab, idx)"
           @dragstart="onDragStart($event, idx)"
           @dragover.prevent="onDragOver($event, tab.id)"
@@ -63,13 +63,16 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed } from 'vue'
-import { NEmpty, NDropdown, NDialog } from 'naive-ui'
+import { ref, computed, watch } from 'vue'
+import { NEmpty, NDropdown, NDialog, useMessage } from 'naive-ui'
 import UrlBar from '../request/UrlBar.vue'
 import RequestPanel from '../request/RequestPanel.vue'
 import ResponsePanel from '../response/ResponsePanel.vue'
 import type { HttpResponse } from '../../types/response'
 import type { DropdownOption } from 'naive-ui'
+import { SendRequest, UpdateRequest } from '../../../wailsjs/go/main/App'
+import { models } from '../../../wailsjs/go/models'
+import { useEnvStore } from '../../stores/env'
 
 interface Tab {
   id: string
@@ -83,12 +86,21 @@ interface Tab {
   bodyType: string
   bodyData: string
   authData: string
+  collectionId: number
 }
+
+const props = defineProps<{
+  projectId: number | null
+}>()
+
+const envStore = useEnvStore()
+const message = useMessage()
 
 const activeTab = ref<Tab | null>(null)
 const activeTabId = ref<string | null>(null)
 const tabs = ref<Tab[]>([])
 const response = ref<HttpResponse | null>(null)
+const isSending = ref(false)
 
 const currentMethod = ref('GET')
 const currentUrl = ref('')
@@ -100,32 +112,125 @@ const currentAuthData = ref('{"type":"none"}')
 
 let sessionCounter = 0
 
+function markDirty() {
+  if (activeTab.value) {
+    activeTab.value.isDirty = true
+  }
+}
+
 function onMethodChange(v: string) {
   currentMethod.value = v
-  if (activeTab.value) { activeTab.value.method = v; activeTab.value.isDirty = true }
+  if (activeTab.value) { activeTab.value.method = v; markDirty() }
 }
 
 function onUrlChange(v: string) {
   currentUrl.value = v
-  if (activeTab.value) { activeTab.value.url = v; activeTab.value.isDirty = true }
+  if (activeTab.value) { activeTab.value.url = v; markDirty() }
 }
 
-function onHeadersChange(v: string) { currentHeaders.value = v }
-function onParamsChange(v: string) { currentParams.value = v }
-function onBodyTypeChange(v: string) { currentBodyType.value = v }
-function onBodyDataChange(v: string) { currentBodyData.value = v }
-function onAuthDataChange(v: string) { currentAuthData.value = v }
+function onHeadersChange(v: string) {
+  currentHeaders.value = v
+  if (activeTab.value) { activeTab.value.headers = v; markDirty() }
+}
 
-function onSend() {
-  response.value = {
-    status: 200,
-    time: 0,
-    size: 0,
-    headers: {},
-    cookies: [],
-    body: '',
-    rawRequest: '',
-    curlCommand: '',
+function onParamsChange(v: string) {
+  currentParams.value = v
+  if (activeTab.value) { activeTab.value.params = v; markDirty() }
+}
+
+function onBodyTypeChange(v: string) {
+  currentBodyType.value = v
+  if (activeTab.value) { activeTab.value.bodyType = v; markDirty() }
+}
+
+function onBodyDataChange(v: string) {
+  currentBodyData.value = v
+  if (activeTab.value) { activeTab.value.bodyData = v; markDirty() }
+}
+
+function onAuthDataChange(v: string) {
+  currentAuthData.value = v
+  if (activeTab.value) { activeTab.value.authData = v; markDirty() }
+}
+
+function buildRequest(): models.Request {
+  const t = activeTab.value
+  return models.Request.createFrom({
+    id: t?.requestId || 0,
+    collection_id: t?.collectionId || 0,
+    name: t?.name || '',
+    description: '',
+    method: currentMethod.value,
+    url: currentUrl.value,
+    headers: currentHeaders.value,
+    params: currentParams.value,
+    body_type: currentBodyType.value,
+    body: currentBodyData.value,
+    auth: currentAuthData.value,
+    sort_order: 0,
+  })
+}
+
+async function onSend() {
+  if (!activeTab.value) return
+  isSending.value = true
+  const sessionId = ++sessionCounter
+  const req = buildRequest()
+  const envId = envStore.activeEnvId ?? 0
+  try {
+    const resp = await SendRequest(sessionId, req, envId)
+    response.value = {
+      status: resp.status,
+      time: resp.time,
+      size: resp.size,
+      headers: resp.headers || {},
+      cookies: (resp.cookies || []).map((c: any) => ({
+        name: c.name || '',
+        value: c.value || '',
+        domain: c.domain || '',
+        path: c.path || '',
+      })),
+      body: resp.body || '',
+      rawRequest: resp.raw_request || '',
+      curlCommand: resp.curl_command || '',
+    }
+  } catch (e: any) {
+    response.value = {
+      status: 0,
+      time: 0,
+      size: 0,
+      headers: {},
+      cookies: [],
+      body: e?.message || String(e),
+      rawRequest: '',
+      curlCommand: '',
+    }
+  } finally {
+    isSending.value = false
+  }
+}
+
+function onGlobalKeydown(e: KeyboardEvent) {
+  if ((e.ctrlKey || e.metaKey) && e.key === 's') {
+    e.preventDefault()
+    onSaveRequest()
+  }
+}
+
+async function onSaveRequest() {
+  if (!activeTab.value || !activeTab.value.requestId) {
+    message.warning('无法保存：请求数据不完整')
+    return
+  }
+  const req = buildRequest()
+  try {
+    await UpdateRequest(req)
+    if (activeTab.value) {
+      activeTab.value.isDirty = false
+    }
+    message.success('已保存')
+  } catch (e: any) {
+    message.error('保存失败: ' + (e?.message || String(e)))
   }
 }
 
@@ -142,6 +247,7 @@ function selectTab(id: string) {
     currentBodyType.value = activeTab.value.bodyType
     currentBodyData.value = activeTab.value.bodyData
     currentAuthData.value = activeTab.value.authData
+    response.value = null
   }
 }
 
@@ -332,6 +438,7 @@ defineExpose({ openTab, tabs, activeTabId, selectTab })
   justify-content: center;
   background: #fff;
   min-width: 0;
+  outline: none;
 }
 .empty-state {
   flex: 1;
@@ -376,6 +483,9 @@ defineExpose({ openTab, tabs, activeTabId, selectTab })
 .tab.active {
   background: #fff;
   border-bottom: 2px solid #18a058;
+}
+.tab.dirty {
+  font-style: italic;
 }
 .tab.drag-over {
   background: #d0e8ff;

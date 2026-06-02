@@ -7,14 +7,13 @@
 
     <CollectionTree
       v-if="activePanel === 'collection'"
-      :tree="tree"
+      :tree="collectionStore.tree"
       @open-request="onOpenRequest"
-      @ctx-menu="onContextMenu"
+      @dbl-click="onCollectionDblClick"
     />
     <HistoryPanel
       v-else-if="activePanel === 'history'"
       @open-tab="onHistoryReplay"
-      ref="historyPanelRef"
     />
 
     <div v-if="activePanel === 'collection'" class="sidebar-footer">
@@ -29,11 +28,17 @@ import { ref, watch } from 'vue'
 import CollectionTree from '../collection/CollectionTree.vue'
 import HistoryPanel from '../history/HistoryPanel.vue'
 import type { TreeItem } from '../../types/collection'
+import { useCollectionStore } from '../../stores/collection'
+import { useProjectStore } from '../../stores/project'
+
+const props = defineProps<{
+  projectId: number | null
+}>()
+
+const collectionStore = useCollectionStore()
+const projectStore = useProjectStore()
 
 const activePanel = ref<'collection' | 'history'>('collection')
-const tree = ref<TreeItem[]>([])
-const historyPanelRef = ref<InstanceType<typeof HistoryPanel> | null>(null)
-
 const emit = defineEmits<{
   (e: 'open-request', node: TreeItem): void
   (e: 'history-replay', item: any): void
@@ -50,9 +55,20 @@ function onOpenRequest(node: TreeItem) {
   emit('open-request', node)
 }
 
-function onContextMenu(_: TreeItem, _ev: MouseEvent) {}
+async function onCollectionDblClick(node: TreeItem) {
+  if (node.type === 'folder' && projectStore.currentId) {
+    const name = prompt('输入子集合名称:')
+    if (!name) return
+    await collectionStore.createCollection(projectStore.currentId, node.id, name)
+  }
+}
 
-function onNewCollection() {}
+async function onNewCollection() {
+  if (!projectStore.currentId) return
+  const name = prompt('输入集合名称:')
+  if (!name) return
+  await collectionStore.createCollection(projectStore.currentId, null, name)
+}
 
 function onHistoryReplay(item: any) {
   emit('history-replay', item)
@@ -61,6 +77,10 @@ function onHistoryReplay(item: any) {
 function onOpenDocs() {
   emit('open-docs')
 }
+
+watch(() => props.projectId, (pid) => {
+  collectionStore.loadTree(pid)
+})
 </script>
 
 <style scoped>
