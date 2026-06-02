@@ -74,6 +74,10 @@ export function GetSetting(arg1) {
   return window['go']['main']['App']['GetSetting'](arg1);
 }
 
+export function ImportPostman(arg1, arg2) {
+  return window['go']['main']['App']['ImportPostman'](arg1, arg2);
+}
+
 export function ListEnvVariables(arg1) {
   return window['go']['main']['App']['ListEnvVariables'](arg1);
 }

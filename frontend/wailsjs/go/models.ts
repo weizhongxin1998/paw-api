@@ -271,3 +271,22 @@ export namespace models {
 
 }
 
+export namespace services {
+	
+	export class ImportResult {
+	    collections: number;
+	    requests: number;
+	
+	    static createFrom(source: any = {}) {
+	        return new ImportResult(source);
+	    }
+	
+	    constructor(source: any = {}) {
+	        if ('string' === typeof source) source = JSON.parse(source);
+	        this.collections = source["collections"];
+	        this.requests = source["requests"];
+	    }
+	}
+
+}
+

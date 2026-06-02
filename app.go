@@ -25,6 +25,7 @@ type App struct {
 	environmentH *handlers.EnvironmentHandler
 	historyH     *handlers.HistoryHandler
 	settingsH    *handlers.SettingsHandler
+	importH      *handlers.ImportHandler
 }
 
 func NewApp() *App {
@@ -63,12 +64,15 @@ func (a *App) startup(ctx context.Context) {
 	_ = projectSvc
 	_ = collectionSvc
 
+	importSvc := services.NewImportService(collectionRepo, requestRepo, a.snowflake)
+
 	a.settingsH = handlers.NewSettingsHandler(settingsSvc)
 	a.historyH = handlers.NewHistoryHandler(historySvc)
 	a.environmentH = handlers.NewEnvironmentHandler(envSvc)
 	a.requestH = handlers.NewRequestHandler(requestSvc)
 	a.collectionH = handlers.NewCollectionHandler(collectionSvc)
 	a.projectH = handlers.NewProjectHandler(projectSvc)
+	a.importH = handlers.NewImportHandler(importSvc)
 
 	// Load settings into http client
 	settings, err := settingsSvc.GetAll()
@@ -215,4 +219,10 @@ func (a *App) SetSetting(key, value string) error {
 
 func (a *App) GetAllSettings() (map[string]string, error) {
 	return a.settingsH.GetAll()
+}
+
+// ========== Import Handlers ==========
+
+func (a *App) ImportPostman(projectID int64, filePath string) (*services.ImportResult, error) {
+	return a.importH.ImportPostman(projectID, filePath)
 }
