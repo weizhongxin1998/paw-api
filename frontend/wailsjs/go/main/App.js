@@ -54,6 +54,10 @@ export function DeleteRequest(arg1) {
   return window['go']['main']['App']['DeleteRequest'](arg1);
 }
 
+export function ExportPostman(arg1) {
+  return window['go']['main']['App']['ExportPostman'](arg1);
+}
+
 export function GetAllSettings() {
   return window['go']['main']['App']['GetAllSettings']();
 }

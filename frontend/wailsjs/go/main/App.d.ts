@@ -29,6 +29,8 @@ export function DeleteProject(arg1:number):Promise<void>;
 
 export function DeleteRequest(arg1:number):Promise<void>;
 
+export function ExportPostman(arg1:number):Promise<string>;
+
 export function GetAllSettings():Promise<Record<string, string>>;
 
 export function GetCollectionTree(arg1:number):Promise<Array<models.TreeItem>>;

@@ -26,6 +26,7 @@ type App struct {
 	historyH     *handlers.HistoryHandler
 	settingsH    *handlers.SettingsHandler
 	importH      *handlers.ImportHandler
+	exportH      *handlers.ExportHandler
 }
 
 func NewApp() *App {
@@ -65,6 +66,7 @@ func (a *App) startup(ctx context.Context) {
 	_ = collectionSvc
 
 	importSvc := services.NewImportService(collectionRepo, requestRepo, a.snowflake)
+	exportSvc := services.NewExportService(projectRepo, collectionRepo, requestRepo, a.snowflake)
 
 	a.settingsH = handlers.NewSettingsHandler(settingsSvc)
 	a.historyH = handlers.NewHistoryHandler(historySvc)
@@ -73,6 +75,7 @@ func (a *App) startup(ctx context.Context) {
 	a.collectionH = handlers.NewCollectionHandler(collectionSvc)
 	a.projectH = handlers.NewProjectHandler(projectSvc)
 	a.importH = handlers.NewImportHandler(importSvc)
+	a.exportH = handlers.NewExportHandler(exportSvc)
 
 	// Load settings into http client
 	settings, err := settingsSvc.GetAll()
@@ -225,4 +228,10 @@ func (a *App) GetAllSettings() (map[string]string, error) {
 
 func (a *App) ImportPostman(projectID int64, filePath string) (*services.ImportResult, error) {
 	return a.importH.ImportPostman(projectID, filePath)
+}
+
+// ========== Export Handlers ==========
+
+func (a *App) ExportPostman(projectID int64) (string, error) {
+	return a.exportH.ExportPostman(projectID)
 }

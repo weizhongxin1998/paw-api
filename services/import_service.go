@@ -43,7 +43,8 @@ type postmanCollection struct {
 }
 
 type postmanInfo struct {
-	Name string `json:"name"`
+	Name   string `json:"name"`
+	Schema string `json:"schema,omitempty"`
 }
 
 type postmanItem struct {
@@ -60,7 +61,12 @@ type postmanRequest struct {
 }
 
 type postmanURL struct {
-	Raw string `json:"raw"`
+	Raw      string      `json:"raw"`
+	Protocol string      `json:"protocol,omitempty"`
+	Host     []string    `json:"host,omitempty"`
+	Port     string      `json:"port,omitempty"`
+	Path     []string    `json:"path,omitempty"`
+	Query    []postmanKV `json:"query,omitempty"`
 }
 
 type postmanKV struct {
