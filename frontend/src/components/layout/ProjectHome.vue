@@ -16,7 +16,7 @@
       </div>
       <div class="home-actions">
         <button class="btn-theme" @click="emit('toggle-theme')" :title="props.themeMode === 'dark' ? '日间模式' : '夜间模式'">
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
             <circle v-if="props.themeMode === 'dark'" cx="12" cy="12" r="5"/><line v-if="props.themeMode === 'dark'" x1="12" y1="1" x2="12" y2="3"/><line v-if="props.themeMode === 'dark'" x1="12" y1="21" x2="12" y2="23"/><line v-if="props.themeMode === 'dark'" x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line v-if="props.themeMode === 'dark'" x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line v-if="props.themeMode === 'dark'" x1="1" y1="12" x2="3" y2="12"/><line v-if="props.themeMode === 'dark'" x1="21" y1="12" x2="23" y2="12"/><line v-if="props.themeMode === 'dark'" x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line v-if="props.themeMode === 'dark'" x1="18.36" y1="5.64" x2="19.78" y2="4.22"/>
             <path v-else d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>
           </svg>
@@ -168,46 +168,50 @@ onMounted(loadProjects)
   inset: 0;
   pointer-events: none;
   background-image:
-    linear-gradient(var(--border-primary) 0.5px, transparent 0.5px),
-    linear-gradient(90deg, var(--border-primary) 0.5px, transparent 0.5px);
-  background-size: 40px 40px;
-  opacity: 0.3;
-  mask-image: radial-gradient(ellipse 80% 80% at 50% 0%, black 30%, transparent 70%);
+    linear-gradient(var(--border-subtle) 0.5px, transparent 0.5px),
+    linear-gradient(90deg, var(--border-subtle) 0.5px, transparent 0.5px);
+  background-size: 44px 44px;
+  opacity: 0.5;
+  mask-image: radial-gradient(ellipse 70% 60% at 50% 0%, black 20%, transparent 70%);
 }
 .home-header {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 28px 40px 0;
+  padding: 32px 44px 0;
   position: relative;
-  animation: fadeIn 0.3s ease both;
+  animation: slideUp 0.4s var(--ease-out) both;
 }
 .home-brand {
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: 12px;
 }
-.brand-mark { color: var(--accent); filter: drop-shadow(0 0 6px var(--accent-glow)); }
+.brand-mark {
+  color: var(--accent);
+  filter: drop-shadow(0 0 8px var(--accent-glow));
+}
 .home-title {
-  font-size: var(--fs-2xl);
-  font-weight: 700;
+  font-size: var(--fs-3xl);
+  font-weight: 800;
   color: var(--text-primary);
-  letter-spacing: 4px;
+  letter-spacing: 5px;
   margin: 0;
-  font-family: var(--font-mono);
+  font-family: var(--font-ui);
 }
 .home-version {
   font-size: var(--fs-2xs);
   color: var(--text-muted);
   background: var(--bg-elevated);
-  padding: 2px 6px;
-  border-radius: 3px;
+  padding: 2px 7px;
+  border-radius: var(--radius-sm);
   border: 1px solid var(--border-primary);
   font-family: var(--font-mono);
+  font-weight: 500;
 }
 .home-actions { display: flex; gap: 8px; align-items: center; }
 .btn-theme {
-  padding: 7px 10px;
+  padding: 8px 11px;
   background: transparent;
   color: var(--text-muted);
   border: 1px solid var(--border-primary);
@@ -218,74 +222,97 @@ onMounted(loadProjects)
   justify-content: center;
   transition: all var(--transition);
 }
-.btn-theme:hover { border-color: var(--accent); color: var(--accent); background: var(--accent-soft); }
+.btn-theme:hover {
+  border-color: var(--accent);
+  color: var(--accent);
+  background: var(--accent-soft);
+}
+.btn-import {
+  border-radius: var(--radius) !important;
+}
+
 .project-grid {
   flex: 1;
   display: flex;
   flex-wrap: wrap;
   align-content: flex-start;
-  gap: 16px;
-  padding: 32px 40px;
+  gap: 18px;
+  padding: 36px 44px;
   overflow-y: auto;
   position: relative;
 }
 .project-card {
-  width: 220px;
-  min-height: 150px;
+  width: 240px;
+  min-height: 155px;
   background: var(--bg-surface);
   border: 1px solid var(--border-primary);
   border-radius: var(--radius-lg);
   cursor: pointer;
   display: flex;
   flex-direction: column;
-  padding: 16px;
+  padding: 18px;
   position: relative;
   transition: all var(--transition-slow);
-  animation: cardIn 0.35s ease both;
+  animation: cardSlideIn 0.4s var(--ease-out) both;
   animation-delay: var(--card-delay, 0s);
   outline: none;
   overflow: hidden;
 }
-.project-card:focus-visible { border-color: var(--accent); box-shadow: 0 0 0 2px var(--accent-glow); }
+.project-card:focus-visible {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 2px var(--accent-glow);
+}
 .project-card:hover {
   border-color: var(--accent);
-  box-shadow: 0 0 0 1px var(--accent), 0 4px 20px var(--accent-glow);
-  transform: translateY(-2px);
+  box-shadow: 0 0 0 1px var(--accent), 0 8px 28px var(--accent-glow);
+  transform: translateY(-3px);
 }
 .card-glow {
   position: absolute;
   inset: 0;
   pointer-events: none;
-  background: radial-gradient(ellipse 120% 80% at 50% -20%, var(--accent-glow-strong) 0%, transparent 60%);
+  background: radial-gradient(ellipse 130% 90% at 50% -20%, var(--accent-glow-strong) 0%, transparent 55%);
   opacity: 0;
   transition: opacity var(--transition-slow);
 }
 .project-card:hover .card-glow { opacity: 1; }
 
-@keyframes cardIn {
-  from { opacity: 0; transform: translateY(12px) scale(0.97); }
+@keyframes cardSlideIn {
+  from { opacity: 0; transform: translateY(16px) scale(0.96); }
   to { opacity: 1; transform: translateY(0) scale(1); }
 }
+
 .card-header {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  margin-bottom: 12px;
+  margin-bottom: 14px;
   position: relative;
   z-index: 1;
 }
-.card-icon { color: var(--accent); opacity: 0.6; }
+.card-icon {
+  color: var(--accent);
+  opacity: 0.5;
+}
 .card-arrow {
-  font-size: var(--fs-md);
+  font-size: var(--fs-lg);
   color: var(--text-muted);
   opacity: 0;
-  transform: translateX(-4px);
+  transform: translateX(-6px);
   transition: all var(--transition);
 }
-.project-card:hover .card-arrow { opacity: 0.5; transform: translateX(0); }
-.card-body { flex: 1; position: relative; z-index: 1; }
+.project-card:hover .card-arrow {
+  opacity: 0.6;
+  transform: translateX(0);
+}
+
+.card-body {
+  flex: 1;
+  position: relative;
+  z-index: 1;
+}
 .card-name {
-  font-size: var(--fs-base);
+  font-size: var(--fs-md);
   font-weight: 600;
   color: var(--text-primary);
   overflow: hidden;
@@ -296,24 +323,38 @@ onMounted(loadProjects)
 .card-desc {
   font-size: var(--fs-sm);
   color: var(--text-muted);
-  margin-top: 3px;
+  margin-top: 4px;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+  font-family: var(--font-ui);
 }
+
 .card-stats {
   display: flex;
   align-items: center;
-  gap: 8px;
-  padding-top: 10px;
-  border-top: 1px solid var(--border-primary);
+  gap: 10px;
+  padding-top: 12px;
+  border-top: 1px solid var(--border-subtle);
   position: relative;
   z-index: 1;
 }
-.stat { display: flex; align-items: baseline; gap: 3px; }
-.stat-num { font-size: var(--fs-lg); font-weight: 700; color: var(--accent); font-family: var(--font-mono); }
-.stat-label { font-size: var(--fs-xs); color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px; }
-.stat-divider { width: 1px; height: 16px; background: var(--border-primary); }
+.stat { display: flex; align-items: baseline; gap: 4px; }
+.stat-num {
+  font-size: var(--fs-lg);
+  font-weight: 700;
+  color: var(--accent);
+  font-family: var(--font-mono);
+}
+.stat-label {
+  font-size: var(--fs-xs);
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  font-family: var(--font-ui);
+}
+.stat-divider { width: 1px; height: 18px; background: var(--border-primary); }
+
 .empty-state {
   width: 100%;
   flex: 1;
@@ -322,19 +363,28 @@ onMounted(loadProjects)
   align-items: center;
   justify-content: center;
   gap: 12px;
-  animation: fadeIn 0.4s ease both;
+  animation: slideUp 0.5s var(--ease-out) both;
 }
-.empty-graphic { position: relative; margin-bottom: 4px; }
+.empty-graphic { position: relative; margin-bottom: 8px; }
 .empty-graphic svg { color: var(--text-muted); display: block; }
 .empty-ring {
-  position: absolute; inset: -8px;
+  position: absolute; inset: -10px;
   border: 1px solid var(--border-primary);
   border-radius: 50%;
-  animation: spin 8s linear infinite;
+  animation: spin 10s linear infinite;
 }
-@keyframes spin {
-  to { transform: rotate(360deg); }
+@keyframes spin { to { transform: rotate(360deg); } }
+.empty-title {
+  font-size: var(--fs-xl);
+  color: var(--text-secondary);
+  margin: 0;
+  font-weight: 600;
+  font-family: var(--font-ui);
 }
-.empty-title { font-size: var(--fs-xl); color: var(--text-secondary); margin: 0; font-weight: 600; font-family: var(--font-mono); }
-.empty-desc { font-size: var(--fs-base); color: var(--text-muted); margin: 0 0 4px; }
+.empty-desc {
+  font-size: var(--fs-base);
+  color: var(--text-muted);
+  margin: 0 0 4px;
+  font-family: var(--font-ui);
+}
 </style>

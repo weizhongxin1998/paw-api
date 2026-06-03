@@ -36,13 +36,14 @@ export function applySettingsToDOM(settings: Settings) {
   root.style.fontSize = base + 'px'
   root.style.fontFamily = fam
   root.style.setProperty('--fs-2xs', Math.round(9 * scale) + 'px')
-  root.style.setProperty('--fs-xs', Math.round(10 * scale) + 'px')
-  root.style.setProperty('--fs-sm', Math.round(11 * scale) + 'px')
+  root.style.setProperty('--fs-xs', Math.round(10.5 * scale) + 'px')
+  root.style.setProperty('--fs-sm', Math.round(11.5 * scale) + 'px')
   root.style.setProperty('--fs-base', base + 'px')
   root.style.setProperty('--fs-md', Math.round(14 * scale) + 'px')
   root.style.setProperty('--fs-lg', Math.round(16 * scale) + 'px')
   root.style.setProperty('--fs-xl', Math.round(18 * scale) + 'px')
-  root.style.setProperty('--fs-2xl', Math.round(22 * scale) + 'px')
+  root.style.setProperty('--fs-2xl', Math.round(24 * scale) + 'px')
+  root.style.setProperty('--fs-3xl', Math.round(32 * scale) + 'px')
   root.style.setProperty('--font-family', fam)
   root.style.setProperty('--font-mono', fam)
 }
@@ -56,18 +57,18 @@ export function buildNaiveOverrides(settings: Settings, dark: boolean): GlobalTh
 
   return {
     common: {
-      primaryColor: dark ? '#00e05a' : '#009944',
-      primaryColorHover: dark ? '#00ff66' : '#007a33',
-      primaryColorPressed: dark ? '#00b84a' : '#006b2a',
-      primaryColorSuppl: dark ? '#00e05a' : '#009944',
-      bodyColor: dark ? '#0d0d0d' : '#f5f3f1',
-      cardColor: dark ? '#141414' : '#ffffff',
-      modalColor: dark ? '#141414' : '#ffffff',
-      popoverColor: dark ? '#1a1a1a' : '#f2f2ef',
-      borderColor: dark ? '#2a2a2a' : '#c8c8c2',
-      dividerColor: dark ? '#2a2a2a' : '#c8c8c2',
-      borderRadius: '4px',
-      borderRadiusSmall: '3px',
+      primaryColor: dark ? '#00e05a' : '#059669',
+      primaryColorHover: dark ? '#00ff66' : '#047857',
+      primaryColorPressed: dark ? '#00b84a' : '#065f46',
+      primaryColorSuppl: dark ? '#00e05a' : '#059669',
+      bodyColor: dark ? '#0a0a0b' : '#f8f8f7',
+      cardColor: dark ? '#111113' : '#ffffff',
+      modalColor: dark ? '#111113' : '#ffffff',
+      popoverColor: dark ? '#18181b' : '#f4f4f3',
+      borderColor: dark ? '#27272a' : '#d4d4d1',
+      dividerColor: dark ? '#27272a' : '#d4d4d1',
+      borderRadius: '8px',
+      borderRadiusSmall: '5px',
       fontFamily: fam,
       fontFamilyMono: fam,
       fontWeight: '400',
@@ -80,66 +81,68 @@ export function buildNaiveOverrides(settings: Settings, dark: boolean): GlobalTh
       fontSizeLarge: ns(16),
       fontSizeHuge: ns(18),
       lineHeight: '1.6',
-      textColor1: dark ? '#e0e0e0' : '#1a1a18',
-      textColor2: dark ? '#b0b0b0' : '#444442',
-      textColor3: dark ? '#707070' : '#666662',
-      placeholderColor: dark ? '#505050' : '#888884',
-      inputColor: dark ? '#141414' : '#ffffff',
-      scrollbarColor: dark ? '#333' : '#ccc',
-      scrollbarColorHover: dark ? '#444' : '#aaa',
+      textColor1: dark ? '#e4e4e7' : '#18181b',
+      textColor2: dark ? '#a1a1aa' : '#3f3f46',
+      textColor3: dark ? '#71717a' : '#71717a',
+      placeholderColor: dark ? '#52525b' : '#a1a1aa',
+      inputColor: dark ? '#111113' : '#ffffff',
+      scrollbarColor: 'rgba(128,128,128,0.15)',
+      scrollbarColorHover: 'rgba(128,128,128,0.25)',
     },
     Button: {
-      textColor: dark ? '#00e05a' : '#009944',
-      textColorHover: dark ? '#00ff66' : '#007a33',
-      textColorPressed: dark ? '#00b84a' : '#006b2a',
-      border: dark ? '1px solid #2a2a2a' : '1px solid #c8c8c2',
-      borderHover: dark ? '1px solid #3a3a3a' : '1px solid #a8a8a2',
-      borderFocus: dark ? '1px solid #00e05a' : '1px solid #009944',
-      color: dark ? '#1a1a1a' : '#f2f2ef',
-      colorHover: dark ? '#252525' : '#ebebe8',
-      colorPressed: dark ? '#303030' : '#e3e3e0',
-      borderRadiusSmall: '3px',
-      borderRadiusMedium: '4px',
+      textColor: dark ? '#00e05a' : '#059669',
+      textColorHover: dark ? '#00ff66' : '#047857',
+      textColorPressed: dark ? '#00b84a' : '#065f46',
+      border: dark ? '1px solid #27272a' : '1px solid #d4d4d1',
+      borderHover: dark ? '1px solid #3f3f46' : '1px solid #a8a8a4',
+      borderFocus: dark ? '1px solid #00e05a' : '1px solid #059669',
+      color: dark ? '#18181b' : '#f4f4f3',
+      colorHover: dark ? '#1e1e22' : '#ededeb',
+      colorPressed: dark ? '#26262b' : '#e4e4e2',
+      borderRadiusSmall: '5px',
+      borderRadiusMedium: '8px',
     },
     Input: {
-      border: dark ? '1px solid #2a2a2a' : '1px solid #c8c8c2',
-      borderHover: dark ? '1px solid #3a3a3a' : '1px solid #a8a8a2',
-      borderFocus: dark ? '1px solid #00e05a' : '1px solid #009944',
-      borderRadius: '4px',
-      color: dark ? '#141414' : '#ffffff',
-      textColor: dark ? '#e0e0e0' : '#1a1a18',
-      placeholderColor: dark ? '#505050' : '#888884',
+      border: dark ? '1px solid #27272a' : '1px solid #d4d4d1',
+      borderHover: dark ? '1px solid #3f3f46' : '1px solid #a8a8a4',
+      borderFocus: dark ? '1px solid #00e05a' : '1px solid #059669',
+      borderRadius: '8px',
+      color: dark ? '#111113' : '#ffffff',
+      textColor: dark ? '#e4e4e7' : '#18181b',
+      placeholderColor: dark ? '#52525b' : '#a1a1aa',
       lineHeight: '1.6',
     },
     Select: {
-      peers: { InternalSelection: { textColor: dark ? '#e0e0e0' : '#1a1a18' } },
+      peers: { InternalSelection: { textColor: dark ? '#e4e4e7' : '#18181b' } },
     },
     Checkbox: {
-      colorChecked: dark ? '#00e05a' : '#009944',
-      borderChecked: dark ? '#00e05a' : '#009944',
-      border: dark ? '1px solid #3a3a3a' : '1px solid #bbb',
-      checkMarkColor: dark ? '#0d0d0d' : '#fff',
+      colorChecked: dark ? '#00e05a' : '#059669',
+      borderChecked: dark ? '#00e05a' : '#059669',
+      border: dark ? '1px solid #3f3f46' : '1px solid #bbb',
+      checkMarkColor: dark ? '#0a0a0b' : '#fff',
     },
     Dropdown: {
-      color: dark ? '#1a1a1a' : '#ffffff',
-      dividerColor: dark ? '#2a2a2a' : '#e0e0da',
-      optionColorActive: dark ? '#1a2a1a' : '#e6f7ec',
-      optionTextColorActive: dark ? '#00e05a' : '#009944',
+      color: dark ? '#18181b' : '#ffffff',
+      dividerColor: dark ? '#27272a' : '#e4e4e2',
+      optionColorActive: dark ? 'rgba(0,224,90,0.06)' : 'rgba(5,150,105,0.06)',
+      optionTextColorActive: dark ? '#00e05a' : '#059669',
+      borderRadius: '8px',
     },
     Modal: {
-      color: dark ? '#141414' : '#ffffff',
-      textColor: dark ? '#e0e0e0' : '#1a1a18',
-      titleTextColor: dark ? '#e0e0e0' : '#1a1a18',
+      color: dark ? '#111113' : '#ffffff',
+      textColor: dark ? '#e4e4e7' : '#18181b',
+      titleTextColor: dark ? '#e4e4e7' : '#18181b',
+      borderRadius: '12px',
     },
     Tabs: {
-      tabTextColorActiveLine: dark ? '#00e05a' : '#009944',
-      tabTextColorActiveBar: dark ? '#00e05a' : '#009944',
-      barColor: dark ? '#00e05a' : '#009944',
+      tabTextColorActiveLine: dark ? '#00e05a' : '#059669',
+      tabTextColorActiveBar: dark ? '#00e05a' : '#059669',
+      barColor: dark ? '#00e05a' : '#059669',
     },
-    Spin: { color: dark ? '#00e05a' : '#009944' },
+    Spin: { color: dark ? '#00e05a' : '#059669' },
     Result: {
-      titleTextColor: dark ? '#e0e0e0' : '#1a1a18',
-      textColor: dark ? '#b0b0b0' : '#444442',
+      titleTextColor: dark ? '#e4e4e7' : '#18181b',
+      textColor: dark ? '#a1a1aa' : '#3f3f46',
     },
   }
 }

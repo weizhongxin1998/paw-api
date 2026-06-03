@@ -94,30 +94,42 @@ watch([authType, token, username, password, apiKey, apiValue, apiAddTo], syncAut
 
 <style scoped>
 .auth-editor {
-  padding: 12px;
+  padding: 14px;
 }
 .type-select {
-  margin-bottom: 12px;
-  width: 200px;
+  margin-bottom: 14px;
+  width: 220px;
 }
-.auth-empty { padding: 20px; }
+.auth-empty {
+  padding: 24px;
+  text-align: center;
+}
 .auth-form {
   display: flex;
   flex-direction: column;
-  gap: 7px;
+  gap: 8px;
+  background: var(--bg-surface);
+  border: 1px solid var(--border-primary);
+  border-radius: var(--radius);
+  padding: 14px;
 }
 .auth-form label {
   font-size: var(--fs-xs);
   color: var(--text-muted);
   text-transform: uppercase;
-  letter-spacing: 0.5px;
-  font-family: var(--font-mono);
-  font-weight: 500;
+  letter-spacing: 0.05em;
+  font-family: var(--font-ui);
+  font-weight: 600;
+  margin-top: 4px;
+}
+.auth-form label:first-child {
+  margin-top: 0;
 }
 .hint-suffix {
   font-size: var(--fs-xs);
   color: var(--text-muted);
   font-family: var(--font-mono);
+  padding: 2px 0;
 }
 .hint {
   color: var(--text-muted);

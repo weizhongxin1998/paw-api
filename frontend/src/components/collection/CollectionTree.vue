@@ -42,10 +42,10 @@ function onAction(action: string, node: TreeItem) { emit('action', action, node)
 .collection-tree {
   flex: 1;
   overflow-y: auto;
-  padding: 2px 0;
+  padding: 4px 0;
 }
 .tree-empty {
-  padding: 20px;
+  padding: 24px;
   text-align: center;
 }
 </style>

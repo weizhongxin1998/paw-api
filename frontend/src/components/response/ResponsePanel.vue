@@ -93,7 +93,14 @@ const statusClass = computed(() => {
 const statusText = computed(() => {
   if (!props.response) return ''
   const s = props.response.status
-  const map: Record<number, string> = { 200:'OK', 201:'Created', 204:'No Content', 301:'Moved', 400:'Bad Request', 401:'Unauthorized', 403:'Forbidden', 404:'Not Found', 500:'Server Error', 502:'Bad Gateway', 503:'Unavailable' }
+  const map: Record<number, string> = {
+    200:'OK', 201:'Created', 202:'Accepted', 204:'No Content',
+    301:'Moved Permanently', 302:'Found', 304:'Not Modified',
+    400:'Bad Request', 401:'Unauthorized', 403:'Forbidden', 404:'Not Found',
+    405:'Method Not Allowed', 408:'Timeout', 409:'Conflict', 413:'Payload Too Large',
+    422:'Unprocessable Entity', 429:'Too Many Requests',
+    500:'Internal Server Error', 502:'Bad Gateway', 503:'Service Unavailable', 504:'Gateway Timeout',
+  }
   return map[s] || ''
 })
 
@@ -132,37 +139,49 @@ function copyResponse() {
   background: var(--bg-base);
   border-top: 1px solid var(--border-primary);
 }
+
+/* ── Status Bar ── */
 .status-bar {
   display: flex;
-  padding: 6px 12px;
+  padding: 7px 14px;
   background: var(--bg-surface);
   border-bottom: 1px solid var(--border-primary);
   align-items: center;
-  gap: 10px;
+  gap: 12px;
 }
 .status-badge {
   font-weight: 700;
   font-size: var(--fs-sm);
-  padding: 2px 8px;
+  padding: 3px 10px;
   border-radius: var(--radius-sm);
   font-family: var(--font-mono);
-  letter-spacing: 0.3px;
+  letter-spacing: 0.03em;
 }
-.status-badge.green { background: var(--accent-soft); color: var(--accent); }
+.status-badge.green { background: rgba(34,197,94,0.1); color: var(--method-post); }
 .status-badge.blue { background: var(--blue-soft); color: var(--blue); }
 .status-badge.orange { background: var(--amber-soft); color: var(--amber); }
 .status-badge.red { background: var(--red-soft); color: var(--red); }
-.meta { font-size: var(--fs-xs); color: var(--text-muted); font-family: var(--font-mono); }
+.meta {
+  font-size: var(--fs-xs); color: var(--text-muted);
+  font-family: var(--font-mono);
+  letter-spacing: 0.01em;
+}
 .time-badge { opacity: 0.5; }
-.placeholder { font-size: var(--fs-xs); color: var(--text-muted); font-family: var(--font-mono); }
+.placeholder {
+  font-size: var(--fs-xs); color: var(--text-muted);
+  font-family: var(--font-mono);
+  font-style: italic;
+}
+
+/* ── Sub Tabs ── */
 .sub-tabs {
   display: flex;
   border-bottom: 1px solid var(--border-primary);
   background: var(--bg-surface);
-  padding: 0 8px;
+  padding: 0 10px;
 }
 .sub-tabs button {
-  padding: 6px 12px;
+  padding: 7px 14px;
   font-size: var(--fs-sm);
   cursor: pointer;
   color: var(--text-muted);
@@ -172,6 +191,7 @@ function copyResponse() {
   outline: none;
   font-family: var(--font-mono);
   font-weight: 500;
+  letter-spacing: 0.02em;
   transition: all var(--transition);
 }
 .sub-tabs button.active {
@@ -179,62 +199,141 @@ function copyResponse() {
   border-bottom-color: var(--accent);
   font-weight: 600;
 }
-.sub-tabs button:hover:not(.active) { color: var(--text-secondary); }
+.sub-tabs button:hover:not(.active) {
+  color: var(--text-secondary);
+  background: var(--bg-hover);
+  border-radius: var(--radius-sm) var(--radius-sm) 0 0;
+}
+
+/* ── Body Content ── */
 .body-content {
   flex: 1;
   overflow-y: auto;
-  padding: 10px 12px;
+  padding: 12px 14px;
   background: var(--bg-base);
 }
 .body-empty {
-  display: flex; align-items: center; justify-content: center; padding: 24px;
+  display: flex; align-items: center; justify-content: center; padding: 32px;
 }
 .body-modes {
-  display: flex; gap: 3px; margin-bottom: 8px; align-items: center;
+  display: flex; gap: 4px; margin-bottom: 10px; align-items: center;
 }
 .body-modes button {
-  padding: 2px 10px; border: 1px solid var(--border-primary); border-radius: var(--radius-sm);
-  background: var(--bg-surface); font-size: var(--fs-xs); cursor: pointer;
-  color: var(--text-muted); outline: none; font-family: var(--font-mono);
+  padding: 3px 12px;
+  border: 1px solid var(--border-primary);
+  border-radius: var(--radius-sm);
+  background: var(--bg-surface);
+  font-size: var(--fs-xs);
+  cursor: pointer;
+  color: var(--text-muted);
+  outline: none;
+  font-family: var(--font-mono);
   transition: all var(--transition);
 }
 .body-modes button.active {
-  border-color: var(--accent); color: var(--accent); font-weight: 600;
+  border-color: var(--accent);
+  color: var(--accent);
+  font-weight: 600;
   background: var(--accent-soft);
 }
-.copy-btn {
-  padding: 2px 10px; border: 1px solid var(--border-primary); border-radius: var(--radius-sm);
-  background: var(--bg-surface); font-size: var(--fs-xs); cursor: pointer;
-  color: var(--text-muted); font-family: var(--font-mono);
-  transition: all var(--transition);
-  position: relative;
+.body-modes button:hover:not(.active) {
+  border-color: var(--border-hover);
+  color: var(--text-secondary);
 }
-.copy-btn:hover { color: var(--accent); border-color: var(--accent); background: var(--accent-soft); }
+.copy-btn {
+  padding: 3px 12px;
+  border: 1px solid var(--border-primary);
+  border-radius: var(--radius-sm);
+  background: var(--bg-surface);
+  font-size: var(--fs-xs);
+  cursor: pointer;
+  color: var(--text-muted);
+  font-family: var(--font-mono);
+  transition: all var(--transition);
+}
+.copy-btn:hover {
+  color: var(--accent);
+  border-color: var(--accent);
+  background: var(--accent-soft);
+}
 .copy-btn:active { transform: scale(0.95); }
+
+/* ── Code Block ── */
 .code-block {
   font-family: var(--font-mono);
-  font-size: var(--fs-sm); line-height: 1.7; margin: 0;
-  white-space: pre-wrap; word-break: break-all;
+  font-size: var(--fs-sm);
+  line-height: 1.7;
+  margin: 0;
+  white-space: pre-wrap;
+  word-break: break-all;
   color: var(--text-primary);
   background: var(--bg-surface);
   border: 1px solid var(--border-primary);
   border-radius: var(--radius);
-  padding: 10px;
+  padding: 12px 14px;
 }
 .code-block.raw { color: var(--text-secondary); }
-.kv-table { width: 100%; border-collapse: collapse; font-size: var(--fs-sm); }
-.kv-table th, .kv-table td { text-align: left; padding: 4px 8px; border-bottom: 1px solid var(--border-primary); }
-.kv-table th { color: var(--text-muted); font-weight: 500; text-transform: uppercase; font-size: var(--fs-2xs); letter-spacing: 0.5px; }
-.kv-table td { color: var(--text-primary); font-family: var(--font-mono); font-size: var(--fs-sm); }
-.key-cell { color: var(--accent) !important; }
-.preview-hint { color: var(--text-muted); font-size: var(--fs-sm); padding: 16px; }
-.preview-iframe { width: 100%; height: 400px; border: none; background: #fff; border-radius: var(--radius); }
-.hint { color: var(--text-muted); font-size: var(--fs-sm); }
+
+/* ── Tables ── */
+.kv-table {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0;
+  border: 1px solid var(--border-primary);
+  border-radius: var(--radius);
+  overflow: hidden;
+  font-size: var(--fs-sm);
+}
+.kv-table th {
+  text-align: left; padding: 6px 10px;
+  border-bottom: 1px solid var(--border-primary);
+  background: var(--bg-elevated);
+}
+.kv-table th {
+  color: var(--text-muted);
+  font-weight: 600;
+  text-transform: uppercase;
+  font-size: var(--fs-2xs);
+  letter-spacing: 0.05em;
+  font-family: var(--font-ui);
+}
+.kv-table td {
+  text-align: left; padding: 5px 10px;
+  border-bottom: 1px solid var(--border-subtle);
+  color: var(--text-primary);
+  font-family: var(--font-mono);
+  font-size: var(--fs-sm);
+}
+.kv-table tr:last-child td { border-bottom: none; }
+.kv-table tr:hover td { background: var(--bg-hover); }
+.key-cell { color: var(--accent) !important; font-weight: 500; }
+
+.preview-hint { color: var(--text-muted); font-size: var(--fs-sm); padding: 20px; }
+.preview-iframe {
+  width: 100%; height: 400px; border: 1px solid var(--border-primary);
+  background: var(--bg-surface); border-radius: var(--radius);
+}
+.hint {
+  color: var(--text-muted); font-size: var(--fs-sm);
+  font-family: var(--font-mono);
+  font-style: italic;
+}
 .copy-curl-btn {
-  padding: 3px 10px; border: 1px solid var(--border-primary); border-radius: var(--radius-sm);
-  background: var(--bg-surface); font-size: var(--fs-xs); cursor: pointer;
-  color: var(--text-muted); margin-bottom: 6px; font-family: var(--font-mono);
+  padding: 4px 12px;
+  border: 1px solid var(--border-primary);
+  border-radius: var(--radius-sm);
+  background: var(--bg-surface);
+  font-size: var(--fs-xs);
+  cursor: pointer;
+  color: var(--text-muted);
+  margin-bottom: 8px;
+  font-family: var(--font-mono);
   transition: all var(--transition);
 }
-.copy-curl-btn:hover { border-color: var(--accent); color: var(--accent); }
+.copy-curl-btn:hover {
+  border-color: var(--accent);
+  color: var(--accent);
+  background: var(--accent-soft);
+}
+.copy-curl-btn:active { transform: scale(0.95); }
 </style>

@@ -9,7 +9,12 @@
       @update:value="onSelect"
       clearable
     />
-    <n-button text size="tiny" @click="showManager = true" title="管理环境">环境</n-button>
+    <n-button text size="tiny" @click="showManager = true" title="管理环境" class="env-manage-btn">
+      <template #icon>
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 22c5.523 0 10-4.477 10-10S17.523 2 12 2 2 6.477 2 12s4.477 10 10 10z"/><path d="M12 16v-4"/><path d="M12 8h.01"/></svg>
+      </template>
+      环境
+    </n-button>
     <EnvManagerModal
       v-model:show="showManager"
       :project-id="projectId"
@@ -76,9 +81,24 @@ watch(() => props.projectId, () => { fetchEnvs() }, { immediate: true })
 .env-selector {
   display: flex;
   align-items: center;
-  gap: 4px;
+  gap: 6px;
 }
 .env-select {
-  width: 140px;
+  width: 150px;
+}
+.env-select :deep(.n-base-selection) {
+  height: 28px;
+  border-radius: var(--radius-sm);
+}
+.env-manage-btn {
+  color: var(--text-muted) !important;
+  font-size: var(--fs-xs) !important;
+  border-radius: var(--radius-sm) !important;
+  height: 28px;
+  transition: all var(--transition);
+}
+.env-manage-btn:hover {
+  color: var(--accent) !important;
+  background: var(--accent-soft) !important;
 }
 </style>

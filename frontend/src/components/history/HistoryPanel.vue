@@ -1,15 +1,24 @@
 <template>
   <div class="history-panel">
     <div class="history-toolbar">
-      <input
-        v-model="searchKeyword"
+      <n-input
+        v-model:value="searchKeyword"
         placeholder="搜索 URL..."
+        size="small"
+        clearable
         class="search-input"
+      >
+        <template #prefix>
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+        </template>
+      </n-input>
+      <n-select
+        v-model:value="methodFilter"
+        :options="methodOptions"
+        size="small"
+        :consistent-menu-width="false"
+        class="method-filter"
       />
-      <select v-model="methodFilter" class="method-filter">
-        <option>全部</option><option>GET</option><option>POST</option>
-        <option>PUT</option><option>DELETE</option>
-      </select>
     </div>
 
     <div class="history-list" v-if="filteredItems.length > 0">
@@ -30,22 +39,28 @@
       </div>
     </div>
     <div v-else class="history-empty">
+      <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.2" opacity="0.3">
+        <circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/>
+      </svg>
       <span class="empty-text">暂无历史记录</span>
     </div>
 
     <div class="history-footer">
-      <button class="footer-btn" @click="onClearAll">清空全部</button>
-      <select v-model="retentionDays" class="retention-select">
-        <option :value="30">保留 30 天</option>
-        <option :value="60">保留 60 天</option>
-        <option :value="0">永久保留</option>
-      </select>
+      <n-button size="tiny" quaternary @click="onClearAll" class="clear-btn">清空全部</n-button>
+      <n-select
+        v-model:value="retentionDays"
+        :options="retentionOptions"
+        size="tiny"
+        :consistent-menu-width="false"
+        class="retention-select"
+      />
     </div>
   </div>
 </template>
 
 <script setup lang="ts">
 import { ref, computed, onMounted, watch } from 'vue'
+import { NInput, NSelect, NButton } from 'naive-ui'
 import { ListHistory, ClearHistory } from '../../../wailsjs/go/main/App'
 import { useProjectStore } from '../../stores/project'
 
@@ -76,6 +91,20 @@ const searchKeyword = ref('')
 const methodFilter = ref('全部')
 const selectedId = ref<number | null>(null)
 const retentionDays = ref(30)
+
+const methodOptions = [
+  { label: '全部', value: '全部' },
+  { label: 'GET', value: 'GET' },
+  { label: 'POST', value: 'POST' },
+  { label: 'PUT', value: 'PUT' },
+  { label: 'DELETE', value: 'DELETE' },
+]
+
+const retentionOptions = [
+  { label: '30 天', value: 30 },
+  { label: '60 天', value: 60 },
+  { label: '永久', value: 0 },
+]
 
 const filteredItems = computed(() => {
   let result = items.value
@@ -150,116 +179,138 @@ onMounted(() => { if (projectStore.currentId) loadHistory() })
   flex: 1;
   min-height: 0;
 }
+
 .history-toolbar {
   display: flex;
-  gap: 3px;
-  padding: 6px 8px;
-  border-bottom: 1px solid var(--border-primary);
+  gap: 4px;
+  padding: 8px 10px;
+  border-bottom: 1px solid var(--border-subtle);
   background: var(--bg-base);
 }
 .search-input {
   flex: 1;
-  padding: 4px 7px;
-  border: 1px solid var(--border-primary);
+}
+.search-input :deep(.n-input) {
+  height: 28px;
   border-radius: var(--radius-sm);
-  font-size: var(--fs-xs);
-  outline: none;
-  background: var(--bg-surface);
-  color: var(--text-primary);
-  font-family: var(--font-mono);
-  transition: border-color var(--transition);
 }
-.search-input:focus { border-color: var(--accent); }
-.search-input::placeholder { color: var(--text-muted); }
-.method-filter {
-  width: 60px;
-  font-size: var(--fs-xs);
-  padding: 3px;
-  border: 1px solid var(--border-primary);
-  border-radius: var(--radius-sm);
-  outline: none;
-  cursor: pointer;
-  background: var(--bg-surface);
-  color: var(--text-secondary);
-  font-family: var(--font-mono);
-}
-.history-list { flex: 1; overflow-y: auto; }
-.history-item {
-  padding: 7px 8px;
-  border-bottom: 1px solid var(--border-primary);
-  cursor: pointer;
-  transition: background var(--transition), border-color var(--transition);
-  animation: fadeIn 0.2s ease both;
-}
-.history-item:hover { background: var(--bg-hover); }
-.history-item.selected { background: var(--accent-soft); border-left: 2px solid var(--accent); padding-left: 6px; }
-.item-row { display: flex; gap: 5px; align-items: center; }
-.hist-url {
-  font-size: var(--fs-2xs);
+.search-input :deep(.n-input__prefix svg) {
   color: var(--text-muted);
-  margin-top: 2px;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-  font-family: var(--font-mono);
 }
-.item-method {
-  font-size: var(--fs-2xs);
-  font-weight: 700;
-  padding: 1px 4px;
-  border-radius: 2px;
-  letter-spacing: 0.3px;
+.method-filter {
+  width: 76px;
+  flex-shrink: 0;
 }
-.item-method.get { background: var(--accent-soft); color: var(--accent); }
-.item-method.post { background: var(--amber-soft); color: var(--amber); }
-.item-method.put { background: var(--blue-soft); color: var(--blue); }
-.item-method.delete { background: var(--red-soft); color: var(--red); }
-.item-status {
-  font-size: var(--fs-sm);
-  font-weight: 700;
-  font-family: var(--font-mono);
+.method-filter :deep(.n-base-selection) {
+  height: 28px;
+  border-radius: var(--radius-sm);
 }
-.status-2xx { color: var(--accent); }
-.status-3xx { color: var(--blue); }
-.status-4xx { color: var(--amber); }
-.status-5xx { color: var(--red); }
-.item-time { font-size: var(--fs-2xs); color: var(--text-muted); margin-left: auto; font-family: var(--font-mono); }
-.history-empty {
+
+/* ── History List ── */
+.history-list {
   flex: 1;
-  display: flex;
-  align-items: center;
-  justify-content: center;
+  overflow-y: auto;
+  padding: 2px 0;
 }
-.empty-text { color: var(--text-muted); font-size: var(--fs-sm); font-family: var(--font-mono); }
-.history-footer {
-  padding: 6px 8px;
-  border-top: 1px solid var(--border-primary);
+.history-item {
+  padding: 8px 10px;
+  margin: 1px 4px;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  transition: all var(--transition-fast);
+  animation: slideUp 0.2s var(--ease-out) both;
+  border-left: 2px solid transparent;
+}
+.history-item:hover {
+  background: var(--bg-hover);
+}
+.history-item.selected {
+  background: var(--accent-soft);
+  border-left-color: var(--accent);
+}
+.item-row {
   display: flex;
   gap: 6px;
   align-items: center;
 }
-.footer-btn {
-  flex: 1;
+.hist-url {
   font-size: var(--fs-2xs);
-  padding: 3px 6px;
-  background: var(--bg-surface);
-  border: 1px solid var(--border-primary);
-  border-radius: var(--radius-sm);
-  cursor: pointer;
   color: var(--text-muted);
+  margin-top: 3px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
   font-family: var(--font-mono);
-  transition: all var(--transition);
+  padding-left: 2px;
 }
-.footer-btn:hover { border-color: var(--red); color: var(--red); }
-.retention-select {
+
+.item-method {
   font-size: var(--fs-2xs);
-  padding: 3px;
-  border: 1px solid var(--border-primary);
-  border-radius: var(--radius-sm);
-  outline: none;
-  cursor: pointer;
-  background: var(--bg-surface);
-  color: var(--text-muted);
+  font-weight: 700;
+  padding: 2px 5px;
+  border-radius: var(--radius-xs);
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  line-height: 1.3;
+}
+.item-method.get    { background: var(--blue-soft); color: var(--method-get); }
+.item-method.post   { background: rgba(34,197,94,0.1); color: var(--method-post); }
+.item-method.put    { background: var(--amber-soft); color: var(--method-put); }
+.item-method.delete { background: var(--red-soft); color: var(--method-delete); }
+
+.item-status {
+  font-size: var(--fs-xs);
+  font-weight: 700;
   font-family: var(--font-mono);
+}
+.status-2xx { color: var(--method-post); }
+.status-3xx { color: var(--blue); }
+.status-4xx { color: var(--amber); }
+.status-5xx { color: var(--red); }
+
+.item-time {
+  font-size: var(--fs-2xs);
+  color: var(--text-muted);
+  margin-left: auto;
+  font-family: var(--font-mono);
+}
+
+/* ── Empty State ── */
+.history-empty {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  color: var(--text-muted);
+}
+.empty-text {
+  font-size: var(--fs-sm);
+  font-family: var(--font-mono);
+}
+
+/* ── Footer ── */
+.history-footer {
+  padding: 8px 10px;
+  border-top: 1px solid var(--border-subtle);
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+.clear-btn {
+  color: var(--text-muted) !important;
+  font-size: var(--fs-2xs) !important;
+}
+.clear-btn:hover {
+  color: var(--red) !important;
+}
+.retention-select {
+  width: 80px;
+  margin-left: auto;
+}
+.retention-select :deep(.n-base-selection) {
+  height: 24px;
+  font-size: var(--fs-2xs);
 }
 </style>

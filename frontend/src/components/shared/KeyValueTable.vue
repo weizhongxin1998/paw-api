@@ -72,6 +72,9 @@ let idCounter = Date.now()
 
 // Watch the last row: when it gains content, auto-append a new empty row below it.
 // Uses a stable boolean so typing multiple chars in the same cell doesn't re-trigger.
+// NOTE: skip the initial (immediate) invocation to avoid spurious emits that cause
+// the parent Workspace to call markDirty() and convert preview tabs into persistent ones.
+let _kvInit = true
 watch(
   () => {
     const arr = props.items
@@ -80,8 +83,9 @@ watch(
     return !!(last.key || last.value || last.description)
   },
   (filled, prev) => {
+    if (_kvInit) { _kvInit = false; return }
     if (prev === undefined) {
-      // immediate: ensure exactly one trailing empty row
+      // ensure exactly one trailing empty row
       if (props.items.length === 0) {
         emit('update:items', [{ id: String(++idCounter), key: '', value: '', description: '', enabled: true }])
       } else if (filled) {
@@ -123,39 +127,64 @@ function onBulkChange(text: string) {
 
 <style scoped>
 .key-value-table {
-  padding: 2px;
+  padding: 4px;
 }
 table {
   width: 100%;
-  border-collapse: collapse;
+  border-collapse: separate;
+  border-spacing: 0;
+  border: 1px solid var(--border-primary);
+  border-radius: var(--radius);
+  overflow: hidden;
 }
 th {
   text-align: left;
-  padding: 5px 6px;
+  padding: 6px 8px;
   font-size: var(--fs-xs);
   color: var(--text-muted);
   text-transform: uppercase;
   border-bottom: 1px solid var(--border-primary);
-  font-weight: 500;
-  background: var(--bg-surface);
-  letter-spacing: 0.3px;
+  font-weight: 600;
+  background: var(--bg-elevated);
+  letter-spacing: 0.04em;
+  font-family: var(--font-ui);
 }
 td {
-  padding: 2px 6px;
+  padding: 3px 4px;
+  transition: background var(--transition-fast);
 }
-.td-check { text-align: center; width: 26px; }
+tr:hover td {
+  background: var(--bg-hover);
+}
+tr:not(:last-child) td {
+  border-bottom: 1px solid var(--border-subtle);
+}
+.td-check {
+  text-align: center;
+  width: 30px;
+}
 .td-remove {
   text-align: center;
   color: var(--text-muted);
   cursor: pointer;
   font-size: var(--fs-md);
   font-weight: 600;
-  transition: color var(--transition);
+  transition: all var(--transition-fast);
+  width: 24px;
+  border-radius: var(--radius-xs);
+  line-height: 1;
+  opacity: 0;
 }
-.td-remove:hover { color: var(--red); }
+tr:hover .td-remove {
+  opacity: 1;
+}
+.td-remove:hover {
+  color: var(--red);
+  background: var(--red-soft);
+}
 .kv-footer {
   display: flex;
   gap: 10px;
-  padding: 3px 6px;
+  padding: 6px 8px;
 }
 </style>

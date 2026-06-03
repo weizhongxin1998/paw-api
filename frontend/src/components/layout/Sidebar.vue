@@ -11,7 +11,11 @@
         <n-tab-pane name="history" tab="历史" />
       </n-tabs>
       <n-dropdown trigger="click" :options="addMenuOptions" @select="onAddMenuSelect">
-        <n-button text size="tiny" class="add-btn">+</n-button>
+        <n-button size="tiny" class="add-btn" circle>
+          <template #icon>
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+          </template>
+        </n-button>
       </n-dropdown>
     </div>
 
@@ -164,38 +168,58 @@ defineExpose({ refreshTree })
 
 <style scoped>
 .sidebar {
-  width: 220px;
+  width: 240px;
   background: var(--bg-surface);
   border-right: 1px solid var(--border-primary);
   display: flex;
   flex-direction: column;
   flex-shrink: 0;
+  position: relative;
 }
+
 .sidebar-tabs {
   display: flex;
   align-items: center;
+  padding: 0 4px 0 0;
+  height: 36px;
+  border-bottom: 1px solid var(--border-subtle);
 }
 .sidebar-tabs :deep(.n-tabs) {
   flex: 1;
 }
 .sidebar-tabs :deep(.n-tabs .n-tabs-tab__label) {
   font-size: var(--fs-sm) !important;
+  font-weight: 500;
+  letter-spacing: 0.01em;
 }
 .sidebar-tabs :deep(.n-tabs .n-tabs-tab) {
-  padding: 6px 10px;
+  padding: 5px 12px;
 }
+.sidebar-tabs :deep(.n-tabs-nav) {
+  padding: 0 8px;
+}
+
 .add-btn {
-  font-size: 16px;
-  font-weight: 700;
-  padding: 1px 5px;
-  margin-right: 2px;
-  color: var(--accent);
-  line-height: 1;
+  width: 24px !important;
+  height: 24px !important;
+  min-width: 24px !important;
+  margin-left: 4px;
+  background: var(--accent-soft) !important;
+  border: 1px solid transparent !important;
+  color: var(--accent) !important;
+  transition: all var(--transition) !important;
 }
+.add-btn:hover {
+  background: var(--accent-glow) !important;
+  border-color: var(--accent) !important;
+  transform: scale(1.08);
+}
+
 .sidebar-body {
   flex: 1;
   overflow: hidden;
   display: flex;
   flex-direction: column;
+  min-height: 0;
 }
 </style>

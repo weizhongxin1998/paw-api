@@ -159,7 +159,18 @@ function onPathVarChange() { syncPathVars() }
 function syncPathVars() { emit('update:pathVars', JSON.stringify(pathVariables.value)) }
 
 function parseKv(raw: string): KvItem[] {
-  try { return JSON.parse(raw).map((i: any) => ({ ...i, id: i.id || String(++iid) })) } catch { return [] }
+  try {
+    const items = JSON.parse(raw).map((i: any) => ({ ...i, id: i.id || String(++iid) }))
+    // Always ensure a trailing empty row so users can add new entries
+    // (KeyValueTable skips its auto-append on initial mount to avoid markDirty)
+    const last = items[items.length - 1]
+    if (!last || last.key || last.value || last.description) {
+      items.push({ id: String(++iid), key: '', value: '', description: '', enabled: true })
+    }
+    return items
+  } catch {
+    return [{ id: String(++iid), key: '', value: '', description: '', enabled: true }]
+  }
 }
 
 watch(() => props.params, (v) => { paramsItems.value = parseKv(v) }, { immediate: true })
@@ -196,15 +207,19 @@ function onParamsChange(items: KvItem[]) {
   flex-direction: column;
   overflow: hidden;
   background: var(--bg-base);
+  min-height: 0;
 }
+
+/* ── Sub Tabs ── */
 .sub-tabs {
   display: flex;
   border-bottom: 1px solid var(--border-primary);
   background: var(--bg-surface);
-  padding: 0 8px;
+  padding: 0 10px;
+  gap: 0;
 }
 .sub-tabs button {
-  padding: 7px 12px;
+  padding: 8px 14px;
   font-size: var(--fs-sm);
   cursor: pointer;
   color: var(--text-muted);
@@ -214,68 +229,129 @@ function onParamsChange(items: KvItem[]) {
   outline: none;
   font-family: var(--font-mono);
   font-weight: 500;
-  letter-spacing: 0.3px;
+  letter-spacing: 0.02em;
   transition: all var(--transition);
+  position: relative;
 }
 .sub-tabs button.active {
   color: var(--accent);
   border-bottom-color: var(--accent);
   font-weight: 600;
 }
-.sub-tabs button:hover:not(.active) { color: var(--text-secondary); }
-.cnt {
-  font-size: var(--fs-2xs);
-  background: var(--bg-hover);
-  color: var(--text-muted);
-  padding: 0 4px;
-  border-radius: 8px;
-  margin-left: 2px;
-  font-weight: 600;
+.sub-tabs button.active::after {
+  content: '';
+  position: absolute;
+  bottom: -1px; left: 20%; right: 20%;
+  height: 1px;
+  background: var(--accent);
+  filter: blur(4px);
+  opacity: 0.5;
 }
+.sub-tabs button:hover:not(.active) {
+  color: var(--text-secondary);
+  background: var(--bg-hover);
+  border-radius: var(--radius-sm) var(--radius-sm) 0 0;
+}
+
+.cnt {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: var(--fs-2xs);
+  background: var(--bg-active);
+  color: var(--text-secondary);
+  padding: 0 5px;
+  border-radius: 10px;
+  margin-left: 4px;
+  font-weight: 600;
+  min-width: 16px;
+  height: 16px;
+  line-height: 1;
+}
+
 .bulk-btn {
   font-size: var(--fs-xs) !important;
   color: var(--accent) !important;
-  padding: 7px 8px !important;
+  padding: 8px 10px !important;
+  border-radius: var(--radius-sm) !important;
+  transition: all var(--transition) !important;
 }
+.bulk-btn:hover {
+  background: var(--accent-soft) !important;
+}
+
+/* ── Content ── */
 .sub-content {
   flex: 1;
   overflow-y: auto;
 }
-.params-content { padding: 8px; }
-.params-section { margin-bottom: 10px; }
+.params-content { padding: 10px; }
+.params-section { margin-bottom: 12px; }
 .params-section-hdr {
-  display: flex; align-items: center; gap: 6px; margin-bottom: 2px;
+  display: flex; align-items: center; gap: 8px; margin-bottom: 4px;
 }
 .section-toggle {
-  display: flex; align-items: center; gap: 4px;
+  display: flex; align-items: center; gap: 6px;
   font-size: var(--fs-sm); color: var(--text-secondary);
   font-weight: 600; cursor: pointer; font-family: var(--font-mono);
 }
-.section-toggle input[type="checkbox"] { accent-color: var(--accent); }
-.section-label { font-size: var(--fs-sm); color: var(--text-secondary); font-weight: 600; font-family: var(--font-mono); }
-.section-hint { font-size: var(--fs-xs); color: var(--text-muted); }
-.kvt { width: 100%; border-collapse: collapse; }
-.kvt th {
-  text-align: left; padding: 5px 8px; font-size: var(--fs-xs); color: var(--text-muted);
-  text-transform: uppercase; border-bottom: 1px solid var(--border-primary);
-  font-weight: 500; background: var(--bg-surface); letter-spacing: 0.3px;
+.section-toggle input[type="checkbox"] {
+  accent-color: var(--accent);
+  width: 14px; height: 14px;
 }
-.kvt td { padding: 2px 8px; }
+.section-label {
+  font-size: var(--fs-sm); color: var(--text-secondary);
+  font-weight: 600; font-family: var(--font-mono);
+}
+.section-hint {
+  font-size: var(--fs-xs); color: var(--text-muted);
+  font-family: var(--font-ui);
+}
+
+/* ── Path Variables Table ── */
+.kvt {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0;
+  border: 1px solid var(--border-primary);
+  border-radius: var(--radius);
+  overflow: hidden;
+}
+.kvt th {
+  text-align: left; padding: 6px 10px; font-size: var(--fs-xs); color: var(--text-muted);
+  text-transform: uppercase; border-bottom: 1px solid var(--border-primary);
+  font-weight: 600; background: var(--bg-elevated); letter-spacing: 0.04em;
+  font-family: var(--font-ui);
+}
+.kvt td { padding: 3px 6px; }
+.kvt tr:not(:last-child) td { border-bottom: 1px solid var(--border-subtle); }
 .kvt-input {
-  width: 100%; padding: 6px 7px; border: 1px solid transparent;
+  width: 100%; padding: 6px 8px; border: 1px solid transparent;
   font-family: var(--font-mono); font-size: var(--fs-sm); background: transparent;
-  border-radius: var(--radius-sm); outline: none; color: var(--text-primary);
+  border-radius: var(--radius-xs); outline: none; color: var(--text-primary);
   transition: border-color var(--transition), background var(--transition);
 }
-.kvt-input:hover { border-color: var(--border-hover); background: var(--bg-surface); }
-.kvt-input:focus { border-color: var(--accent); background: var(--bg-surface); }
-.kvt-input.readonly { color: var(--text-muted); background: transparent; cursor: default; }
+.kvt-input:hover:not(.readonly) {
+  border-color: var(--border-hover); background: var(--bg-surface);
+}
+.kvt-input:focus {
+  border-color: var(--accent); background: var(--bg-surface);
+}
+.kvt-input.readonly {
+  color: var(--text-muted); background: transparent; cursor: default;
+}
 .kvt-input.readonly:hover { border-color: transparent; background: transparent; }
-.path-empty { padding: 20px; text-align: center; }
-.hint-text { font-size: var(--fs-sm); color: var(--text-muted); font-family: var(--font-mono); }
+
+.path-empty {
+  padding: 28px; text-align: center;
+}
+.hint-text {
+  font-size: var(--fs-sm); color: var(--text-muted); font-family: var(--font-mono);
+}
 .hint-text code {
-  background: var(--bg-elevated); padding: 1px 4px;
-  border-radius: 2px; font-family: var(--font-mono); font-size: var(--fs-xs);
+  background: var(--bg-elevated); padding: 2px 6px;
+  border-radius: var(--radius-xs); font-family: var(--font-mono); font-size: var(--fs-xs);
   border: 1px solid var(--border-primary);
+  color: var(--accent);
 }
 </style>
