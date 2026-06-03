@@ -22,18 +22,20 @@
         <span class="node-name">{{ node.name }}</span>
       </template>
     </div>
-    <div v-if="node.type === 'folder' && expanded">
-      <TreeNode
-        v-for="child in node.children || []"
-        :key="child.id"
-        :node="child"
-        :depth="depth + 1"
-        @click="onChildClick"
-        @dbl-click="onChildDblClick"
-        @ctx-menu="onChildCtxMenu"
-        @action="onChildAction"
-      />
-    </div>
+    <Transition name="tree-expand">
+      <div v-if="node.type === 'folder' && expanded">
+        <TreeNode
+          v-for="child in node.children || []"
+          :key="child.id"
+          :node="child"
+          :depth="depth + 1"
+          @click="onChildClick"
+          @dbl-click="onChildDblClick"
+          @ctx-menu="onChildCtxMenu"
+          @action="onChildAction"
+        />
+      </div>
+    </Transition>
 
     <n-dropdown
       placement="bottom-start"
@@ -123,14 +125,21 @@ onUnmounted(() => document.removeEventListener('keydown', onKeydown))
   user-select: none;
   color: var(--text-primary);
   transition: background var(--transition);
+  border-left: 2px solid transparent;
 }
 .tree-node:hover { background: var(--bg-hover); }
+.tree-node.request:hover { border-left-color: var(--accent); }
 .arrow {
   display: flex; align-items: center; width: 10px;
   color: var(--text-muted); flex-shrink: 0;
 }
-.arrow svg { transition: transform 0.15s ease; }
+.arrow svg { transition: transform 0.2s cubic-bezier(0.4, 0, 0.2, 1); }
 .arrow svg.rotated { transform: rotate(90deg); }
+
+.tree-expand-enter-active { transition: all 0.15s ease; overflow: hidden; }
+.tree-expand-leave-active { transition: all 0.1s ease; overflow: hidden; }
+.tree-expand-enter-from { opacity: 0; max-height: 0; }
+.tree-expand-leave-to { opacity: 0; max-height: 0; }
 .method-tag {
   display: inline-block;
   min-width: 34px;

@@ -21,22 +21,27 @@
             <path v-else d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>
           </svg>
         </button>
-        <button class="btn-import" @click="showImport = true">
-          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+        <n-button size="tiny" @click="showImport = true" class="btn-import">
+          <template #icon>
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+          </template>
           导入
-        </button>
-        <button class="btn-new" @click="showCreate = true">+ 新建项目</button>
+        </n-button>
+        <n-button type="primary" size="tiny" @click="showCreate = true">+ 新建项目</n-button>
       </div>
     </div>
 
     <div class="project-grid">
       <div
-        v-for="p in projectList"
+        v-for="(p, idx) in projectList"
         :key="p.id"
         class="project-card"
+        :style="{ '--card-delay': idx * 0.04 + 's' }"
         @click="enterProject(p.id)"
         @keydown.enter="enterProject(p.id)"
+        tabindex="0"
       >
+        <div class="card-glow"></div>
         <div class="card-header">
           <span class="card-icon">
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M22 19a2 2 0 01-2 2H4a2 2 0 01-2-2V5a2 2 0 012-2h5l2 3h9a2 2 0 012 2z"/></svg>
@@ -61,37 +66,43 @@
       </div>
 
       <div v-if="projectList.length === 0" class="empty-state">
-        <svg class="empty-icon" width="48" height="48" viewBox="0 0 48 48" fill="none" stroke="currentColor" stroke-width="1.2">
-          <rect x="6" y="10" width="36" height="28" rx="3" />
-          <line x1="6" y1="18" x2="42" y2="18" />
-          <circle cx="13" cy="14" r="1.5" fill="currentColor" stroke="none" />
-          <circle cx="18" cy="14" r="1.5" fill="currentColor" stroke="none" />
-          <circle cx="23" cy="14" r="1.5" fill="currentColor" stroke="none" />
-        </svg>
-        <h2>还没有项目</h2>
-        <p>创建第一个项目，开始调试 API</p>
-        <button class="btn-new" @click="showCreate = true">+ 新建项目</button>
+        <div class="empty-graphic">
+          <svg width="64" height="64" viewBox="0 0 64 64" fill="none" stroke="currentColor" stroke-width="1" opacity="0.3">
+            <rect x="8" y="14" width="48" height="36" rx="4" />
+            <line x1="8" y1="24" x2="56" y2="24" />
+            <circle cx="16" cy="19" r="2" fill="currentColor" stroke="none" />
+            <circle cx="22" cy="19" r="2" fill="currentColor" stroke="none" />
+            <circle cx="28" cy="19" r="2" fill="currentColor" stroke="none" />
+            <path d="M24 34l4 4 8-8" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
+          </svg>
+          <div class="empty-ring"></div>
+        </div>
+        <h2 class="empty-title">还没有项目</h2>
+        <p class="empty-desc">创建第一个项目，开始调试 API</p>
+        <n-button type="primary" @click="showCreate = true">+ 新建项目</n-button>
       </div>
     </div>
 
-    <div v-if="showCreate" class="modal-overlay" @click.self="showCreate = false">
-      <div class="modal-box">
-        <h3>新建项目</h3>
-        <label>名称</label>
-        <input v-model="newName" placeholder="项目名称" @keydown.enter="onCreate" />
-        <label>描述</label>
-        <input v-model="newDesc" placeholder="描述（可选）" @keydown.enter="onCreate" />
-        <div class="modal-acts">
-          <button class="btn-cancel" @click="showCreate = false">取消</button>
-          <button class="btn-save" @click="onCreate" :disabled="!newName.trim()">创建</button>
-        </div>
-      </div>
-    </div>
+    <n-modal v-model:show="showCreate" preset="card" title="新建项目" style="width: 400px" :mask-closable="false">
+      <n-form label-placement="top">
+        <n-form-item label="名称">
+          <n-input v-model:value="newName" placeholder="项目名称" @keydown.enter="onCreate" />
+        </n-form-item>
+        <n-form-item label="描述">
+          <n-input v-model:value="newDesc" placeholder="项目描述（可选）" @keydown.enter="onCreate" />
+        </n-form-item>
+      </n-form>
+      <template #footer>
+        <n-button @click="showCreate = false">取消</n-button>
+        <n-button type="primary" :disabled="!newName.trim()" @click="onCreate">创建</n-button>
+      </template>
+    </n-modal>
   </div>
 </template>
 
 <script setup lang="ts">
 import { ref, onMounted } from 'vue'
+import { NButton, NModal, NForm, NFormItem, NInput } from 'naive-ui'
 import { GetProjectStats, CreateProject, ListProjects } from '../../../wailsjs/go/main/App'
 
 interface ProjectCard {
@@ -160,7 +171,7 @@ onMounted(loadProjects)
     linear-gradient(var(--border-primary) 0.5px, transparent 0.5px),
     linear-gradient(90deg, var(--border-primary) 0.5px, transparent 0.5px);
   background-size: 40px 40px;
-  opacity: 0.35;
+  opacity: 0.3;
   mask-image: radial-gradient(ellipse 80% 80% at 50% 0%, black 30%, transparent 70%);
 }
 .home-header {
@@ -169,27 +180,28 @@ onMounted(loadProjects)
   justify-content: space-between;
   padding: 28px 40px 0;
   position: relative;
+  animation: fadeIn 0.3s ease both;
 }
 .home-brand {
   display: flex;
   align-items: center;
   gap: 10px;
 }
-.brand-mark { color: var(--accent); }
+.brand-mark { color: var(--accent); filter: drop-shadow(0 0 6px var(--accent-glow)); }
 .home-title {
-  font-size: var(--fs-xl);
+  font-size: var(--fs-2xl);
   font-weight: 700;
   color: var(--text-primary);
-  letter-spacing: 3px;
+  letter-spacing: 4px;
   margin: 0;
   font-family: var(--font-mono);
 }
 .home-version {
-  font-size: var(--fs-xs);
+  font-size: var(--fs-2xs);
   color: var(--text-muted);
   background: var(--bg-elevated);
   padding: 2px 6px;
-  border-radius: 2px;
+  border-radius: 3px;
   border: 1px solid var(--border-primary);
   font-family: var(--font-mono);
 }
@@ -207,34 +219,6 @@ onMounted(loadProjects)
   transition: all var(--transition);
 }
 .btn-theme:hover { border-color: var(--accent); color: var(--accent); background: var(--accent-soft); }
-.btn-new {
-  padding: 7px 18px;
-  background: var(--accent);
-  color: #000;
-  border: none;
-  border-radius: var(--radius);
-  font-size: var(--fs-sm);
-  font-weight: 600;
-  cursor: pointer;
-  font-family: var(--font-mono);
-  transition: all var(--transition);
-}
-.btn-new:hover { background: var(--accent-hover); }
-.btn-import {
-  padding: 7px 14px;
-  background: transparent;
-  color: var(--text-secondary);
-  border: 1px solid var(--border-primary);
-  border-radius: var(--radius);
-  font-size: var(--fs-sm);
-  cursor: pointer;
-  font-family: var(--font-mono);
-  display: flex;
-  align-items: center;
-  gap: 5px;
-  transition: all var(--transition);
-}
-.btn-import:hover { border-color: var(--border-hover); color: var(--text-primary); background: var(--bg-elevated); }
 .project-grid {
   flex: 1;
   display: flex;
@@ -250,24 +234,45 @@ onMounted(loadProjects)
   min-height: 150px;
   background: var(--bg-surface);
   border: 1px solid var(--border-primary);
-  border-radius: var(--radius);
+  border-radius: var(--radius-lg);
   cursor: pointer;
   display: flex;
   flex-direction: column;
   padding: 16px;
   position: relative;
   transition: all var(--transition-slow);
+  animation: cardIn 0.35s ease both;
+  animation-delay: var(--card-delay, 0s);
+  outline: none;
+  overflow: hidden;
 }
+.project-card:focus-visible { border-color: var(--accent); box-shadow: 0 0 0 2px var(--accent-glow); }
 .project-card:hover {
   border-color: var(--accent);
   box-shadow: 0 0 0 1px var(--accent), 0 4px 20px var(--accent-glow);
-  transform: translateY(-1px);
+  transform: translateY(-2px);
+}
+.card-glow {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: radial-gradient(ellipse 120% 80% at 50% -20%, var(--accent-glow-strong) 0%, transparent 60%);
+  opacity: 0;
+  transition: opacity var(--transition-slow);
+}
+.project-card:hover .card-glow { opacity: 1; }
+
+@keyframes cardIn {
+  from { opacity: 0; transform: translateY(12px) scale(0.97); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
 }
 .card-header {
   display: flex;
   align-items: center;
   justify-content: space-between;
   margin-bottom: 12px;
+  position: relative;
+  z-index: 1;
 }
 .card-icon { color: var(--accent); opacity: 0.6; }
 .card-arrow {
@@ -278,7 +283,7 @@ onMounted(loadProjects)
   transition: all var(--transition);
 }
 .project-card:hover .card-arrow { opacity: 0.5; transform: translateX(0); }
-.card-body { flex: 1; }
+.card-body { flex: 1; position: relative; z-index: 1; }
 .card-name {
   font-size: var(--fs-base);
   font-weight: 600;
@@ -302,6 +307,8 @@ onMounted(loadProjects)
   gap: 8px;
   padding-top: 10px;
   border-top: 1px solid var(--border-primary);
+  position: relative;
+  z-index: 1;
 }
 .stat { display: flex; align-items: baseline; gap: 3px; }
 .stat-num { font-size: var(--fs-lg); font-weight: 700; color: var(--accent); font-family: var(--font-mono); }
@@ -314,45 +321,20 @@ onMounted(loadProjects)
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 6px;
+  gap: 12px;
+  animation: fadeIn 0.4s ease both;
 }
-.empty-icon { color: var(--text-muted); opacity: 0.3; margin-bottom: 8px; }
-.empty-state h2 { font-size: var(--fs-xl); color: var(--text-secondary); margin: 0; font-weight: 600; }
-.empty-state p { font-size: var(--fs-base); color: var(--text-muted); margin: 0 0 16px; }
-
-.modal-overlay {
-  position: fixed; inset: 0;
-  background: rgba(0,0,0,0.6);
-  display: flex; align-items: center; justify-content: center;
-  z-index: 300;
+.empty-graphic { position: relative; margin-bottom: 4px; }
+.empty-graphic svg { color: var(--text-muted); display: block; }
+.empty-ring {
+  position: absolute; inset: -8px;
+  border: 1px solid var(--border-primary);
+  border-radius: 50%;
+  animation: spin 8s linear infinite;
 }
-.modal-box {
-  background: var(--bg-surface); border: 1px solid var(--border-primary);
-  border-radius: var(--radius-lg); padding: 22px; width: 380px;
-  box-shadow: 0 12px 40px rgba(0,0,0,0.5);
+@keyframes spin {
+  to { transform: rotate(360deg); }
 }
-.modal-box h3 { margin: 0 0 16px; font-size: var(--fs-md); font-weight: 600; color: var(--text-primary); }
-.modal-box label { display: block; font-size: var(--fs-xs); color: var(--text-muted); margin-bottom: 3px; letter-spacing: 0.5px; text-transform: uppercase; }
-.modal-box input {
-  width: 100%; padding: 7px 10px; border: 1px solid var(--border-primary); border-radius: var(--radius);
-  font-size: var(--fs-sm); outline: none; background: var(--bg-base); color: var(--text-primary);
-  margin-bottom: 10px; box-sizing: border-box; font-family: var(--font-mono);
-  transition: border-color var(--transition);
-}
-.modal-box input:focus { border-color: var(--accent); }
-.modal-acts { display: flex; justify-content: flex-end; gap: 8px; margin-top: 18px; }
-.btn-cancel {
-  padding: 6px 16px; border: 1px solid var(--border-primary); border-radius: var(--radius);
-  font-size: var(--fs-sm); cursor: pointer; background: var(--bg-base); color: var(--text-secondary);
-  font-family: var(--font-mono); transition: all var(--transition);
-}
-.btn-cancel:hover { border-color: var(--border-hover); color: var(--text-primary); }
-.btn-save {
-  padding: 6px 16px; background: var(--accent); color: #000;
-  border: 1px solid var(--accent); border-radius: var(--radius);
-  font-size: var(--fs-sm); cursor: pointer; font-weight: 600; font-family: var(--font-mono);
-  transition: all var(--transition);
-}
-.btn-save:disabled { background: var(--bg-elevated); border-color: var(--border-primary); color: var(--text-muted); cursor: not-allowed; }
-.btn-save:hover:not(:disabled) { background: var(--accent-hover); }
+.empty-title { font-size: var(--fs-xl); color: var(--text-secondary); margin: 0; font-weight: 600; font-family: var(--font-mono); }
+.empty-desc { font-size: var(--fs-base); color: var(--text-muted); margin: 0 0 4px; }
 </style>

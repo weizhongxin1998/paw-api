@@ -188,10 +188,11 @@ onMounted(() => { if (projectStore.currentId) loadHistory() })
   padding: 7px 8px;
   border-bottom: 1px solid var(--border-primary);
   cursor: pointer;
-  transition: background var(--transition);
+  transition: background var(--transition), border-color var(--transition);
+  animation: fadeIn 0.2s ease both;
 }
 .history-item:hover { background: var(--bg-hover); }
-.history-item.selected { background: var(--accent-soft); border-left: 2px solid var(--accent); }
+.history-item.selected { background: var(--accent-soft); border-left: 2px solid var(--accent); padding-left: 6px; }
 .item-row { display: flex; gap: 5px; align-items: center; }
 .hist-url {
   font-size: var(--fs-2xs);

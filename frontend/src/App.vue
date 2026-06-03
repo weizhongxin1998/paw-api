@@ -5,6 +5,7 @@
       <n-message-provider>
         <div class="app-container" :class="{ 'theme-light': themeMode === 'light' }">
           <div class="noise-overlay"></div>
+          <div class="vignette-overlay"></div>
           <AppHeader
             v-if="projectStore.currentId"
             :project-id="projectStore.currentId"
@@ -13,13 +14,16 @@
             @back-to-home="projectStore.currentId = null"
             @toggle-theme="toggleTheme"
           />
-          <ProjectHome
-            v-if="!projectStore.currentId"
-            :theme-mode="themeMode"
-            @enter-project="onEnterProject"
-            @toggle-theme="toggleTheme"
-          />
-          <AppBody v-else :project-id="projectStore.currentId" />
+          <Transition name="view-fade" mode="out-in">
+            <ProjectHome
+              v-if="!projectStore.currentId"
+              :key="'home'"
+              :theme-mode="themeMode"
+              @enter-project="onEnterProject"
+              @toggle-theme="toggleTheme"
+            />
+            <AppBody v-else :key="'app'" :project-id="projectStore.currentId" />
+          </Transition>
         </div>
       </n-message-provider>
     </n-dialog-provider>
@@ -99,6 +103,7 @@ defineExpose({ toggleTheme, themeMode })
   --accent-pressed: #00b84a;
   --accent-soft: rgba(0,224,90,0.08);
   --accent-glow: rgba(0,224,90,0.15);
+  --accent-glow-strong: rgba(0,224,90,0.25);
   --red: #ff4444;
   --red-soft: rgba(255,68,68,0.08);
   --amber: #ffaa00;
@@ -144,6 +149,7 @@ defineExpose({ toggleTheme, themeMode })
   --accent-pressed: #006b2a;
   --accent-soft: rgba(0,153,68,0.08);
   --accent-glow: rgba(0,153,68,0.12);
+  --accent-glow-strong: rgba(0,153,68,0.2);
   --red: #cc3333;
   --red-soft: rgba(204,51,51,0.08);
   --amber: #b36d00;
@@ -168,18 +174,37 @@ html, body, #app {
 
 .noise-overlay {
   position: fixed; inset: 0; pointer-events: none; z-index: 9999;
-  opacity: 0.025;
-  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='1'/%3E%3C/svg%3E");
+  opacity: 0.03;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='1'/%3E%3C/svg%3E");
   background-size: 256px 256px;
+  mix-blend-mode: overlay;
 }
-.theme-light .noise-overlay { opacity: 0.012; }
+.theme-light .noise-overlay { opacity: 0.015; mix-blend-mode: multiply; }
+
+.vignette-overlay {
+  position: fixed; inset: 0; pointer-events: none; z-index: 9998;
+  background: radial-gradient(ellipse 100% 90% at 50% 50%, transparent 50%, rgba(0,0,0,0.35) 100%);
+}
+.theme-light .vignette-overlay { background: radial-gradient(ellipse 100% 90% at 50% 50%, transparent 50%, rgba(0,0,0,0.06) 100%); }
+
+.view-fade-enter-active, .view-fade-leave-active {
+  transition: opacity 0.2s ease, transform 0.2s ease;
+}
+.view-fade-enter-from { opacity: 0; transform: translateY(4px); }
+.view-fade-leave-to { opacity: 0; transform: translateY(-4px); }
 
 ::-webkit-scrollbar { width: 6px; height: 6px; }
 ::-webkit-scrollbar-track { background: transparent; }
-::-webkit-scrollbar-thumb { background: #333; border-radius: 3px; }
-::-webkit-scrollbar-thumb:hover { background: #444; }
+::-webkit-scrollbar-thumb { background: #333; border-radius: 3px; border: 1px solid transparent; background-clip: padding-box; }
+::-webkit-scrollbar-thumb:hover { background: #555; }
+::-webkit-scrollbar-corner { background: transparent; }
 .theme-light ::-webkit-scrollbar-thumb { background: #ccc; }
 .theme-light ::-webkit-scrollbar-thumb:hover { background: #aaa; }
 
 ::selection { background: var(--accent-soft); color: var(--accent); }
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(6px); }
+  to { opacity: 1; transform: translateY(0); }
+}
 </style>

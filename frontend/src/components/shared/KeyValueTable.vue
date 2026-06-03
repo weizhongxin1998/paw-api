@@ -35,7 +35,6 @@
       @update:value="onBulkChange"
     />
     <div class="kv-footer">
-      <n-button text size="tiny" @click="onAdd">+ 添加</n-button>
       <n-button v-if="showBulkEdit" text size="tiny" @click="isBulkEdit = !isBulkEdit">
         {{ isBulkEdit ? 'Table' : 'Bulk' }}
       </n-button>
@@ -44,7 +43,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed } from 'vue'
+import { ref, computed, watch } from 'vue'
 import { NInput, NCheckbox, NButton, NSelect } from 'naive-ui'
 import type { KvItem } from '../../types/request'
 
@@ -71,20 +70,38 @@ const typeOptions = [
 
 let idCounter = Date.now()
 
-function onAdd() {
-  const item: KvItem = {
-    id: String(++idCounter),
-    key: '',
-    value: '',
-    description: '',
-    enabled: true,
-  }
-  const newItems = [...props.items, item]
-  emit('update:items', newItems)
-}
+// Watch the last row: when it gains content, auto-append a new empty row below it.
+// Uses a stable boolean so typing multiple chars in the same cell doesn't re-trigger.
+watch(
+  () => {
+    const arr = props.items
+    if (arr.length === 0) return 'empty' as const
+    const last = arr[arr.length - 1]
+    return !!(last.key || last.value || last.description)
+  },
+  (filled, prev) => {
+    if (prev === undefined) {
+      // immediate: ensure exactly one trailing empty row
+      if (props.items.length === 0) {
+        emit('update:items', [{ id: String(++idCounter), key: '', value: '', description: '', enabled: true }])
+      } else if (filled) {
+        emit('update:items', [...props.items, { id: String(++idCounter), key: '', value: '', description: '', enabled: true }])
+      }
+      return
+    }
+    // subsequent: last row just became non-empty → add a new empty row below
+    if (filled && !prev) {
+      emit('update:items', [...props.items, { id: String(++idCounter), key: '', value: '', description: '', enabled: true }])
+    }
+  },
+  { immediate: true }
+)
 
 function onRemove(index: number) {
   const newItems = props.items.filter((_, i) => i !== index)
+  if (newItems.length === 0 || (newItems[newItems.length - 1].key || newItems[newItems.length - 1].value || newItems[newItems.length - 1].description)) {
+    newItems.push({ id: String(++idCounter), key: '', value: '', description: '', enabled: true })
+  }
   emit('update:items', newItems)
 }
 

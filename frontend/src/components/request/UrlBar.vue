@@ -294,7 +294,7 @@ function onVarLeave(e: MouseEvent) {
 }
 .tooltip-key { color: var(--amber); }
 .send-btn {
-  padding: 6px 18px;
+  padding: 6px 20px;
   background: var(--accent);
   color: #000;
   border: 1px solid var(--accent);
@@ -306,15 +306,25 @@ function onVarLeave(e: MouseEvent) {
   font-family: var(--font-mono);
   letter-spacing: 1px;
   transition: all var(--transition);
+  position: relative;
+  overflow: hidden;
 }
-.send-btn:hover { background: var(--accent-hover); border-color: var(--accent-hover); }
-.send-btn:active { transform: scale(0.98); }
+.send-btn::before {
+  content: ''; position: absolute; inset: 0;
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.15), transparent);
+  transform: translateX(-100%);
+  transition: transform 0.4s ease;
+}
+.send-btn:hover::before { transform: translateX(100%); }
+.send-btn:hover { background: var(--accent-hover); border-color: var(--accent-hover); box-shadow: 0 0 12px var(--accent-glow); }
+.send-btn:active { transform: scale(0.97); }
 .sending-dot {
   display: inline-block;
   width: 6px; height: 6px;
   background: #000;
   border-radius: 50%;
   animation: pulse 0.6s ease-in-out infinite;
+  margin-right: 3px;
 }
 @keyframes pulse {
   0%, 100% { opacity: 1; }

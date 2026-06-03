@@ -48,7 +48,7 @@
           v-for="(tab, idx) in tabs"
           :key="tab.id"
           class="tab"
-          :class="{ active: tab.id === activeTabId, dirty: tab.isDirty, preview: tab.isPreview }"
+          :class="{ active: tab.id === activeTabId, dirty: tab.isDirty, preview: tab.isPreview, 'drag-over': dragOverId === tab.id }"
           draggable="true"
           @click="selectTab(tab.id)"
           @contextmenu.prevent="onTabContextMenu($event, tab, idx)"
@@ -98,11 +98,13 @@
         <div class="resize-line"></div>
       </div>
 
-      <ResponsePanel
-        v-if="response"
-        :response="response"
-        :style="{ height: responseHeight + 'px' }"
-      />
+      <Transition name="response-slide">
+        <ResponsePanel
+          v-if="response"
+          :response="response"
+          :style="{ height: responseHeight + 'px' }"
+        />
+      </Transition>
     </div>
 
     <n-dropdown
@@ -479,12 +481,13 @@ defineExpose({ openTab, previewTab, tabs, activeTabId, selectTab, showHistoryDet
   align-items: center;
   justify-content: center;
   color: var(--text-muted);
-  gap: 4px;
+  gap: 6px;
+  animation: fadeIn 0.3s ease both;
 }
-.empty-logo { margin-bottom: 8px; }
+.empty-logo { margin-bottom: 8px; color: var(--text-muted); opacity: 0.25; }
 .empty-state h2 {
   font-size: var(--fs-lg); color: var(--text-secondary); margin: 0;
-  font-weight: 600; letter-spacing: 1px; text-transform: uppercase;
+  font-weight: 600; letter-spacing: 2px; text-transform: uppercase;
 }
 .empty-state p {
   font-size: var(--fs-sm); color: var(--text-muted); margin: 0;
@@ -492,7 +495,7 @@ defineExpose({ openTab, previewTab, tabs, activeTabId, selectTab, showHistoryDet
 }
 .empty-state kbd {
   background: var(--bg-elevated); border: 1px solid var(--border-primary);
-  padding: 1px 5px; border-radius: 2px; font-size: var(--fs-xs);
+  padding: 1px 5px; border-radius: 3px; font-size: var(--fs-xs);
   font-family: var(--font-mono); color: var(--text-secondary);
 }
 .workspace-editor {
@@ -508,7 +511,7 @@ defineExpose({ openTab, previewTab, tabs, activeTabId, selectTab, showHistoryDet
   height: 32px;
   align-items: flex-end;
   padding: 0 4px;
-  gap: 2px;
+  gap: 1px;
   overflow-x: auto;
   flex-shrink: 0;
 }
@@ -524,7 +527,8 @@ defineExpose({ openTab, previewTab, tabs, activeTabId, selectTab, showHistoryDet
   background: var(--bg-elevated);
   border: 1px solid var(--border-primary);
   border-bottom: none;
-  border-radius: var(--radius-sm) var(--radius-sm) 0 0;
+  border-top-left-radius: var(--radius-sm);
+  border-top-right-radius: var(--radius-sm);
   cursor: pointer;
   display: flex;
   align-items: center;
@@ -535,12 +539,25 @@ defineExpose({ openTab, previewTab, tabs, activeTabId, selectTab, showHistoryDet
   font-family: var(--font-mono);
   transition: all var(--transition);
   max-width: 200px;
+  position: relative;
+  animation: tabIn 0.2s ease both;
 }
-.tab.active { background: var(--bg-base); border-color: var(--border-primary); border-bottom: 2px solid var(--accent); color: var(--text-primary); }
+@keyframes tabIn {
+  from { opacity: 0; transform: translateY(4px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+.tab.drag-over { border-top-color: var(--accent); box-shadow: 0 -1px 0 var(--accent); }
+.tab.active { background: var(--bg-base); border-color: var(--border-primary); border-bottom: 2px solid var(--accent); color: var(--text-primary); border-top-color: transparent; }
 .tab.preview { font-style: italic; }
+.tab.preview::after {
+  content: ''; position: absolute; top: 3px; right: 3px;
+  width: 4px; height: 4px; border-radius: 50%;
+  background: var(--blue); opacity: 0.5;
+}
 .tab:hover:not(.active) { background: var(--bg-hover); color: var(--text-secondary); }
 .tab-method {
   font-size: var(--fs-2xs); font-weight: 700; padding: 1px 3px; border-radius: 2px; letter-spacing: 0.3px; flex-shrink: 0;
+  line-height: 1.3;
 }
 .tab-method.get { background: var(--accent-soft); color: var(--accent); }
 .tab-method.post { background: var(--amber-soft); color: var(--amber); }
@@ -550,11 +567,14 @@ defineExpose({ openTab, previewTab, tabs, activeTabId, selectTab, showHistoryDet
 .tab-method.head, .tab-method.options { background: var(--bg-hover); color: var(--text-secondary); }
 .tab-name { font-size: var(--fs-sm); overflow: hidden; text-overflow: ellipsis; }
 .tab-dirty { width: 5px; height: 5px; background: var(--accent); border-radius: 50%; flex-shrink: 0; }
-.tab-close { color: var(--text-muted); font-size: var(--fs-md); margin-left: 1px; padding: 0 2px; border-radius: 2px; transition: all var(--transition); }
+.tab-close { color: var(--text-muted); font-size: var(--fs-xs); margin-left: 1px; padding: 0 3px; border-radius: 2px; transition: all var(--transition); opacity: 0; }
+.tab:hover .tab-close { opacity: 1; }
+.tab.active .tab-close { opacity: 0.6; }
+.tab.active .tab-close:hover { opacity: 1; }
 .tab-close:hover { color: var(--red); background: var(--red-soft); }
 .tab-plus {
   padding: 2px 7px; font-size: var(--fs-md); cursor: pointer; color: var(--accent);
-  user-select: none; border-radius: var(--radius-sm); transition: all var(--transition); flex-shrink: 0;
+  user-select: none; border-radius: var(--radius-sm); transition: all var(--transition); flex-shrink: 0; margin-bottom: 1px;
 }
 .tab-plus:hover { background: var(--accent-soft); }
 .resize-handle {
@@ -563,13 +583,20 @@ defineExpose({ openTab, previewTab, tabs, activeTabId, selectTab, showHistoryDet
   background: var(--bg-surface);
   border-top: 1px solid var(--border-primary);
   transition: background var(--transition);
+  position: relative;
+  z-index: 10;
 }
 .resize-handle:hover { background: var(--bg-elevated); }
 .resize-line {
   width: 30px; height: 2px; border-radius: 1px;
   background: var(--border-hover); transition: all var(--transition);
 }
-.resize-handle:hover .resize-line { background: var(--accent); width: 50px; }
+.resize-handle:hover .resize-line { background: var(--accent); width: 60px; }
+
+.response-slide-enter-active { transition: all 0.25s ease; }
+.response-slide-leave-active { transition: all 0.15s ease; }
+.response-slide-enter-from { opacity: 0; transform: translateY(8px); max-height: 0; }
+.response-slide-leave-to { opacity: 0; }
 
 .history-detail {
   flex: 1;
@@ -577,6 +604,7 @@ defineExpose({ openTab, previewTab, tabs, activeTabId, selectTab, showHistoryDet
   padding: 16px 18px;
   font-size: var(--fs-sm);
   background: var(--bg-base);
+  animation: fadeIn 0.2s ease both;
 }
 .hist-detail-row {
   display: flex;

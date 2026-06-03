@@ -203,12 +203,14 @@ function copyResponse() {
   background: var(--accent-soft);
 }
 .copy-btn {
-  padding: 2px 8px; border: 1px solid var(--border-primary); border-radius: var(--radius-sm);
+  padding: 2px 10px; border: 1px solid var(--border-primary); border-radius: var(--radius-sm);
   background: var(--bg-surface); font-size: var(--fs-xs); cursor: pointer;
   color: var(--text-muted); font-family: var(--font-mono);
   transition: all var(--transition);
+  position: relative;
 }
-.copy-btn:hover { color: var(--accent); border-color: var(--accent); }
+.copy-btn:hover { color: var(--accent); border-color: var(--accent); background: var(--accent-soft); }
+.copy-btn:active { transform: scale(0.95); }
 .code-block {
   font-family: var(--font-mono);
   font-size: var(--fs-sm); line-height: 1.7; margin: 0;
