@@ -116,8 +116,8 @@ func (a *App) startup(ctx context.Context) {
 	}
 	fmt.Printf("mock server started on port %d\n", a.mockServer.Port())
 
-	// Ensure all projects have "内置环境" pointing to mock server
-	a.ensureBuiltinEnvForAll()
+	// Ensure only the default project has "内置环境" pointing to mock server
+	a.ensureBuiltinEnvForDefault()
 
 	// Seed demo data on first run
 	if a.mockServer.Port() > 0 {
@@ -125,28 +125,34 @@ func (a *App) startup(ctx context.Context) {
 	}
 }
 
-func (a *App) ensureBuiltinEnvForAll() {
+func (a *App) ensureBuiltinEnvForDefault() {
 	projects, err := a.projectH.List()
+	if err != nil || len(projects) == 0 {
+		return
+	}
+	// Default project is the one with the smallest ID (first created)
+	var defaultProject *models.Project
+	for i := range projects {
+		if defaultProject == nil || projects[i].ID < defaultProject.ID {
+			defaultProject = &projects[i]
+		}
+	}
+	if defaultProject == nil {
+		return
+	}
+	envs, err := a.environmentH.List(defaultProject.ID)
 	if err != nil {
 		return
 	}
-	for _, p := range projects {
-		envs, err := a.environmentH.List(p.ID)
-		if err != nil {
-			continue
+	for _, e := range envs {
+		if e.Name == "内置环境" {
+			return // already has built-in env
 		}
-		hasBuiltin := false
-		for _, e := range envs {
-			if e.Name == "内置环境" {
-				hasBuiltin = true
-				break
-			}
-		}
-		if !hasBuiltin {
-			mockURL := fmt.Sprintf("http://localhost:%d", a.mockServer.Port())
-			if _, err := a.environmentH.Create(p.ID, "内置环境", mockURL, nil); err != nil {
-				fmt.Printf("failed to add built-in env for project %d: %v\n", p.ID, err)
-			}
+	}
+	if a.mockServer.Port() > 0 {
+		mockURL := fmt.Sprintf("http://localhost:%d", a.mockServer.Port())
+		if _, err := a.environmentH.Create(defaultProject.ID, "内置环境", mockURL, nil); err != nil {
+			fmt.Printf("failed to add built-in env for default project %d: %v\n", defaultProject.ID, err)
 		}
 	}
 }
@@ -281,8 +287,9 @@ func (a *App) CreateProject(name, description string) (*models.Project, error) {
 	if err != nil {
 		return nil, err
 	}
-	// Auto-create built-in environment with mock server URL
-	if a.mockServer.Port() > 0 {
+	// Only auto-create built-in environment for the default (first) project
+	projects, _ := a.projectH.List()
+	if len(projects) == 1 && a.mockServer.Port() > 0 {
 		mockURL := fmt.Sprintf("http://localhost:%d", a.mockServer.Port())
 		if _, err := a.environmentH.Create(project.ID, "内置环境", mockURL, nil); err != nil {
 			// non-fatal: environment creation failure shouldn't block project creation

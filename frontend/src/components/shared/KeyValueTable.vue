@@ -3,11 +3,18 @@
     <table v-if="!isBulkEdit">
       <thead>
         <tr>
-          <th style="width:24px"></th>
-          <th style="width:25%">Key</th>
-          <th style="width:35%">Value</th>
-          <th style="width:25%">Description</th>
-          <th v-if="showType" style="width:40px">Type</th>
+          <th style="width:24px; text-align:center">
+            <n-checkbox
+              v-if="headerCheck !== undefined"
+              :checked="headerCheck"
+              size="small"
+              @update:checked="(v: boolean) => emit('update:headerCheck', v)"
+            />
+          </th>
+          <th style="width:25%">键</th>
+          <th style="width:35%">值</th>
+          <th style="width:25%">描述</th>
+          <th v-if="showType" style="width:40px">类型</th>
           <th style="width:20px"></th>
         </tr>
       </thead>
@@ -52,10 +59,12 @@ const props = defineProps<{
   showType?: boolean
   showBulkEdit?: boolean
   bulkMode?: boolean
+  headerCheck?: boolean
 }>()
 
 const emit = defineEmits<{
   'update:items': [items: KvItem[]]
+  'update:headerCheck': [value: boolean]
 }>()
 
 const isBulkEditInternal = ref(false)

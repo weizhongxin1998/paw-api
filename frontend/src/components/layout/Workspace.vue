@@ -77,6 +77,7 @@
       <RequestPanel
         :headers="currentHeaders"
         :params="currentParams"
+        :params-enabled="currentParamsEnabled"
         :body-type="currentBodyType"
         :body-data="currentBodyData"
         :auth-data="currentAuthData"
@@ -84,6 +85,7 @@
         :path-vars="currentPathVars"
         @update:headers="onHeadersChange"
         @update:params="onParamsChange"
+        @update:params-enabled="onParamsEnabledChange"
         @update:body-type="onBodyTypeChange"
         @update:body-data="onBodyDataChange"
         @update:auth-data="onAuthDataChange"
@@ -141,6 +143,7 @@ interface Tab {
   pathVars: string
   headers: string
   params: string
+  paramsEnabled: boolean
   bodyType: string
   bodyData: string
   authData: string
@@ -166,6 +169,7 @@ const currentUrl = ref('')
 const currentPathVars = ref('[]')
 const currentHeaders = ref('[]')
 const currentParams = ref('[]')
+const currentParamsEnabled = ref(true)
 const currentBodyType = ref('none')
 const currentBodyData = ref('{}')
 const currentAuthData = ref('{"type":"none"}')
@@ -184,6 +188,7 @@ function onUrlChange(v: string) { currentUrl.value = v; markDirty() }
 function onPathVarsChange(v: string) { currentPathVars.value = v }
 function onHeadersChange(v: string) { currentHeaders.value = v; markDirty() }
 function onParamsChange(v: string) { currentParams.value = v; markDirty() }
+function onParamsEnabledChange(v: boolean) { currentParamsEnabled.value = v; markDirty() }
 function onBodyTypeChange(v: string) { currentBodyType.value = v; markDirty() }
 function onBodyDataChange(v: string) { currentBodyData.value = v; markDirty() }
 function onAuthDataChange(v: string) { currentAuthData.value = v; markDirty() }
@@ -195,6 +200,7 @@ function syncToActiveTab() {
   activeTab.value.pathVars = currentPathVars.value
   activeTab.value.headers = currentHeaders.value
   activeTab.value.params = currentParams.value
+  activeTab.value.paramsEnabled = currentParamsEnabled.value
   activeTab.value.bodyType = currentBodyType.value
   activeTab.value.bodyData = currentBodyData.value
   activeTab.value.authData = currentAuthData.value
@@ -205,7 +211,7 @@ function addNewTab() {
   const tab: Tab = {
     id, requestId: 0, method: 'GET', name: '新建请求', url: '',
     pathVars: '[]', isDirty: true, isPreview: false,
-    headers: '[]', params: '[]', bodyType: 'none', bodyData: '{}',
+    headers: '[]', params: '[]', paramsEnabled: true, bodyType: 'none', bodyData: '{}',
     authData: '{"type":"none"}', collectionId: 0,
   }
   tabs.value.push(tab)
@@ -251,7 +257,7 @@ async function onSend() {
     method: currentMethod.value,
     url: resolvedUrl,
     headers: currentHeaders.value,
-    params: currentParams.value,
+    params: currentParamsEnabled.value ? currentParams.value : '[]',
     body_type: currentBodyType.value,
     body: currentBodyData.value,
     auth: currentAuthData.value,
@@ -302,6 +308,7 @@ function selectTab(id: string) {
     currentPathVars.value = activeTab.value.pathVars || '[]'
     currentHeaders.value = activeTab.value.headers
     currentParams.value = activeTab.value.params
+    currentParamsEnabled.value = activeTab.value.paramsEnabled ?? true
     currentBodyType.value = activeTab.value.bodyType
     currentBodyData.value = activeTab.value.bodyData
     currentAuthData.value = activeTab.value.authData

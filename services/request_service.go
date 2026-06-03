@@ -3,6 +3,7 @@ package services
 import (
 	"context"
 	"encoding/json"
+	neturl "net/url"
 	"regexp"
 	"strings"
 
@@ -100,6 +101,20 @@ func (s *RequestService) Send(ctx context.Context, req *models.Request, envID in
 
 	url = resolveEnvVars(url)
 
+	// 拼接 query params 到 URL
+	params := parseKvJSON(req.Params)
+	if len(params) > 0 {
+		u, err := neturl.Parse(url)
+		if err == nil {
+			q := u.Query()
+			for k, v := range params {
+				q.Set(k, v)
+			}
+			u.RawQuery = q.Encode()
+			url = u.String()
+		}
+	}
+
 	headers := parseKvJSON(req.Headers)
 
 	resp, err := s.httpClient.Execute(ctx, req.Method, url, headers, []byte(req.Body))
@@ -168,7 +183,7 @@ func parseKvJSON(raw string) map[string]string {
 
 	result := make(map[string]string)
 	for _, kv := range kvs {
-		if kv.Enabled {
+		if kv.Enabled && kv.Key != "" {
 			result[kv.Key] = kv.Value
 		}
 	}

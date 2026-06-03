@@ -322,6 +322,16 @@ html, body, #app {
 .status-pill.status-5xx { background: var(--red-soft); color: var(--red); }
 
 /* ════════════════════════════════════════════════════════════
+   Select dropdown: keep font-size consistent with tiny trigger
+   ════════════════════════════════════════════════════════════ */
+.n-base-select-menu {
+  --n-option-font-size: var(--fs-xs) !important;
+}
+.n-base-select-menu .n-base-select-option__content {
+  text-align: center;
+}
+
+/* ════════════════════════════════════════════════════════════
    Keyframes
    ════════════════════════════════════════════════════════════ */
 @keyframes fadeIn {

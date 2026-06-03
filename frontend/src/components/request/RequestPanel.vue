@@ -19,16 +19,11 @@
     <div class="sub-content">
       <div v-if="activeTab === 'params'" class="params-content">
         <div class="params-section">
-          <div class="params-section-hdr">
-            <label class="section-toggle">
-              <input type="checkbox" v-model="queryParamsEnabled" />
-              <span>Query Params</span>
-            </label>
-          </div>
           <KeyValueTable
-            v-if="queryParamsEnabled"
             :items="paramsItems"
+            :header-check="paramsEnabled"
             @update:items="onParamsChange"
+            @update:header-check="(v: boolean) => { paramsEnabled = v; emit('update:paramsEnabled', v) }"
           />
         </div>
       </div>
@@ -42,9 +37,9 @@
           <table class="kvt">
             <thead>
               <tr>
-                <th>Key</th>
-                <th>Value</th>
-                <th>Description</th>
+                <th>键</th>
+                <th>值</th>
+                <th>描述</th>
               </tr>
             </thead>
             <tbody>
@@ -95,7 +90,7 @@ interface PathVariable { key: string; value: string; description: string }
 
 const props = defineProps<{
   headers: string; params: string; bodyType: string; bodyData: string
-  authData: string; url: string; pathVars: string
+  authData: string; url: string; pathVars: string; paramsEnabled: boolean
 }>()
 
 const emit = defineEmits<{
@@ -105,6 +100,7 @@ const emit = defineEmits<{
   (e: 'update:bodyData', v: string): void
   (e: 'update:authData', v: string): void
   (e: 'update:pathVars', v: string): void
+  (e: 'update:paramsEnabled', v: boolean): void
 }>()
 
 const tabs = [
@@ -117,7 +113,7 @@ const tabs = [
 
 const activeTab = ref('params')
 const isBulkEdit = ref(false)
-const queryParamsEnabled = ref(true)
+const paramsEnabled = ref(props.paramsEnabled)
 const bodyType = ref(props.bodyType)
 const bodyData = ref(props.bodyData)
 const authData = ref(props.authData)
@@ -178,6 +174,7 @@ watch(() => props.headers, (v) => { headersItems.value = parseKv(v) }, { immedia
 watch(() => props.bodyType, (v) => { bodyType.value = v })
 watch(() => props.bodyData, (v) => { bodyData.value = v })
 watch(() => props.authData, (v) => { authData.value = v })
+watch(() => props.paramsEnabled, (v) => { paramsEnabled.value = v })
 
 function sync() {
   emit('update:headers', JSON.stringify(headersItems.value))
@@ -289,15 +286,6 @@ function onParamsChange(items: KvItem[]) {
 .params-section { margin-bottom: 12px; }
 .params-section-hdr {
   display: flex; align-items: center; gap: 8px; margin-bottom: 4px;
-}
-.section-toggle {
-  display: flex; align-items: center; gap: 6px;
-  font-size: var(--fs-sm); color: var(--text-secondary);
-  font-weight: 600; cursor: pointer; font-family: var(--font-mono);
-}
-.section-toggle input[type="checkbox"] {
-  accent-color: var(--accent);
-  width: 14px; height: 14px;
 }
 .section-label {
   font-size: var(--fs-sm); color: var(--text-secondary);

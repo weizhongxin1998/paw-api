@@ -88,7 +88,17 @@ watch(() => props.projectId, () => { fetchEnvs() }, { immediate: true })
 }
 .env-select :deep(.n-base-selection) {
   height: 28px;
+  --n-height: 28px !important;
   border-radius: var(--radius-sm);
+}
+/* 居中显示选中的文字 */
+.env-select :deep(.n-base-selection-input) {
+  text-align: center;
+}
+/* 统一触发区和下拉菜单的字体大小 */
+.env-select :deep(.n-base-selection-label),
+.env-select :deep(.n-base-selection-input) {
+  font-size: var(--fs-xs) !important;
 }
 .env-manage-btn {
   color: var(--text-muted) !important;
