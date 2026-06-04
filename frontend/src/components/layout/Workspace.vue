@@ -66,47 +66,88 @@
         <span class="tab-plus" @click="addNewTab">+</span>
       </div>
 
-      <UrlBar
-        :model-method="currentMethod"
-        :model-url="currentUrl"
-        @update:model-method="onMethodChange"
-        @update:model-url="onUrlChange"
-        @send="onSend"
-      />
-
-      <RequestPanel
-        :headers="currentHeaders"
-        :params="currentParams"
-        :params-enabled="currentParamsEnabled"
-        :body-type="currentBodyType"
-        :body-data="currentBodyData"
-        :auth-data="currentAuthData"
-        :url="currentUrl"
-        :path-vars="currentPathVars"
-        @update:headers="onHeadersChange"
-        @update:params="onParamsChange"
-        @update:params-enabled="onParamsEnabledChange"
-        @update:body-type="onBodyTypeChange"
-        @update:body-data="onBodyDataChange"
-        @update:auth-data="onAuthDataChange"
-        @update:path-vars="onPathVarsChange"
-      />
-
-      <div
-        v-if="response"
-        class="resize-handle"
-        @mousedown="onResizeStart"
-      >
-        <div class="resize-line"></div>
+      <!-- View Mode Switcher -->
+      <div class="view-switcher">
+        <div class="view-tabs">
+          <button
+            class="view-tab"
+            :class="{ active: viewMode === 'request' }"
+            @click="viewMode = 'request'"
+          >
+            <span class="view-tab-icon">&#9998;</span>
+            请求
+          </button>
+          <button
+            class="view-tab"
+            :class="{ active: viewMode === 'docs' }"
+            @click="onSwitchToDocs"
+          >
+            <span class="view-tab-icon">&#128196;</span>
+            文档
+          </button>
+        </div>
+        <div class="name-editor">
+          <span class="name-label">接口名称</span>
+          <input
+            v-model="currentName"
+            class="name-input"
+            placeholder="输入接口名称"
+            @blur="onNameBlur"
+            @keydown.enter="($event.target as HTMLInputElement).blur()"
+          />
+        </div>
       </div>
 
-      <Transition name="response-slide">
-        <ResponsePanel
-          v-if="response"
-          :response="response"
-          :style="{ height: responseHeight + 'px' }"
+      <template v-if="viewMode === 'request'">
+        <UrlBar
+          :model-method="currentMethod"
+          :model-url="currentUrl"
+          @update:model-method="onMethodChange"
+          @update:model-url="onUrlChange"
+          @send="onSend"
         />
-      </Transition>
+
+        <RequestPanel
+          :headers="currentHeaders"
+          :params="currentParams"
+          :params-enabled="currentParamsEnabled"
+          :body-type="currentBodyType"
+          :body-data="currentBodyData"
+          :auth-data="currentAuthData"
+          :url="currentUrl"
+          :path-vars="currentPathVars"
+          @update:headers="onHeadersChange"
+          @update:params="onParamsChange"
+          @update:params-enabled="onParamsEnabledChange"
+          @update:body-type="onBodyTypeChange"
+          @update:body-data="onBodyDataChange"
+          @update:auth-data="onAuthDataChange"
+          @update:path-vars="onPathVarsChange"
+        />
+
+        <div
+          v-if="response"
+          class="resize-handle"
+          @mousedown="onResizeStart"
+        >
+          <div class="resize-line"></div>
+        </div>
+
+        <Transition name="response-slide">
+          <ResponsePanel
+            v-if="response"
+            :response="response"
+            :style="{ height: responseHeight + 'px' }"
+          />
+        </Transition>
+      </template>
+
+      <RequestDocsView
+        v-else
+        :request-id="activeTab?.requestId || 0"
+        :request-name="currentName"
+        :request-method="currentMethod"
+      />
     </div>
 
     <n-dropdown
@@ -128,6 +169,7 @@ import { NDropdown, useDialog } from 'naive-ui'
 import UrlBar from '../request/UrlBar.vue'
 import RequestPanel from '../request/RequestPanel.vue'
 import ResponsePanel from '../response/ResponsePanel.vue'
+import RequestDocsView from '../request/RequestDocsView.vue'
 import type { HttpResponse } from '../../types/response'
 import { SendRequest, UpdateRequest } from '../../../wailsjs/go/main/App'
 import { useEnvStore } from '../../stores/env'
@@ -173,6 +215,8 @@ const currentParamsEnabled = ref(true)
 const currentBodyType = ref('none')
 const currentBodyData = ref('{}')
 const currentAuthData = ref('{"type":"none"}')
+const currentName = ref('')
+const viewMode = ref<'request' | 'docs'>('request')
 
 let sessionCounter = 0
 let tabIdCounter = 0
@@ -193,8 +237,22 @@ function onBodyTypeChange(v: string) { currentBodyType.value = v; markDirty() }
 function onBodyDataChange(v: string) { currentBodyData.value = v; markDirty() }
 function onAuthDataChange(v: string) { currentAuthData.value = v; markDirty() }
 
+function onNameBlur() {
+  if (!activeTab.value) return
+  if (activeTab.value.name !== currentName.value) {
+    activeTab.value.name = currentName.value
+    activeTab.value.isDirty = true
+    if (activeTab.value.isPreview) activeTab.value.isPreview = false
+  }
+}
+
+function onSwitchToDocs() {
+  viewMode.value = 'docs'
+}
+
 function syncToActiveTab() {
   if (!activeTab.value) return
+  activeTab.value.name = currentName.value
   activeTab.value.method = currentMethod.value
   activeTab.value.url = currentUrl.value
   activeTab.value.pathVars = currentPathVars.value
@@ -303,6 +361,7 @@ function selectTab(id: string) {
   activeTabId.value = id
   activeTab.value = tabs.value.find(t => t.id === id) || null
   if (activeTab.value) {
+    currentName.value = activeTab.value.name
     currentMethod.value = activeTab.value.method
     currentUrl.value = activeTab.value.url
     currentPathVars.value = activeTab.value.pathVars || '[]'
@@ -313,6 +372,7 @@ function selectTab(id: string) {
     currentBodyData.value = activeTab.value.bodyData
     currentAuthData.value = activeTab.value.authData
   }
+  viewMode.value = 'request'
 }
 
 function onCloseTab(tab: Tab) {
@@ -739,5 +799,96 @@ defineExpose({ openTab, previewTab, tabs, activeTabId, selectTab, showHistoryDet
   margin: 0;
   color: var(--text-primary);
   line-height: 1.7;
+}
+
+/* ── View Switcher ── */
+.view-switcher {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 10px;
+  background: var(--bg-base);
+  border-bottom: 1px solid var(--border-primary);
+  flex-shrink: 0;
+  height: 34px;
+  gap: 12px;
+}
+
+.view-tabs {
+  display: flex;
+  gap: 2px;
+  flex-shrink: 0;
+}
+
+.view-tab {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 12px;
+  font-size: var(--fs-xs);
+  font-weight: 500;
+  color: var(--text-muted);
+  background: transparent;
+  border: 1px solid transparent;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  transition: all var(--transition);
+  font-family: var(--font-ui);
+}
+
+.view-tab:hover {
+  color: var(--text-secondary);
+  background: var(--bg-hover);
+}
+
+.view-tab.active {
+  color: var(--accent);
+  background: var(--accent-soft);
+  border-color: rgba(0, 224, 90, 0.15);
+  font-weight: 600;
+}
+
+.view-tab-icon {
+  font-size: 12px;
+  opacity: 0.8;
+}
+
+.name-editor {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex: 1;
+  min-width: 0;
+  justify-content: flex-end;
+}
+
+.name-label {
+  font-size: var(--fs-xs);
+  color: var(--text-muted);
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.name-input {
+  width: 200px;
+  max-width: 300px;
+  padding: 3px 8px;
+  font-size: var(--fs-xs);
+  font-family: var(--font-ui);
+  color: var(--text-primary);
+  background: var(--bg-surface);
+  border: 1px solid var(--border-primary);
+  border-radius: var(--radius-sm);
+  outline: none;
+  transition: border-color var(--transition);
+  box-sizing: border-box;
+}
+
+.name-input:focus {
+  border-color: var(--accent);
+}
+
+.name-input::placeholder {
+  color: var(--text-placeholder);
 }
 </style>

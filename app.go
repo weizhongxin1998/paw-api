@@ -5,13 +5,11 @@ import (
 	"database/sql"
 	"fmt"
 	"os"
-	"time"
 
 	"paw-api/database"
 	"paw-api/handlers"
 	"paw-api/models"
 	"paw-api/pkg/httpclient"
-	"paw-api/pkg/mockserver"
 	"paw-api/pkg/snowflake"
 	"paw-api/repositories"
 	"paw-api/services"
@@ -22,8 +20,6 @@ type App struct {
 	db        *sql.DB
 	snowflake *snowflake.Generator
 	httpClient *httpclient.Client
-	mockServer *mockserver.Server
-
 	projectH     *handlers.ProjectHandler
 	collectionH  *handlers.CollectionHandler
 	requestH     *handlers.RequestHandler
@@ -38,9 +34,7 @@ type App struct {
 }
 
 func NewApp() *App {
-	return &App{
-		mockServer: mockserver.New(),
-	}
+	return &App{}
 }
 
 func (a *App) startup(ctx context.Context) {
@@ -104,57 +98,8 @@ func (a *App) startup(ctx context.Context) {
 		a.httpClient.ApplySettings(settings)
 	}
 
-	// Start mock server
-	go func() {
-		if err := a.mockServer.Start(ctx); err != nil {
-			fmt.Printf("mock server stopped: %v\n", err)
-		}
-	}()
-	// wait for it to start
-	for a.mockServer.Port() == 0 {
-		time.Sleep(10 * time.Millisecond)
-	}
-	fmt.Printf("mock server started on port %d\n", a.mockServer.Port())
-
-	// Ensure only the default project has "内置环境" pointing to mock server
-	a.ensureBuiltinEnvForDefault()
-
-	// Seed demo data on first run
-	if a.mockServer.Port() > 0 {
-		a.seedDemoData()
-	}
-}
-
-func (a *App) ensureBuiltinEnvForDefault() {
-	projects, err := a.projectH.List()
-	if err != nil || len(projects) == 0 {
-		return
-	}
-	// Default project is the one with the smallest ID (first created)
-	var defaultProject *models.Project
-	for i := range projects {
-		if defaultProject == nil || projects[i].ID < defaultProject.ID {
-			defaultProject = &projects[i]
-		}
-	}
-	if defaultProject == nil {
-		return
-	}
-	envs, err := a.environmentH.List(defaultProject.ID)
-	if err != nil {
-		return
-	}
-	for _, e := range envs {
-		if e.Name == "内置环境" {
-			return // already has built-in env
-		}
-	}
-	if a.mockServer.Port() > 0 {
-		mockURL := fmt.Sprintf("http://localhost:%d", a.mockServer.Port())
-		if _, err := a.environmentH.Create(defaultProject.ID, "内置环境", mockURL, nil); err != nil {
-			fmt.Printf("failed to add built-in env for default project %d: %v\n", defaultProject.ID, err)
-		}
-	}
+	// Ensure demo data on first run
+	a.seedDemoData()
 }
 
 func (a *App) seedDemoData() {
@@ -283,27 +228,7 @@ func (a *App) GetProject(id int64) (*models.Project, error) {
 }
 
 func (a *App) CreateProject(name, description string) (*models.Project, error) {
-	project, err := a.projectH.Create(name, description)
-	if err != nil {
-		return nil, err
-	}
-	// Only auto-create built-in environment for the default (first) project
-	projects, _ := a.projectH.List()
-	if len(projects) == 1 && a.mockServer.Port() > 0 {
-		mockURL := fmt.Sprintf("http://localhost:%d", a.mockServer.Port())
-		if _, err := a.environmentH.Create(project.ID, "内置环境", mockURL, nil); err != nil {
-			// non-fatal: environment creation failure shouldn't block project creation
-			fmt.Printf("failed to create built-in env: %v\n", err)
-		}
-	}
-	return project, nil
-}
-
-func (a *App) GetMockServerURL() string {
-	if a.mockServer.Port() == 0 {
-		return ""
-	}
-	return fmt.Sprintf("http://localhost:%d", a.mockServer.Port())
+	return a.projectH.Create(name, description)
 }
 
 func (a *App) UpdateProject(id int64, name, description string) (*models.Project, error) {
@@ -484,4 +409,12 @@ func (a *App) GenerateDocsMarkdown(projectID int64) (string, error) {
 
 func (a *App) GenerateDocsHTML(projectID int64) (string, error) {
 	return a.docsH.GenerateHTML(projectID)
+}
+
+func (a *App) GenerateRequestDocsMarkdown(requestID int64) (string, error) {
+	return a.docsH.GenerateRequestMarkdown(requestID)
+}
+
+func (a *App) GenerateRequestDocsHTML(requestID int64) (string, error) {
+	return a.docsH.GenerateRequestHTML(requestID)
 }

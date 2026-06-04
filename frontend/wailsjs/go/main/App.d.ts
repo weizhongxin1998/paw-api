@@ -35,11 +35,13 @@ export function GenerateDocsHTML(arg1:number):Promise<string>;
 
 export function GenerateDocsMarkdown(arg1:number):Promise<string>;
 
+export function GenerateRequestDocsHTML(arg1:number):Promise<string>;
+
+export function GenerateRequestDocsMarkdown(arg1:number):Promise<string>;
+
 export function GetAllSettings():Promise<Record<string, string>>;
 
 export function GetCollectionTree(arg1:number):Promise<Array<models.TreeItem>>;
-
-export function GetMockServerURL():Promise<string>;
 
 export function GetProject(arg1:number):Promise<models.Project>;
 

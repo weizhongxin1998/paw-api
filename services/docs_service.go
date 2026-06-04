@@ -3,6 +3,8 @@ package services
 import (
 	"encoding/json"
 	"fmt"
+	"html"
+	"regexp"
 	"sort"
 	"strings"
 
@@ -160,13 +162,46 @@ func (s *DocsService) writeRequestMD(sb *strings.Builder, req *models.Request, l
 	}
 }
 
+func (s *DocsService) GenerateRequestMarkdown(requestID int64) (string, error) {
+	req, err := s.requestRepo.GetByID(requestID)
+	if err != nil {
+		return "", err
+	}
+
+	var sb strings.Builder
+
+	// Title with request name
+	if req.Name != "" {
+		sb.WriteString(fmt.Sprintf("# %s\n\n", req.Name))
+	}
+
+	s.writeRequestMD(&sb, req, 2)
+	return sb.String(), nil
+}
+
+func (s *DocsService) GenerateRequestHTML(requestID int64) (string, error) {
+	md, err := s.GenerateRequestMarkdown(requestID)
+	if err != nil {
+		return "", err
+	}
+
+	body := markdownToHTML(md)
+	htmlOut := renderHTMLPage(body)
+	return htmlOut, nil
+}
+
 func (s *DocsService) GenerateHTML(projectID int64) (string, error) {
 	md, err := s.GenerateMarkdown(projectID)
 	if err != nil {
 		return "", err
 	}
 
-	html := `<!DOCTYPE html>
+	body := markdownToHTML(md)
+	htmlOut := renderHTMLPage(body)
+	return htmlOut, nil
+}
+
+const htmlPageTemplate = `<!DOCTYPE html>
 <html lang="zh-CN">
 <head>
 <meta charset="UTF-8">
@@ -177,18 +212,144 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-
 h1 { border-bottom: 2px solid #18a058; padding-bottom: 8px; }
 h2 { border-bottom: 1px solid #ddd; padding-bottom: 6px; margin-top: 32px; }
 h3 { margin-top: 24px; }
-code { background: #f5f5f5; padding: 2px 6px; border-radius: 3px; font-size: 90%; }
+h4, h5, h6 { margin-top: 20px; }
+code { background: #f5f5f5; padding: 2px 6px; border-radius: 3px; font-size: 90%%; font-family: 'SFMono-Regular', Consolas, 'Liberation Mono', Menlo, monospace; }
 pre { background: #f5f5f5; padding: 16px; border-radius: 6px; overflow-x: auto; }
-pre code { background: none; padding: 0; }
-table { border-collapse: collapse; width: 100%; margin: 12px 0; }
+pre code { background: none; padding: 0; font-size: 85%%; }
+table { border-collapse: collapse; width: 100%%; margin: 12px 0; }
 th, td { border: 1px solid #ddd; padding: 8px 12px; text-align: left; }
-th { background: #f2f2f2; }
+th { background: #f2f2f2; font-weight: 600; }
+p { margin: 8px 0; }
 </style>
 </head>
 <body>
-` + md + `
+%s
 </body>
 </html>`
 
-	return html, nil
+func renderHTMLPage(body string) string {
+	return fmt.Sprintf(htmlPageTemplate, body)
+}
+
+func markdownToHTML(md string) string {
+	lines := strings.Split(md, "\n")
+	var sb strings.Builder
+	inCodeBlock := false
+	var codeBlock strings.Builder
+	codeBlockLang := ""
+	inTable := false
+	var tableRows []string
+
+	flushTable := func() {
+		if !inTable || len(tableRows) == 0 {
+			return
+		}
+		sb.WriteString("<table>\n")
+		for i, row := range tableRows {
+			cells := strings.Split(strings.Trim(row, "|"), "|")
+			if i == 0 {
+				sb.WriteString("<thead><tr>")
+				for _, cell := range cells {
+					sb.WriteString("<th>" + inlineMarkdown(strings.TrimSpace(cell)) + "</th>")
+				}
+				sb.WriteString("</tr></thead>\n<tbody>\n")
+			} else if i == 1 {
+				// separator row, skip
+				continue
+			} else {
+				sb.WriteString("<tr>")
+				for _, cell := range cells {
+					sb.WriteString("<td>" + inlineMarkdown(strings.TrimSpace(cell)) + "</td>")
+				}
+				sb.WriteString("</tr>\n")
+			}
+		}
+		sb.WriteString("</tbody>\n</table>\n")
+		tableRows = nil
+		inTable = false
+	}
+
+	for _, line := range lines {
+		// Code block toggle
+		if strings.HasPrefix(line, "```") {
+			if !inCodeBlock {
+				flushTable()
+				inCodeBlock = true
+				codeBlockLang = strings.TrimPrefix(line, "```")
+				codeBlock.Reset()
+			} else {
+				inCodeBlock = false
+				langAttr := ""
+				if codeBlockLang != "" {
+					langAttr = fmt.Sprintf(` class="language-%s"`, html.EscapeString(codeBlockLang))
+				}
+				sb.WriteString(fmt.Sprintf("<pre><code%s>%s</code></pre>\n", langAttr, html.EscapeString(codeBlock.String())))
+			}
+			continue
+		}
+		if inCodeBlock {
+			if codeBlock.Len() > 0 {
+				codeBlock.WriteString("\n")
+			}
+			codeBlock.WriteString(line)
+			continue
+		}
+
+		// Table row
+		if strings.HasPrefix(strings.TrimSpace(line), "|") && strings.Contains(line, "|") {
+			flushTablePending := false
+			_ = flushTablePending
+			if !inTable {
+				inTable = true
+			}
+			tableRows = append(tableRows, line)
+			continue
+		}
+
+		// Flush table if we're no longer in one
+		flushTable()
+
+		// Empty line
+		if strings.TrimSpace(line) == "" {
+			continue
+		}
+
+		// Headings
+		if matched, _ := regexp.MatchString(`^#{1,6}\s`, line); matched {
+			level := 0
+			for _, ch := range line {
+				if ch == '#' {
+					level++
+				} else {
+					break
+				}
+			}
+			text := strings.TrimSpace(line[level:])
+			sb.WriteString(fmt.Sprintf("<h%d>%s</h%d>\n", level, inlineMarkdown(text), level))
+			continue
+		}
+
+		// Paragraph
+		sb.WriteString("<p>" + inlineMarkdown(line) + "</p>\n")
+	}
+
+	// Flush any remaining
+	if inCodeBlock {
+		sb.WriteString(fmt.Sprintf("<pre><code>%s</code></pre>\n", html.EscapeString(codeBlock.String())))
+	}
+	flushTable()
+
+	return sb.String()
+}
+
+var (
+	reBold       = regexp.MustCompile(`\*\*(.+?)\*\*`)
+	reInlineCode = regexp.MustCompile("`([^`]+)`")
+)
+
+func inlineMarkdown(s string) string {
+	s = html.EscapeString(s)
+	s = reInlineCode.ReplaceAllString(s, "<code>$1</code>")
+	s = reBold.ReplaceAllString(s, "<strong>$1</strong>")
+	return s
 }
