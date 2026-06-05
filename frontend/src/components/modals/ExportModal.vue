@@ -3,6 +3,7 @@
     :show="show"
     preset="card"
     title="导出"
+    :class="modalClass"
     style="width: 540px"
     :mask-closable="false"
     @update:show="emit('update:show', $event)"
@@ -131,7 +132,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, watch } from 'vue'
+import { ref, computed, watch, onMounted } from 'vue'
 import {
   NModal, NForm, NFormItem, NSelect, NInput, NInputGroup,
   NButton, NResult, NProgress, NAlert, useMessage,
@@ -154,6 +155,16 @@ const resultDesc = ref('')
 const exportProgress = ref(0)
 const exportError = ref('')
 const stats = ref<{ request_count: number; collection_count: number } | null>(null)
+
+const isLightMode = ref(false)
+const modalClass = computed(() => isLightMode.value ? 'export-modal theme-light' : 'export-modal')
+
+onMounted(() => {
+  const check = () => { isLightMode.value = !!document.querySelector('.theme-light') }
+  check()
+  const observer = new MutationObserver(check)
+  observer.observe(document.documentElement, { attributes: true, attributeFilter: ['class'], subtree: true })
+})
 
 const canExport = computed(() => props.projectId !== null)
 

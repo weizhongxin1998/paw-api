@@ -64,6 +64,7 @@
       v-model:show="showCreateModal"
       preset="card"
       title="新建项目"
+      :class="modalClass"
       style="width: 380px"
       :mask-closable="false"
       @after-enter="onCreateModalOpened"
@@ -127,6 +128,9 @@ const newProjectDesc = ref('')
 const projectBtnRef = ref<InstanceType<typeof NButton> | null>(null)
 const projectDropdownRef = ref<any>(null)
 const createNameInputRef = ref<InstanceType<typeof NInput> | null>(null)
+
+const isLightMode = ref(false)
+const modalClass = computed(() => isLightMode.value ? 'create-project-modal theme-light' : 'create-project-modal')
 
 const themeLabel = computed(() => props.themeMode === 'dark' ? '日间模式' : '夜间模式')
 
@@ -207,6 +211,10 @@ function onGlobalKeydown(e: KeyboardEvent) {
 
 onMounted(() => {
   document.addEventListener('keydown', onGlobalKeydown)
+  const check = () => { isLightMode.value = !!document.querySelector('.theme-light') }
+  check()
+  const observer = new MutationObserver(check)
+  observer.observe(document.documentElement, { attributes: true, attributeFilter: ['class'], subtree: true })
 })
 onUnmounted(() => {
   document.removeEventListener('keydown', onGlobalKeydown)

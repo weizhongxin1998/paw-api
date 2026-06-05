@@ -3,6 +3,7 @@
     :show="show"
     preset="card"
     title="导入"
+    :class="modalClass"
     style="width: 540px"
     :mask-closable="false"
     @update:show="emit('update:show', $event)"
@@ -137,7 +138,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import {
   NModal, NForm, NFormItem, NSelect, NInput, NInputGroup,
   NButton, NResult, NProgress, NAlert, useMessage,
@@ -160,6 +161,16 @@ const resultDesc = ref('')
 const importProgress = ref(0)
 const importError = ref('')
 const isDragging = ref(false)
+
+const isLightMode = ref(false)
+const modalClass = computed(() => isLightMode.value ? 'import-modal theme-light' : 'import-modal')
+
+onMounted(() => {
+  const check = () => { isLightMode.value = !!document.querySelector('.theme-light') }
+  check()
+  const observer = new MutationObserver(check)
+  observer.observe(document.documentElement, { attributes: true, attributeFilter: ['class'], subtree: true })
+})
 
 const canImport = computed(() => props.projectId !== null && filePath.value.trim() !== '')
 

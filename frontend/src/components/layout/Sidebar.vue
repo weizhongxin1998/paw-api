@@ -94,7 +94,7 @@
       </div>
     </template>
 
-    <n-modal v-model:show="showCollectionModal" preset="card" title="新建集合" style="width: 360px" :mask-closable="false">
+    <n-modal v-model:show="showCollectionModal" preset="card" title="新建集合" :class="modalClass" style="width: 360px" :mask-closable="false">
       <n-form label-placement="top">
         <n-form-item label="名称">
           <n-input v-model:value="collectionName" placeholder="集合名称" @keydown.enter="onCreateCollection" />
@@ -106,7 +106,7 @@
       </template>
     </n-modal>
 
-    <n-modal v-model:show="showRequestModal" preset="card" title="新建请求" style="width: 360px" :mask-closable="false">
+    <n-modal v-model:show="showRequestModal" preset="card" title="新建请求" :class="modalClass" style="width: 360px" :mask-closable="false">
       <n-form label-placement="top">
         <n-form-item label="名称">
           <n-input v-model:value="requestName" placeholder="请求名称" @keydown.enter="onCreateRequest" />
@@ -124,7 +124,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, watch, onMounted, onUnmounted, nextTick } from 'vue'
+import { ref, computed, watch, onMounted, onUnmounted, nextTick } from 'vue'
 import { NButton, NDropdown, NModal, NForm, NFormItem, NInput, NSelect, useMessage } from 'naive-ui'
 import type { DropdownOption } from 'naive-ui'
 import { useCollectionStore } from '../../stores/collection'
@@ -160,6 +160,9 @@ const requestName = ref('')
 const requestMethod = ref('GET')
 const searchQuery = ref('')
 const sidebarCollapsed = ref(false)
+
+const isLightMode = ref(false)
+const modalClass = computed(() => isLightMode.value ? 'sidebar-modal theme-light' : 'sidebar-modal')
 
 const methodOptions = [
   { label: 'GET', value: 'GET' }, { label: 'POST', value: 'POST' },
@@ -277,6 +280,10 @@ function onGlobalKeydown(e: KeyboardEvent) {
 
 onMounted(() => {
   document.addEventListener('keydown', onGlobalKeydown)
+  const check = () => { isLightMode.value = !!document.querySelector('.theme-light') }
+  check()
+  const observer = new MutationObserver(check)
+  observer.observe(document.documentElement, { attributes: true, attributeFilter: ['class'], subtree: true })
 })
 onUnmounted(() => {
   document.removeEventListener('keydown', onGlobalKeydown)

@@ -16,7 +16,7 @@
       :project-id="currentProjectId"
     />
 
-    <n-modal v-model:show="showRenameModal" preset="card" title="重命名" style="width: 360px" :mask-closable="false">
+    <n-modal v-model:show="showRenameModal" preset="card" title="重命名" :class="modalClass" style="width: 360px" :mask-closable="false">
       <n-form label-placement="top">
         <n-form-item label="新名称">
           <n-input v-model:value="renameValue" placeholder="输入新名称" @keydown.enter="onRenameConfirm" />
@@ -31,7 +31,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import { useDialog, useMessage, NModal, NForm, NFormItem, NInput, NButton } from 'naive-ui'
 import Sidebar from './Sidebar.vue'
 import Workspace from './Workspace.vue'
@@ -57,6 +57,16 @@ const showRenameModal = ref(false)
 const renameValue = ref('')
 let renameNodeId = 0
 let renameNodeType = ''
+
+const isLightMode = ref(false)
+const modalClass = computed(() => isLightMode.value ? 'rename-modal theme-light' : 'rename-modal')
+
+onMounted(() => {
+  const check = () => { isLightMode.value = !!document.querySelector('.theme-light') }
+  check()
+  const observer = new MutationObserver(check)
+  observer.observe(document.documentElement, { attributes: true, attributeFilter: ['class'], subtree: true })
+})
 
 function onRequestSaved() {
   sidebarRef.value?.refreshTree()

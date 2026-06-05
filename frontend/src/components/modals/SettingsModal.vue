@@ -3,7 +3,8 @@
     :show="show"
     preset="card"
     title="设置"
-    style="width: 720px"
+    :class="modalClass"
+    style="width: 780px; height: 700px"
     :mask-closable="false"
     :segmented="{ footer: true }"
     @update:show="onClose"
@@ -214,7 +215,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, watch } from 'vue'
+import { ref, computed, watch, onMounted } from 'vue'
 import {
   NModal, NButton, NForm, NFormItem, NInputNumber,
   NSelect, NSwitch, NSlider, useMessage,
@@ -236,6 +237,16 @@ defineProps<{ show: boolean }>()
 const emit = defineEmits<{ 'update:show': [value: boolean] }>()
 const settingsStore = useSettingsStore()
 const message = useMessage()
+
+// Detect light mode so teleported modal gets correct CSS variables
+const isLightMode = ref(false)
+onMounted(() => {
+  const check = () => { isLightMode.value = !!document.querySelector('.theme-light') }
+  check()
+  const observer = new MutationObserver(check)
+  observer.observe(document.documentElement, { attributes: true, attributeFilter: ['class'], subtree: true })
+})
+const modalClass = computed(() => isLightMode.value ? 'settings-modal theme-light' : 'settings-modal')
 
 const navTabs = [
   { key: 'general', label: '通用', icon: '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 11-2.83 2.83l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 11-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 11-2.83-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 110-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 112.83-2.83l.06.06A1.65 1.65 0 009 4.68a1.65 1.65 0 001-1.51V3a2 2 0 114 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 112.83 2.83l-.06.06A1.65 1.65 0 0019.32 9a1.65 1.65 0 001.51 1H21a2 2 0 110 4h-.09a1.65 1.65 0 00-1.51 1z"/></svg>' },
@@ -327,7 +338,7 @@ function onRestore() { message.info('恢复功能即将推出') }
 </script>
 
 <style scoped>
-.settings-body { display: flex; min-height: 360px; }
+.settings-body { display: flex; height: 100%; overflow: hidden; }
 
 /* -- Sidebar Navigation with icons -- */
 .settings-nav {
@@ -569,6 +580,25 @@ function onRestore() { message.info('恢复功能即将推出') }
 .section-panel :deep(.n-form-item) { margin-bottom: 0; }
 .form-hint { font-size: var(--fs-2xs, 9px); color: var(--text-secondary); }
 
+/* -- Constrain card internals so footer stays visible -- */
+:deep(.n-card) {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+:deep(.n-card-header) {
+  flex-shrink: 0;
+}
+:deep(.n-card-content) {
+  flex: 1;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+:deep(.n-card__footer) {
+  flex-shrink: 0;
+}
+
 /* -- Data section -- */
 .data-actions {
   display: flex;
@@ -613,4 +643,23 @@ function onRestore() { message.info('恢复功能即将推出') }
   opacity: 0.7;
 }
 .autosave-hint svg { color: var(--accent); }
+</style>
+
+<style>
+/* Non-scoped: modal is teleported to body, scoped :deep() can't reach */
+.settings-modal .n-card {
+  display: flex !important;
+  flex-direction: column !important;
+}
+.settings-modal .n-card-header {
+  flex-shrink: 0 !important;
+}
+.settings-modal .n-card-content {
+  flex: 1 !important;
+  overflow: hidden !important;
+  min-height: 0 !important;
+}
+.settings-modal .n-card__footer {
+  flex-shrink: 0 !important;
+}
 </style>

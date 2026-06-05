@@ -171,7 +171,7 @@
     />
 
     <!-- ═══ Create Project Modal ═══ -->
-    <n-modal v-model:show="showCreate" preset="card" title="新建项目" style="width: 400px" :mask-closable="false">
+    <n-modal v-model:show="showCreate" preset="card" title="新建项目" :class="modalClass" style="width: 400px" :mask-closable="false">
       <n-form label-placement="top">
         <n-form-item label="名称">
           <n-input v-model:value="newName" placeholder="项目名称" @keydown.enter="onCreate" />
@@ -187,7 +187,7 @@
     </n-modal>
 
     <!-- ═══ Edit Project Modal ═══ -->
-    <n-modal v-model:show="showRename" preset="card" title="编辑项目" style="width: 400px" :mask-closable="false">
+    <n-modal v-model:show="showRename" preset="card" title="编辑项目" :class="modalClass" style="width: 400px" :mask-closable="false">
       <n-form label-placement="top">
         <n-form-item label="名称">
           <n-input
@@ -263,6 +263,9 @@ const dialog = useDialog()
 const searchInputRef = ref<InstanceType<typeof NInput> | null>(null)
 const renameInputRef = ref<InstanceType<typeof NInput> | null>(null)
 const cardRefs = ref<Record<number, HTMLElement>>({})
+
+const isLightMode = ref(false)
+const modalClass = computed(() => isLightMode.value ? 'project-home-modal theme-light' : 'project-home-modal')
 
 /* ──────────────────────────── Context menu ───────────────────── */
 
@@ -470,6 +473,10 @@ onMounted(async () => {
   nextTick(() => {
     searchInputRef.value?.focus()
   })
+  const check = () => { isLightMode.value = !!document.querySelector('.theme-light') }
+  check()
+  const observer = new MutationObserver(check)
+  observer.observe(document.documentElement, { attributes: true, attributeFilter: ['class'], subtree: true })
 })
 
 // Clear card refs when filtered list changes to avoid stale refs
