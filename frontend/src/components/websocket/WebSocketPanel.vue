@@ -4,7 +4,7 @@
       <div class="ws-url-row">
         <n-input
           v-model:value="wsUrl"
-          placeholder="ws://localhost:8080/ws"
+          :placeholder="$t('websocket.urlPlaceholder')"
           :disabled="connected"
           size="small"
           class="ws-url-input"
@@ -15,18 +15,18 @@
           @click="toggleConnection"
           :loading="connecting"
         >
-          {{ connected ? 'Disconnect' : 'Connect' }}
+          {{ connected ? $t('websocket.btnDisconnect') : $t('websocket.btnConnect') }}
         </n-button>
         <span class="ws-status" :class="{ connected: connected }">
           <span class="ws-dot"></span>
-          {{ connected ? 'Connected' : 'Disconnected' }}
+          {{ connected ? $t('websocket.statusConnected') : $t('websocket.statusDisconnected') }}
         </span>
       </div>
     </div>
 
     <div class="ws-messages" ref="messagesRef">
       <div v-if="messages.length === 0" class="ws-empty">
-        <n-empty description="No messages yet" size="small" />
+        <n-empty :description="$t('websocket.noMessages')" size="small" />
       </div>
       <div v-for="(msg, idx) in messages" :key="idx" class="ws-message" :class="msg.type">
         <div class="ws-msg-time">{{ msg.time }}</div>
@@ -37,13 +37,13 @@
     <div class="ws-input-row">
       <n-input
         v-model:value="inputMessage"
-        placeholder="Type a message (Ctrl+Enter)"
+        :placeholder="$t('websocket.msgPlaceholder')"
         size="small"
         :disabled="!connected"
         @keydown="onKeydown"
       />
       <n-button size="small" type="primary" :disabled="!connected || !inputMessage.trim()" @click="sendMessage">
-        Send
+        {{ $t('websocket.btnSend') }}
       </n-button>
     </div>
   </div>
@@ -51,9 +51,12 @@
 
 <script setup lang="ts">
 import { ref, nextTick, onUnmounted } from 'vue'
+import { useI18n } from 'vue-i18n'
 import { NInput, NButton, NEmpty } from 'naive-ui'
 import { EventsOn, EventsOff } from '../../../wailsjs/runtime/runtime'
 import { WSConnect, WSSend, WSDisconnect } from '../../../wailsjs/go/main/App'
+
+const { t } = useI18n()
 
 interface WSMessage { type: 'sent' | 'received' | 'system'; content: string; time: string }
 
@@ -76,15 +79,15 @@ async function toggleConnection() {
   if (connected.value) {
     try { await WSDisconnect(wsUrl.value) } catch (_) {}
     connected.value = false
-    addSystem('Disconnected')
+    addSystem(t('websocket.sysDisconnected'))
   } else {
     connecting.value = true
     try {
       await WSConnect(wsUrl.value, '{}')
       connected.value = true
-      addSystem('Connected to ' + wsUrl.value)
+      addSystem(t('websocket.sysConnected', { url: wsUrl.value }))
       registerListeners()
-    } catch (err: any) { addSystem('Connection failed: ' + (err?.message || err)) }
+    } catch (err: any) { addSystem(t('websocket.sysConnectionFailed', { error: err?.message || err })) }
     finally { connecting.value = false }
   }
 }
@@ -94,10 +97,10 @@ function registerListeners() {
     if (url === wsUrl.value) { messages.value.push({ type: 'received', content: data, time: nowTime() }); scrollBottom() }
   })
   unsubError = EventsOn('ws:error', (url: string, err: string) => {
-    if (url === wsUrl.value) { messages.value.push({ type: 'system', content: 'Error: ' + err, time: nowTime() }); scrollBottom() }
+    if (url === wsUrl.value) { messages.value.push({ type: 'system', content: t('websocket.sysError', { message: err }), time: nowTime() }); scrollBottom() }
   })
   unsubClosed = EventsOn('ws:closed', (url: string) => {
-    if (url === wsUrl.value) { connected.value = false; messages.value.push({ type: 'system', content: 'Connection closed', time: nowTime() }); scrollBottom(); cleanupListeners() }
+    if (url === wsUrl.value) { connected.value = false; messages.value.push({ type: 'system', content: t('websocket.sysConnectionClosed'), time: nowTime() }); scrollBottom(); cleanupListeners() }
   })
 }
 
@@ -113,7 +116,7 @@ async function sendMessage() {
   try {
     await WSSend(wsUrl.value, msg)
     messages.value.push({ type: 'sent', content: msg, time: nowTime() }); scrollBottom()
-  } catch (err: any) { addSystem('Send failed: ' + (err?.message || err)) }
+  } catch (err: any) { addSystem(t('websocket.sysSendFailed', { error: err?.message || err })) }
 }
 
 function onKeydown(e: KeyboardEvent) { if (e.ctrlKey && e.key === 'Enter') { e.preventDefault(); sendMessage() } }

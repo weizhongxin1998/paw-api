@@ -66,16 +66,20 @@ export function GenerateDocsMarkdown(arg1) {
   return window['go']['main']['App']['GenerateDocsMarkdown'](arg1);
 }
 
+export function GenerateRequestDocsHTML(arg1) {
+  return window['go']['main']['App']['GenerateRequestDocsHTML'](arg1);
+}
+
+export function GenerateRequestDocsMarkdown(arg1) {
+  return window['go']['main']['App']['GenerateRequestDocsMarkdown'](arg1);
+}
+
 export function GetAllSettings() {
   return window['go']['main']['App']['GetAllSettings']();
 }
 
 export function GetCollectionTree(arg1) {
   return window['go']['main']['App']['GetCollectionTree'](arg1);
-}
-
-export function GetMockServerURL() {
-  return window['go']['main']['App']['GetMockServerURL']();
 }
 
 export function GetProject(arg1) {

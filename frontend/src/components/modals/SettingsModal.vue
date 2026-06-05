@@ -1,137 +1,370 @@
 <template>
-  <div v-if="show" class="modal-overlay" @click.self="onClose">
-    <div class="settings-box">
-      <div class="settings-hdr">
-        <h3>设置</h3>
-        <button class="close-btn" @click="onClose">&times;</button>
-      </div>
-      <div class="settings-body">
-        <div class="settings-nav">
-          <div v-for="tab in navTabs" :key="tab.key" class="nav-item" :class="{ active: activeNav === tab.key }" @click="activeNav = tab.key">{{ tab.label }}</div>
+  <n-modal
+    :show="show"
+    preset="card"
+    :title="$t('settings.title')"
+    :class="modalClass"
+    style="width: 820px; height: 700px"
+    :mask-closable="false"
+    :segmented="{ footer: true }"
+    @update:show="onClose"
+  >
+    <div class="settings-body">
+      <!-- Sidebar navigation with icons -->
+      <div class="settings-nav">
+        <div
+          v-for="tab in navTabs"
+          :key="tab.key"
+          class="nav-item"
+          :class="{ active: activeNav === tab.key }"
+          @click="activeNav = tab.key"
+        >
+          <span class="nav-icon" v-html="tab.icon"></span>
+          <span class="nav-label">{{ tab.label }}</span>
         </div>
-        <div class="settings-content">
-          <div v-if="activeNav === 'general'" class="settings-section">
-            <div class="setting-row">
-              <span>请求超时 (s)</span>
-              <input v-model.number="timeout" type="number" min="1" max="300" class="setting-input-num" />
-            </div>
-            <div class="setting-row">
-              <span>跟随重定向</span>
-              <input type="checkbox" v-model="followRedirects" />
-            </div>
-            <div class="setting-row">
-              <span>最大重定向次数</span>
-              <input v-model.number="maxRedirects" type="number" min="0" max="20" class="setting-input-num" />
-            </div>
-            <div class="setting-row">
-              <span>SSL 证书验证</span>
-              <input type="checkbox" v-model="sslVerify" />
+        <div class="nav-spacer"></div>
+        <div class="nav-item nav-reset" @click="onRestoreDefaults">
+          <span class="nav-icon">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 102.13-9.36L1 10"/></svg>
+          </span>
+          <span class="nav-label">{{ $t('settings.restoreDefaults') }}</span>
+        </div>
+      </div>
+
+      <!-- Content area -->
+      <div class="settings-content">
+        <!-- General -->
+        <div v-if="activeNav === 'general'" class="section-panel">
+          <div class="section-hdr">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-2 2 2 2 0 01-2-2v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83 0 2 2 0 010-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 01-2-2 2 2 0 012-2h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 010-2.83 2 2 0 012.83 0l.06.06A1.65 1.65 0 009 4.68a1.65 1.65 0 001-1.51V3a2 2 0 012-2 2 2 0 012 2v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 0 2 2 0 010 2.83l-.06.06A1.65 1.65 0 0019.32 9a1.65 1.65 0 001.51 1H21a2 2 0 012 2 2 2 0 01-2 2h-.09a1.65 1.65 0 00-1.51 1z"/></svg>
+            <span>{{ $t('settings.general.header') }}</span>
+          </div>
+          <n-form label-placement="left" label-width="180" label-align="left">
+            <n-form-item :label="$t('settings.general.timeout')">
+              <n-input-number v-model:value="timeout" :min="1" :max="300" style="width: 100px" />
+            </n-form-item>
+            <n-form-item :label="$t('settings.general.followRedirects')">
+              <n-switch v-model:value="followRedirects" />
+            </n-form-item>
+            <n-form-item :label="$t('settings.general.maxRedirects')">
+              <n-input-number v-model:value="maxRedirects" :min="0" :max="20" style="width: 100px" :disabled="!followRedirects" />
+            </n-form-item>
+            <n-form-item :label="$t('settings.general.sslVerify')">
+              <n-switch v-model:value="sslVerify" />
+              <template #feedback>
+                <span class="form-hint">{{ $t('settings.general.sslVerifyHint') }}</span>
+              </template>
+            </n-form-item>
+            <n-form-item :label="$t('settings.general.language')">
+              <n-select v-model:value="locale" :options="localeOptions" style="width: 160px" />
+            </n-form-item>
+          </n-form>
+        </div>
+
+        <!-- Proxy (placeholder) -->
+        <div v-else-if="activeNav === 'proxy'" class="settings-muted">
+          <span class="muted-icon">
+            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.2"><circle cx="12" cy="12" r="10"/><path d="M2 12h20"/><path d="M12 2a15.3 15.3 0 014 10 15.3 15.3 0 01-4 10 15.3 15.3 0 01-4-10 15.3 15.3 0 014-10z"/></svg>
+          </span>
+          <span>{{ $t('settings.proxy.placeholder') }}</span>
+          <span class="muted-sub">{{ $t('settings.proxy.placeholderSub') }}</span>
+        </div>
+
+        <!-- Certificates (placeholder) -->
+        <div v-else-if="activeNav === 'cert'" class="settings-muted">
+          <span class="muted-icon">
+            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.2"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0110 0v4"/></svg>
+          </span>
+          <span>{{ $t('settings.cert.placeholder') }}</span>
+          <span class="muted-sub">{{ $t('settings.cert.placeholderSub') }}</span>
+        </div>
+
+        <!-- Appearance -->
+        <div v-else-if="activeNav === 'appearance'" class="section-panel">
+          <div class="section-hdr">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>
+            <span>{{ $t('settings.appearance.header') }}</span>
+          </div>
+
+          <!-- Theme visual cards -->
+          <div class="theme-section">
+            <label class="setting-label">{{ $t('settings.appearance.theme') }}</label>
+            <div class="theme-cards">
+              <div
+                class="theme-card"
+                :class="{ selected: theme === 'dark' }"
+                @click="theme = 'dark'"
+              >
+                <div class="theme-preview theme-dark-preview">
+                  <div class="tp-titlebar"></div>
+                  <div class="tp-body">
+                    <div class="tp-sidebar"></div>
+                    <div class="tp-main">
+                      <div class="tp-line"></div>
+                      <div class="tp-line short"></div>
+                    </div>
+                  </div>
+                </div>
+                <span class="theme-name">{{ $t('settings.appearance.themeDark') }}</span>
+              </div>
+              <div
+                class="theme-card"
+                :class="{ selected: theme === 'light' }"
+                @click="theme = 'light'"
+              >
+                <div class="theme-preview theme-light-preview">
+                  <div class="tp-titlebar"></div>
+                  <div class="tp-body">
+                    <div class="tp-sidebar"></div>
+                    <div class="tp-main">
+                      <div class="tp-line"></div>
+                      <div class="tp-line short"></div>
+                    </div>
+                  </div>
+                </div>
+                <span class="theme-name">{{ $t('settings.appearance.themeLight') }}</span>
+              </div>
+              <div
+                class="theme-card"
+                :class="{ selected: theme === 'warm' }"
+                @click="theme = 'warm'"
+              >
+                <div class="theme-preview theme-warm-preview">
+                  <div class="tp-titlebar"></div>
+                  <div class="tp-body">
+                    <div class="tp-sidebar"></div>
+                    <div class="tp-main">
+                      <div class="tp-line"></div>
+                      <div class="tp-line short"></div>
+                    </div>
+                  </div>
+                </div>
+                <span class="theme-name">{{ $t('settings.appearance.themeWarm') }}</span>
+              </div>
+              <div
+                class="theme-card"
+                :class="{ selected: theme === 'nord' }"
+                @click="theme = 'nord'"
+              >
+                <div class="theme-preview theme-nord-preview">
+                  <div class="tp-titlebar"></div>
+                  <div class="tp-body">
+                    <div class="tp-sidebar"></div>
+                    <div class="tp-main">
+                      <div class="tp-line"></div>
+                      <div class="tp-line short"></div>
+                    </div>
+                  </div>
+                </div>
+                <span class="theme-name">{{ $t('settings.appearance.themeNord') }}</span>
+              </div>
+              <div
+                class="theme-card"
+                :class="{ selected: theme === 'catppuccin' }"
+                @click="theme = 'catppuccin'"
+              >
+                <div class="theme-preview theme-catppuccin-preview">
+                  <div class="tp-titlebar"></div>
+                  <div class="tp-body">
+                    <div class="tp-sidebar"></div>
+                    <div class="tp-main">
+                      <div class="tp-line"></div>
+                      <div class="tp-line short"></div>
+                    </div>
+                  </div>
+                </div>
+                <span class="theme-name">{{ $t('settings.appearance.themeCatppuccin') }}</span>
+              </div>
+              <div
+                class="theme-card"
+                :class="{ selected: theme === 'neon' }"
+                @click="theme = 'neon'"
+              >
+                <div class="theme-preview theme-neon-preview">
+                  <div class="tp-titlebar"></div>
+                  <div class="tp-body">
+                    <div class="tp-sidebar"></div>
+                    <div class="tp-main">
+                      <div class="tp-line"></div>
+                      <div class="tp-line short"></div>
+                    </div>
+                  </div>
+                </div>
+                <span class="theme-name">{{ $t('settings.appearance.themeNeon') }}</span>
+              </div>
             </div>
           </div>
-          <div v-else-if="activeNav === 'proxy'" class="settings-section">
-            <div class="setting-muted">不使用代理</div>
-          </div>
-          <div v-else-if="activeNav === 'cert'" class="settings-section">
-            <div class="setting-muted">未配置</div>
-          </div>
-          <div v-else-if="activeNav === 'appearance'" class="settings-section">
-            <div class="setting-row">
-              <span>主题</span>
-              <select v-model="theme" class="setting-select">
-                <option value="dark">夜间</option>
-                <option value="light">日间</option>
-              </select>
-            </div>
-            <div class="setting-row">
-              <span>主色</span>
-              <select v-model="accentColor" class="setting-select">
-                <option value="green">绿色</option>
-                <option value="blue">蓝色</option>
-                <option value="purple">紫色</option>
-              </select>
-            </div>
-            <div class="setting-group">
-              <div class="setting-group-hdr">字体</div>
-              <div class="setting-row">
-                <span>字体大小</span>
-                <div class="font-size-ctrl">
-                  <button class="fs-btn" @click="changeFontSize(-1)" :disabled="fontSize <= 12">&minus;</button>
-                  <span class="fs-val">{{ fontSize }}px</span>
-                  <button class="fs-btn" @click="changeFontSize(+1)" :disabled="fontSize >= 16">+</button>
+
+          <!-- Accent color -->
+          <n-form label-placement="left" label-width="180" label-align="left" class="accent-form">
+            <n-form-item :label="$t('settings.appearance.accentColor')">
+              <div class="accent-swatches">
+                <div
+                  v-for="opt in accentOptions"
+                  :key="opt.value"
+                  class="accent-swatch"
+                  :class="[opt.value, { selected: accentColor === opt.value }]"
+                  @click="accentColor = opt.value"
+                  :title="opt.label"
+                >
+                  <svg v-if="accentColor === opt.value" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><polyline points="20 6 9 17 4 12"/></svg>
                 </div>
               </div>
-              <div class="setting-row">
-                <span>字体族</span>
-                <select v-model="fontFamily" class="setting-select" style="width:180px" @change="onFontFamilyChange">
-                  <option v-for="f in fontOptions" :key="f.value" :value="f.value">{{ f.label }}</option>
-                </select>
-              </div>
-              <div class="font-sample" :style="{ fontFamily: sampleFontStack, fontSize: fontSize + 'px' }">
-                ABC abc 0123 &lt;tag&gt; {json}
-              </div>
+            </n-form-item>
+          </n-form>
+
+          <!-- Font section with live preview -->
+          <div class="setting-group">
+            <div class="setting-group-hdr">{{ $t('settings.appearance.font') }}</div>
+            <n-form label-placement="left" label-width="180" label-align="left">
+              <n-form-item :label="$t('settings.appearance.fontSize')">
+                <div class="font-slider-wrap">
+                  <n-slider
+                    v-model:value="fontSize"
+                    :min="12"
+                    :max="16"
+                    :step="1"
+                    :marks="fontSizeMarks"
+                    :format-tooltip="(v: number) => v + 'px'"
+                    style="flex: 1"
+                    @update:value="onFontSizeLive"
+                  />
+                </div>
+              </n-form-item>
+              <n-form-item :label="$t('settings.appearance.fontFamily')">
+                <n-select v-model:value="fontFamily" :options="fontOptions" style="width: 220px" @update:value="onFontFamilyChange" />
+              </n-form-item>
+            </n-form>
+            <div class="font-sample" :style="{ fontFamily: sampleFontStack, fontSize: fontSize + 'px' }">
+              <div class="font-sample-line">ABC abc 0123 &lt;tag&gt; {json}</div>
+              <div class="font-sample-line secondary">GET /api/users?page=1&amp;limit=20 HTTP/1.1</div>
             </div>
           </div>
-          <div v-else-if="activeNav === 'data'" class="settings-section">
-            <button class="data-btn" @click="onBackup">备份</button>
-            <button class="data-btn" @click="onRestore">恢复</button>
+        </div>
+
+        <!-- Data -->
+        <div v-else-if="activeNav === 'data'" class="section-panel">
+          <div class="section-hdr">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><ellipse cx="12" cy="5" rx="9" ry="3"/><path d="M21 12c0 1.66-4 3-9 3s-9-1.34-9-3"/><path d="M3 5v14c0 1.66 4 3 9 3s9-1.34 9-3V5"/></svg>
+            <span>{{ $t('settings.data.header') }}</span>
+          </div>
+          <div class="data-actions">
+            <n-button block @click="onBackup" class="data-btn">
+              <template #icon>
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+              </template>
+              <div class="data-btn-content">
+                <span class="data-btn-title">{{ $t('settings.data.backup') }}</span>
+                <span class="data-btn-desc">{{ $t('settings.data.backupDesc') }}</span>
+              </div>
+            </n-button>
+            <n-button block @click="onRestore" class="data-btn">
+              <template #icon>
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 102.13-9.36L1 10"/></svg>
+              </template>
+              <div class="data-btn-content">
+                <span class="data-btn-title">{{ $t('settings.data.restore') }}</span>
+                <span class="data-btn-desc">{{ $t('settings.data.restoreDesc') }}</span>
+              </div>
+            </n-button>
           </div>
         </div>
       </div>
-      <div class="settings-footer">
-        <button class="btn-cancel" @click="onClose">取消</button>
-        <button class="btn-save" @click="onSave">保存</button>
-      </div>
     </div>
-  </div>
+
+    <template #footer>
+      <div class="settings-footer">
+        <span class="autosave-hint" v-if="hasChanges">
+          <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>
+          {{ $t('settings.autosave.saved') }}
+        </span>
+        <span class="autosave-hint" v-else>{{ $t('settings.autosave.hint') }}</span>
+        <n-button @click="onClose">{{ $t('settings.close') }}</n-button>
+      </div>
+    </template>
+  </n-modal>
 </template>
 
 <script setup lang="ts">
-import { ref, computed } from 'vue'
-import { useSettingsStore } from '../../stores/settings'
+import { ref, computed, watch } from 'vue'
+import {
+  NModal, NButton, NForm, NFormItem, NInputNumber,
+  NSelect, NSwitch, NSlider, useMessage,
+} from 'naive-ui'
+import { useSettingsStore, applySettingsToDOM, buildFontStack } from '../../stores/settings'
+import { useI18n } from 'vue-i18n'
+
+const { t } = useI18n()
+
+const DEFAULTS = {
+  timeout: 30,
+  followRedirects: true,
+  maxRedirects: 10,
+  sslVerify: true,
+  theme: 'light' as const,
+  accentColor: 'green',
+  fontSize: 14,
+  fontFamily: 'Microsoft YaHei',
+}
 
 defineProps<{ show: boolean }>()
 const emit = defineEmits<{ 'update:show': [value: boolean] }>()
 const settingsStore = useSettingsStore()
+const message = useMessage()
 
-const navTabs = [
-  { key: 'general', label: '通用' },
-  { key: 'proxy', label: '代理' },
-  { key: 'cert', label: '证书' },
-  { key: 'appearance', label: '外观' },
-  { key: 'data', label: '数据' },
-]
+const modalClass = computed(() => 'settings-modal')
+
+const navTabs = computed(() => [
+  { key: 'general', label: t('settings.nav.general'), icon: '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 11-2.83 2.83l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 11-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 11-2.83-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 110-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 112.83-2.83l.06.06A1.65 1.65 0 009 4.68a1.65 1.65 0 001-1.51V3a2 2 0 114 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 112.83 2.83l-.06.06A1.65 1.65 0 0019.32 9a1.65 1.65 0 001.51 1H21a2 2 0 110 4h-.09a1.65 1.65 0 00-1.51 1z"/></svg>' },
+  { key: 'proxy', label: t('settings.nav.proxy'), icon: '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><path d="M2 12h20"/><path d="M12 2a15.3 15.3 0 014 10 15.3 15.3 0 01-4 10 15.3 15.3 0 01-4-10 15.3 15.3 0 014-10z"/></svg>' },
+  { key: 'cert', label: t('settings.nav.cert'), icon: '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0110 0v4"/></svg>' },
+  { key: 'appearance', label: t('settings.nav.appearance'), icon: '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>' },
+  { key: 'data', label: t('settings.nav.data'), icon: '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><ellipse cx="12" cy="5" rx="9" ry="3"/><path d="M21 12c0 1.66-4 3-9 3s-9-1.34-9-3"/><path d="M3 5v14c0 1.66 4 3 9 3s9-1.34 9-3V5"/></svg>' },
+])
+
+const accentOptions = computed(() => [
+  { label: t('settings.accent.green'), value: 'green' },
+  { label: t('settings.accent.blue'), value: 'blue' },
+  { label: t('settings.accent.purple'), value: 'purple' },
+  { label: t('settings.accent.amber'), value: 'amber' },
+  { label: t('settings.accent.teal'), value: 'teal' },
+  { label: t('settings.accent.mauve'), value: 'mauve' },
+  { label: t('settings.accent.magenta'), value: 'magenta' },
+])
 
 const activeNav = ref('general')
+const hasChanges = ref(false)
+
+// Local reactive state
 const timeout = ref(settingsStore.settings.timeout ?? 30)
 const followRedirects = ref(settingsStore.settings.followRedirects ?? true)
 const maxRedirects = ref(settingsStore.settings.maxRedirects ?? 10)
 const sslVerify = ref(settingsStore.settings.sslVerify ?? true)
-const theme = ref(settingsStore.settings.theme ?? 'dark')
+const theme = ref(settingsStore.settings.theme ?? 'light')
 const accentColor = ref(settingsStore.settings.accentColor ?? 'green')
-const fontSize = ref(settingsStore.settings.fontSize ?? 13)
+const fontSize = ref(settingsStore.settings.fontSize ?? 14)
+const fontSizeMarks = {
+  12: '12px',
+  13: '13px',
+  14: '14px',
+  15: '15px',
+  16: '16px',
+}
 const fontFamily = ref(settingsStore.settings.fontFamily ?? 'JetBrains Mono')
+const locale = ref(settingsStore.settings.locale ?? 'zh-CN')
+const localeOptions = [
+  { label: '简体中文', value: 'zh-CN' },
+  { label: 'English', value: 'en-US' },
+]
 
 const fontOptions = settingsStore.FONT_FAMILIES
 
-const sampleFontStack = computed(() =>
-  `'${fontFamily.value}', 'Cascadia Code', 'Fira Code', 'SF Mono', 'Consolas', monospace`
-)
+const sampleFontStack = computed(() => buildFontStack(fontFamily.value))
 
-function changeFontSize(delta: number) {
-  const v = fontSize.value + delta
-  if (v >= 12 && v <= 16) {
-    fontSize.value = v
-    document.documentElement.style.fontSize = v + 'px'
-  }
-}
+// -- Auto-save: watch all settings and apply to store --
+let saveTimer: ReturnType<typeof setTimeout> | null = null
 
-function onFontFamilyChange() {
-  const fam = `'${fontFamily.value}', 'Cascadia Code', 'Fira Code', 'SF Mono', 'Consolas', monospace`
-  document.documentElement.style.fontFamily = fam
-}
-
-function onClose() { emit('update:show', false) }
-function onSave() {
+function applyToStore() {
   const s = settingsStore.settings
   s.timeout = timeout.value
   s.followRedirects = followRedirects.value
@@ -141,46 +374,506 @@ function onSave() {
   s.accentColor = accentColor.value
   s.fontSize = fontSize.value
   s.fontFamily = fontFamily.value
-  onClose()
+  s.locale = locale.value
+  hasChanges.value = true
+  // Auto-hide the "saved" indicator after 2s
+  if (saveTimer) clearTimeout(saveTimer)
+  saveTimer = setTimeout(() => { hasChanges.value = false }, 2000)
 }
 
-function onBackup() {}
-function onRestore() {}
+// Watch all local refs and auto-save
+watch([timeout, followRedirects, maxRedirects, sslVerify, theme, accentColor, fontSize, fontFamily, locale], () => {
+  applyToStore()
+})
+
+// -- Live preview for font size slider --
+function onFontSizeLive(val: number) {
+  const root = document.documentElement
+  root.style.fontSize = val + 'px'
+  document.body.style.fontSize = val + 'px'
+  const scale = val / 13
+  root.style.setProperty('--fs-2xs', Math.round(10 * scale) + 'px')
+  root.style.setProperty('--fs-xs', Math.round(11.5 * scale) + 'px')
+  root.style.setProperty('--fs-sm', Math.round(12.5 * scale) + 'px')
+  root.style.setProperty('--fs-base', val + 'px')
+  root.style.setProperty('--fs-md', Math.round(14.5 * scale) + 'px')
+  root.style.setProperty('--fs-lg', Math.round(16.5 * scale) + 'px')
+  root.style.setProperty('--fs-xl', Math.round(19 * scale) + 'px')
+  root.style.setProperty('--fs-2xl', Math.round(24 * scale) + 'px')
+  root.style.setProperty('--fs-3xl', Math.round(32 * scale) + 'px')
+}
+
+function onFontFamilyChange() {
+  const fam = buildFontStack(fontFamily.value)
+  const root = document.documentElement
+  root.style.fontFamily = fam
+  document.body.style.fontFamily = fam
+  document.body.style.setProperty('--n-font-family', fam)
+  document.body.style.setProperty('--n-font-family-mono', fam)
+  root.style.setProperty('--n-font-family', fam)
+  root.style.setProperty('--n-font-family-mono', fam)
+  root.style.setProperty('--font-family', fam)
+  root.style.setProperty('--font-mono', fam)
+}
+
+// -- Restore defaults --
+function onRestoreDefaults() {
+  timeout.value = DEFAULTS.timeout
+  followRedirects.value = DEFAULTS.followRedirects
+  maxRedirects.value = DEFAULTS.maxRedirects
+  sslVerify.value = DEFAULTS.sslVerify
+  theme.value = DEFAULTS.theme
+  accentColor.value = DEFAULTS.accentColor
+  fontSize.value = DEFAULTS.fontSize
+  fontFamily.value = DEFAULTS.fontFamily
+  applyToStore()
+  onFontFamilyChange()
+  message.success(t('settings.restoreDefaultsSuccess'))
+}
+
+// -- Navigation --
+function onClose() { emit('update:show', false) }
+
+function onBackup() { message.info(t('settings.data.backupComingSoon')) }
+function onRestore() { message.info(t('settings.data.restoreComingSoon')) }
 </script>
 
 <style scoped>
-.modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.6); display: flex; align-items: center; justify-content: center; z-index: 200; }
-.settings-box { background: var(--bg-surface); border: 1px solid var(--border-primary); border-radius: var(--radius-lg); width: 680px; max-height: 80vh; box-shadow: 0 12px 40px rgba(0,0,0,0.5); overflow: hidden; display: flex; flex-direction: column; }
-.settings-hdr { display: flex; align-items: center; justify-content: space-between; padding: 14px 18px; border-bottom: 1px solid var(--border-primary); }
-.settings-hdr h3 { margin: 0; font-size: var(--fs-lg); font-weight: 600; color: var(--text-primary); }
-.close-btn { background: none; border: none; font-size: var(--fs-xl); color: var(--text-muted); cursor: pointer; padding: 0 4px; line-height: 1; }
-.close-btn:hover { color: var(--text-primary); }
-.settings-body { display: flex; flex: 1; min-height: 280px; overflow: hidden; }
-.settings-nav { width: 90px; border-right: 1px solid var(--border-primary); padding: 4px 0; flex-shrink: 0; }
-.nav-item { padding: 7px 14px; font-size: var(--fs-sm); cursor: pointer; color: var(--text-muted); border-right: 2px solid transparent; transition: all var(--transition); font-family: var(--font-family); }
-.nav-item:hover { color: var(--text-secondary); background: var(--bg-hover); }
-.nav-item.active { color: var(--accent); font-weight: 600; border-right-color: var(--accent); background: var(--accent-soft); }
-.settings-content { flex: 1; padding: 14px 18px; overflow-y: auto; }
-.settings-section { display: flex; flex-direction: column; gap: 2px; }
-.setting-group { border: 1px solid var(--border-primary); border-radius: var(--radius); padding: 12px; margin-top: 8px; }
-.setting-group-hdr { font-size: var(--fs-xs); color: var(--text-muted); margin-bottom: 8px; text-transform: uppercase; letter-spacing: 0.5px; font-weight: 600; }
-.setting-row { display: flex; align-items: center; justify-content: space-between; padding: 3px 0; font-size: var(--fs-sm); }
-.setting-row span { color: var(--text-secondary); }
-.setting-input-num { width: 70px; padding: 4px 6px; border: 1px solid var(--border-primary); border-radius: var(--radius-sm); text-align: right; font-size: var(--fs-sm); outline: none; background: var(--bg-base); color: var(--text-primary); font-family: var(--font-family); }
-.setting-input-num:focus { border-color: var(--accent); }
-.setting-select { padding: 4px 6px; border: 1px solid var(--border-primary); border-radius: var(--radius-sm); font-size: var(--fs-sm); outline: none; cursor: pointer; background: var(--bg-base); color: var(--text-secondary); font-family: var(--font-family); }
-.setting-muted { color: var(--text-muted); font-size: var(--fs-sm); padding: 10px 0; }
-.data-btn { display: block; width: 100%; text-align: left; padding: 8px 12px; border: 1px solid var(--border-primary); border-radius: var(--radius-sm); background: var(--bg-base); cursor: pointer; font-size: var(--fs-sm); margin-bottom: 8px; color: var(--text-secondary); font-family: var(--font-family); transition: all var(--transition); }
-.data-btn:hover { background: var(--bg-elevated); border-color: var(--border-hover); }
-.settings-footer { display: flex; justify-content: flex-end; gap: 8px; padding: 12px 18px; border-top: 1px solid var(--border-primary); }
-.btn-cancel { padding: 5px 16px; border: 1px solid var(--border-primary); border-radius: var(--radius); background: var(--bg-base); font-size: var(--fs-sm); cursor: pointer; color: var(--text-secondary); font-family: var(--font-family); transition: all var(--transition); }
-.btn-cancel:hover { border-color: var(--border-hover); color: var(--text-primary); }
-.btn-save { padding: 5px 16px; background: var(--accent); color: #000; border: 1px solid var(--accent); border-radius: var(--radius); font-size: var(--fs-sm); cursor: pointer; font-weight: 600; font-family: var(--font-family); }
-.btn-save:hover { background: var(--accent-hover); }
-.font-size-ctrl { display: flex; align-items: center; gap: 8px; }
-.fs-btn { width: 24px; height: 24px; border: 1px solid var(--border-primary); border-radius: var(--radius-sm); background: var(--bg-base); color: var(--text-secondary); cursor: pointer; font-size: var(--fs-md); display: flex; align-items: center; justify-content: center; line-height: 1; transition: all var(--transition); }
-.fs-btn:hover:not(:disabled) { border-color: var(--accent); color: var(--accent); }
-.fs-btn:disabled { opacity: 0.3; cursor: not-allowed; }
-.fs-val { font-size: var(--fs-md); font-weight: 600; color: var(--accent); min-width: 36px; text-align: center; font-family: var(--font-family); }
-.font-sample { margin-top: 10px; padding: 10px 12px; background: var(--bg-base); border: 1px solid var(--border-primary); border-radius: var(--radius); color: var(--text-primary); white-space: nowrap; overflow: hidden; }
+.settings-body { display: flex; height: 100%; overflow: hidden; }
+
+/* -- Sidebar Navigation with icons -- */
+.settings-nav {
+  width: auto;
+  min-width: 100px;
+  border-right: 1px solid var(--border-primary);
+  padding: 4px 0;
+  flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
+}
+.nav-item {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 9px 14px;
+  font-size: var(--fs-sm);
+  cursor: pointer;
+  color: var(--text-secondary);
+  border-right: 2px solid transparent;
+  transition: all 0.15s ease;
+  font-family: var(--font-family);
+}
+.nav-item:hover {
+  color: var(--text-secondary);
+  background: var(--bg-hover);
+}
+.nav-item.active {
+  color: var(--accent);
+  font-weight: 600;
+  border-right-color: var(--accent);
+  background: var(--accent-soft);
+}
+.nav-icon {
+  display: flex;
+  align-items: center;
+  opacity: 0.7;
+  flex-shrink: 0;
+}
+.nav-item.active .nav-icon { opacity: 1; }
+.nav-label {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.nav-spacer { flex: 1; }
+.nav-reset {
+  border-top: 1px solid var(--border-primary);
+  margin-top: 4px;
+  color: var(--text-muted);
+}
+.nav-reset:hover { color: var(--amber, #f59e0b); }
+
+/* -- Content Area -- */
+.settings-content { flex: 1; padding: 14px 20px; overflow-y: auto; }
+
+.section-hdr {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: var(--fs-md);
+  font-weight: 600;
+  color: var(--text-primary);
+  margin-bottom: 16px;
+  padding-bottom: 8px;
+  border-bottom: 1px solid var(--border-subtle);
+}
+.section-hdr svg { opacity: 0.6; }
+
+/* -- Placeholder sections -- */
+.settings-muted {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  height: 100%;
+  color: var(--text-muted);
+  font-size: var(--fs-sm);
+  font-family: var(--font-family);
+}
+.muted-icon { opacity: 0.2; }
+.muted-sub { font-size: var(--fs-xs); opacity: 0.6; }
+
+/* -- Theme Visual Cards -- */
+.theme-section { margin-bottom: 14px; }
+.setting-label {
+  display: block;
+  font-size: var(--fs-sm);
+  color: var(--text-secondary);
+  margin-bottom: 8px;
+}
+.theme-cards {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+.theme-card {
+  cursor: pointer;
+  border: 2px solid var(--border-primary);
+  border-radius: var(--radius-lg, 10px);
+  padding: 6px;
+  transition: all 0.2s ease;
+  width: 104px;
+}
+.theme-card:hover { border-color: var(--text-muted); }
+.theme-card.selected {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 1px var(--accent);
+}
+.theme-preview {
+  border-radius: 6px;
+  overflow: hidden;
+  height: 64px;
+}
+/* Dark theme preview */
+.theme-dark-preview {
+  background: #111113;
+}
+.theme-dark-preview .tp-titlebar {
+  height: 10px;
+  background: #18181b;
+  border-bottom: 1px solid #27272a;
+}
+.theme-dark-preview .tp-body { display: flex; height: calc(100% - 10px); }
+.theme-dark-preview .tp-sidebar {
+  width: 22px;
+  background: #0a0a0b;
+  border-right: 1px solid #27272a;
+}
+.theme-dark-preview .tp-main { flex: 1; padding: 5px; }
+.theme-dark-preview .tp-line {
+  height: 3px;
+  background: #27272a;
+  border-radius: 2px;
+  margin-bottom: 3px;
+}
+.theme-dark-preview .tp-line.short { width: 60%; }
+
+/* Light theme preview */
+.theme-light-preview {
+  background: #ffffff;
+}
+.theme-light-preview .tp-titlebar {
+  height: 10px;
+  background: #f4f4f3;
+  border-bottom: 1px solid #d4d4d1;
+}
+.theme-light-preview .tp-body { display: flex; height: calc(100% - 10px); }
+.theme-light-preview .tp-sidebar {
+  width: 22px;
+  background: #f8f8f7;
+  border-right: 1px solid #d4d4d1;
+}
+.theme-light-preview .tp-main { flex: 1; padding: 5px; }
+.theme-light-preview .tp-line {
+  height: 3px;
+  background: #e4e4e2;
+  border-radius: 2px;
+  margin-bottom: 3px;
+}
+.theme-light-preview .tp-line.short { width: 60%; }
+
+/* Warm theme preview */
+.theme-warm-preview {
+  background: #1f1a14;
+}
+.theme-warm-preview .tp-titlebar {
+  height: 10px;
+  background: #262017;
+  border-bottom: 1px solid #3d3228;
+}
+.theme-warm-preview .tp-body { display: flex; height: calc(100% - 10px); }
+.theme-warm-preview .tp-sidebar {
+  width: 22px;
+  background: #17130e;
+  border-right: 1px solid #3d3228;
+}
+.theme-warm-preview .tp-main { flex: 1; padding: 5px; }
+.theme-warm-preview .tp-line {
+  height: 3px;
+  background: #3d3228;
+  border-radius: 2px;
+  margin-bottom: 3px;
+}
+.theme-warm-preview .tp-line.short { width: 60%; }
+
+/* Nord theme preview */
+.theme-nord-preview {
+  background: #1f2535;
+}
+.theme-nord-preview .tp-titlebar {
+  height: 10px;
+  background: #242b3c;
+  border-bottom: 1px solid #313b50;
+}
+.theme-nord-preview .tp-body { display: flex; height: calc(100% - 10px); }
+.theme-nord-preview .tp-sidebar {
+  width: 22px;
+  background: #191e2c;
+  border-right: 1px solid #313b50;
+}
+.theme-nord-preview .tp-main { flex: 1; padding: 5px; }
+.theme-nord-preview .tp-line {
+  height: 3px;
+  background: #313b50;
+  border-radius: 2px;
+  margin-bottom: 3px;
+}
+.theme-nord-preview .tp-line.short { width: 60%; }
+
+/* Catppuccin theme preview */
+.theme-catppuccin-preview {
+  background: #1a1826;
+}
+.theme-catppuccin-preview .tp-titlebar {
+  height: 10px;
+  background: #201e30;
+  border-bottom: 1px solid #353058;
+}
+.theme-catppuccin-preview .tp-body { display: flex; height: calc(100% - 10px); }
+.theme-catppuccin-preview .tp-sidebar {
+  width: 22px;
+  background: #13121e;
+  border-right: 1px solid #353058;
+}
+.theme-catppuccin-preview .tp-main { flex: 1; padding: 5px; }
+.theme-catppuccin-preview .tp-line {
+  height: 3px;
+  background: #353058;
+  border-radius: 2px;
+  margin-bottom: 3px;
+}
+.theme-catppuccin-preview .tp-line.short { width: 60%; }
+
+/* Neon theme preview */
+.theme-neon-preview {
+  background: #0a0a0f;
+}
+.theme-neon-preview .tp-titlebar {
+  height: 10px;
+  background: #0f0f18;
+  border-bottom: 1px solid #1e1e33;
+}
+.theme-neon-preview .tp-body { display: flex; height: calc(100% - 10px); }
+.theme-neon-preview .tp-sidebar {
+  width: 22px;
+  background: #06060c;
+  border-right: 1px solid #1e1e33;
+}
+.theme-neon-preview .tp-main { flex: 1; padding: 5px; }
+.theme-neon-preview .tp-line {
+  height: 3px;
+  background: #1e1e33;
+  border-radius: 2px;
+  margin-bottom: 3px;
+}
+.theme-neon-preview .tp-line.short { width: 60%; }
+
+.theme-name {
+  display: block;
+  text-align: center;
+  font-size: var(--fs-xs);
+  color: var(--text-secondary);
+  margin-top: 4px;
+}
+.theme-card.selected .theme-name { color: var(--accent); font-weight: 600; }
+
+/* -- Accent Color Swatches -- */
+.accent-form { margin-bottom: 4px; }
+.accent-swatches {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+.accent-swatch {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  cursor: pointer;
+  border: 2px solid transparent;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.15s ease;
+}
+.accent-swatch.green   { background: #22c55e; }
+.accent-swatch.blue    { background: #3b82f6; }
+.accent-swatch.purple  { background: #a855f7; }
+.accent-swatch.amber   { background: #f0a848; }
+.accent-swatch.teal    { background: #5eead4; }
+.accent-swatch.mauve   { background: #c4a0f8; }
+.accent-swatch.magenta { background: #ff0088; }
+.accent-swatch:hover { transform: scale(1.15); }
+.accent-swatch.selected {
+  border-color: var(--text-primary);
+  box-shadow: 0 0 0 2px var(--bg-base);
+}
+.accent-swatch.selected svg { stroke: white; }
+
+/* -- Font Section with live preview -- */
+.setting-group {
+  border: 1px solid var(--border-primary);
+  border-radius: var(--radius-lg);
+  padding: 14px;
+  margin-top: 10px;
+  background: var(--bg-elevated);
+}
+.setting-group-hdr {
+  font-size: var(--fs-xs);
+  color: var(--text-secondary);
+  margin-bottom: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  font-weight: 600;
+}
+.font-slider-wrap {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+}
+.fs-val {
+  font-size: var(--fs-md);
+  font-weight: 600;
+  color: var(--accent);
+  min-width: 36px;
+  text-align: center;
+  font-family: var(--font-family);
+}
+.font-sample {
+  margin-top: 10px;
+  padding: 10px 12px;
+  background: var(--bg-base);
+  border: 1px solid var(--border-primary);
+  border-radius: var(--radius);
+  color: var(--text-primary);
+  overflow: hidden;
+}
+.font-sample-line { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.font-sample-line.secondary {
+  margin-top: 4px;
+  opacity: 0.5;
+  font-size: 0.85em;
+}
+.section-panel :deep(.n-form-item) { margin-bottom: 0; }
+.section-panel :deep(.n-form-item .n-form-item-label) {
+  flex-shrink: 0;
+}
+.section-panel :deep(.n-form-item .n-form-item-blank) {
+  justify-content: flex-end;
+}
+.form-hint { font-size: var(--fs-2xs, 9px); color: var(--text-secondary); }
+
+/* -- Constrain card internals so footer stays visible -- */
+:deep(.n-card) {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+:deep(.n-card-header) {
+  flex-shrink: 0;
+}
+:deep(.n-card-content) {
+  flex: 1;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+:deep(.n-card__footer) {
+  flex-shrink: 0;
+}
+
+/* -- Data section -- */
+.data-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.data-btn {
+  height: auto !important;
+  padding: 12px 14px !important;
+  justify-content: flex-start !important;
+}
+.data-btn-content {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  margin-left: 8px;
+}
+.data-btn-title {
+  font-weight: 600;
+  font-size: var(--fs-sm);
+}
+.data-btn-desc {
+  font-size: var(--fs-xs);
+  color: var(--text-secondary);
+  margin-top: 2px;
+}
+
+/* -- Footer with auto-save indicator -- */
+.settings-footer {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 10px;
+}
+.autosave-hint {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: var(--fs-xs);
+  color: var(--text-muted);
+  margin-right: auto;
+  opacity: 0.7;
+}
+.autosave-hint svg { color: var(--accent); }
+</style>
+
+<style>
+/* Non-scoped: modal is teleported to body, scoped :deep() can't reach */
+.settings-modal .n-card {
+  display: flex !important;
+  flex-direction: column !important;
+}
+.settings-modal .n-card-header {
+  flex-shrink: 0 !important;
+}
+.settings-modal .n-card-content {
+  flex: 1 !important;
+  overflow: hidden !important;
+  min-height: 0 !important;
+}
+.settings-modal .n-card__footer {
+  flex-shrink: 0 !important;
+}
 </style>

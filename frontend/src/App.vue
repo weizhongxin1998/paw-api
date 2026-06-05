@@ -1,10 +1,11 @@
 <template>
-  <n-config-provider :theme-overrides="themeOverrides" :theme="nTheme">
+  <n-config-provider :theme-overrides="themeOverrides" :theme="nTheme" :locale="naiveLocale" :date-locale="naiveDateLocale">
     <n-global-style />
     <n-dialog-provider>
       <n-message-provider>
-        <div class="app-container" :class="{ 'theme-light': themeMode === 'light' }">
+        <div class="app-container">
           <div class="noise-overlay"></div>
+          <div class="vignette-overlay"></div>
           <AppHeader
             v-if="projectStore.currentId"
             :project-id="projectStore.currentId"
@@ -13,13 +14,16 @@
             @back-to-home="projectStore.currentId = null"
             @toggle-theme="toggleTheme"
           />
-          <ProjectHome
-            v-if="!projectStore.currentId"
-            :theme-mode="themeMode"
-            @enter-project="onEnterProject"
-            @toggle-theme="toggleTheme"
-          />
-          <AppBody v-else :project-id="projectStore.currentId" />
+          <Transition name="view-fade" mode="out-in">
+            <ProjectHome
+              v-if="!projectStore.currentId"
+              :key="'home'"
+              :theme-mode="themeMode"
+              @enter-project="onEnterProject"
+              @toggle-theme="toggleTheme"
+            />
+            <AppBody v-else :key="'app'" :project-id="projectStore.currentId" />
+          </Transition>
         </div>
       </n-message-provider>
     </n-dialog-provider>
@@ -28,7 +32,7 @@
 
 <script setup lang="ts">
 import { ref, computed, onMounted, watch } from 'vue'
-import { darkTheme, type GlobalThemeOverrides } from 'naive-ui'
+import { darkTheme } from 'naive-ui'
 import { NConfigProvider, NMessageProvider, NDialogProvider, NGlobalStyle } from 'naive-ui'
 import AppHeader from './components/layout/AppHeader.vue'
 import AppBody from './components/layout/AppBody.vue'
@@ -36,25 +40,27 @@ import ProjectHome from './components/layout/ProjectHome.vue'
 import { useProjectStore } from './stores/project'
 import { useCollectionStore } from './stores/collection'
 import { useEnvStore } from './stores/env'
-import { useSettingsStore, buildNaiveOverrides } from './stores/settings'
+import { useSettingsStore, buildNaiveOverrides, isThemeDark, type Theme } from './stores/settings'
+import { getNaiveLocale } from './i18n/naive-locales'
 
 const projectStore = useProjectStore()
 const collectionStore = useCollectionStore()
 const envStore = useEnvStore()
 const settingsStore = useSettingsStore()
 
-const themeMode = ref<'dark' | 'light'>('dark')
-const nTheme = computed(() => themeMode.value === 'dark' ? darkTheme : null)
+const themeMode = ref<Theme>((settingsStore.settings.theme as Theme) || 'light')
+const nTheme = computed(() => isThemeDark(themeMode.value) ? darkTheme : null)
 
-const themeOverrides = ref<GlobalThemeOverrides>(
-  buildNaiveOverrides(settingsStore.settings, true)
-)
+watch(() => settingsStore.settings.theme, (t) => {
+  themeMode.value = (t as Theme) || 'light'
+})
 
-watch(
-  () => [settingsStore.settings.fontSize, settingsStore.settings.fontFamily, themeMode.value] as const,
-  () => {
-    themeOverrides.value = buildNaiveOverrides(settingsStore.settings, themeMode.value === 'dark')
-  }
+const naiveLocalePair = computed(() => getNaiveLocale(settingsStore.settings.locale))
+const naiveLocale = computed(() => naiveLocalePair.value.locale)
+const naiveDateLocale = computed(() => naiveLocalePair.value.dateLocale)
+
+const themeOverrides = computed(() =>
+  buildNaiveOverrides(settingsStore.settings, isThemeDark(settingsStore.settings.theme))
 )
 
 async function onEnterProject(id: number) {
@@ -70,7 +76,7 @@ async function onProjectChanged(id: number) {
 }
 
 function toggleTheme() {
-  themeMode.value = themeMode.value === 'dark' ? 'light' : 'dark'
+  settingsStore.settings.theme = settingsStore.settings.theme === 'light' ? 'dark' : 'light'
 }
 
 onMounted(async () => {
@@ -81,84 +87,366 @@ defineExpose({ toggleTheme, themeMode })
 </script>
 
 <style>
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600&family=Noto+Sans+SC:wght@400;600&display=swap');
+
 :root {
-  --bg-base: #0d0d0d;
-  --bg-surface: #141414;
-  --bg-elevated: #1a1a1a;
-  --bg-hover: #1f1f1f;
-  --bg-active: #252525;
-  --border-primary: #2a2a2a;
-  --border-hover: #3a3a3a;
+  /* ── Surface hierarchy ── */
+  --bg-base: #0a0a0b;
+  --bg-surface: #111113;
+  --bg-elevated: #18181b;
+  --bg-hover: #1e1e22;
+  --bg-active: #26262b;
+  --bg-inset: #0e0e10;
+
+  /* ── Borders ── */
+  --border-primary: #27272a;
+  --border-hover: #3f3f46;
   --border-focus: #00e05a;
-  --text-primary: #e0e0e0;
-  --text-secondary: #b0b0b0;
-  --text-muted: #707070;
-  --text-placeholder: #505050;
+  --border-subtle: rgba(255,255,255,0.04);
+
+  /* ── Typography ── */
+  --text-primary: #ededf0;
+  --text-secondary: #b4b4bc;
+  --text-muted: #8a8a95;
+  --text-placeholder: #6b6b76;
+  --text-inverse: #0a0a0b;
+
+  /* ── Accent — neon mint ── */
   --accent: #00e05a;
   --accent-hover: #00ff66;
   --accent-pressed: #00b84a;
-  --accent-soft: rgba(0,224,90,0.08);
-  --accent-glow: rgba(0,224,90,0.15);
-  --red: #ff4444;
-  --red-soft: rgba(255,68,68,0.08);
-  --amber: #ffaa00;
-  --amber-soft: rgba(255,170,0,0.08);
-  --blue: #4499ff;
-  --blue-soft: rgba(68,153,255,0.08);
-  --purple: #aa66ff;
-  --purple-soft: rgba(170,102,255,0.08);
-  --radius-sm: 3px;
-  --radius: 4px;
-  --radius-lg: 6px;
-  --transition: 0.12s ease;
-  --transition-slow: 0.2s ease;
+  --accent-soft: rgba(0,224,90,0.07);
+  --accent-glow: rgba(0,224,90,0.14);
+  --accent-glow-strong: rgba(0,224,90,0.28);
+  --accent-text: #00e05a;
 
-  /* Typography — set by settings store via JS */
-  --fs-2xs: 9px;
-  --fs-xs: 10px;
-  --fs-sm: 11px;
-  --fs-base: 13px;
-  --fs-md: 14px;
-  --fs-lg: 16px;
-  --fs-xl: 18px;
-  --fs-2xl: 22px;
-  --font-family: 'JetBrains Mono', 'Cascadia Code', 'Fira Code', 'SF Mono', 'Consolas', monospace;
-  --font-mono: 'JetBrains Mono', 'Cascadia Code', 'Fira Code', 'SF Mono', 'Consolas', monospace;
+  /* ── Semantic ── */
+  --red: #ef4444;
+  --red-hover: #f87171;
+  --red-soft: rgba(239,68,68,0.1);
+  --amber: #f59e0b;
+  --amber-soft: rgba(245,158,11,0.1);
+  --blue: #3b82f6;
+  --blue-soft: rgba(59,130,246,0.1);
+  --purple: #a855f7;
+  --purple-soft: rgba(168,85,247,0.1);
+  --cyan: #06b6d4;
+  --cyan-soft: rgba(6,182,212,0.1);
+
+  /* ── HTTP Methods ── */
+  --method-get: #3b82f6;
+  --method-post: #22c55e;
+  --method-put: #f59e0b;
+  --method-patch: #a855f7;
+  --method-delete: #ef4444;
+  --method-head: #06b6d4;
+  --method-options: #71717a;
+
+  /* ── Radii ── */
+  --radius-xs: 3px;
+  --radius-sm: 5px;
+  --radius: 8px;
+  --radius-lg: 12px;
+  --radius-xl: 16px;
+
+  /* ── Shadows ── */
+  --shadow-sm: 0 1px 2px rgba(0,0,0,0.3);
+  --shadow: 0 2px 8px rgba(0,0,0,0.35);
+  --shadow-lg: 0 8px 24px rgba(0,0,0,0.45);
+  --shadow-glow: 0 0 20px var(--accent-glow);
+
+  /* ── Motion ── */
+  --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+  --ease-spring: cubic-bezier(0.34, 1.56, 0.64, 1);
+  --transition-fast: 0.1s var(--ease-out);
+  --transition: 0.18s var(--ease-out);
+  --transition-slow: 0.3s var(--ease-out);
+
+  /* ── Font sizes ── */
+  --fs-2xs: 10px;
+  --fs-xs: 11.5px;
+  --fs-sm: 12.5px;
+  --fs-base: 13.5px;
+  --fs-md: 14.5px;
+  --fs-lg: 16.5px;
+  --fs-xl: 19px;
+  --fs-2xl: 24px;
+  --fs-3xl: 32px;
+
+  /* ── Font families ── */
+  --font-family: 'Microsoft YaHei', sans-serif;
+  --font-mono: 'Microsoft YaHei', sans-serif;
+  --font-ui: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
 }
 
+/* ════════════════════════════════════════════════════════════
+   Light Theme
+   ════════════════════════════════════════════════════════════ */
 .theme-light {
-  --bg-base: #f5f3f1;
+  --bg-base: #f8f8f7;
   --bg-surface: #ffffff;
-  --bg-elevated: #f2f2ef;
-  --bg-hover: #ebebe8;
-  --bg-active: #e3e3e0;
-  --border-primary: #c8c8c2;
-  --border-hover: #a8a8a2;
+  --bg-elevated: #f4f4f3;
+  --bg-hover: #ededeb;
+  --bg-active: #e4e4e2;
+  --bg-inset: #f0f0ee;
+  --border-primary: #d4d4d1;
+  --border-hover: #a8a8a4;
   --border-focus: #009944;
-  --text-primary: #1a1a18;
-  --text-secondary: #444442;
-  --text-muted: #666662;
-  --text-placeholder: #888884;
-  --accent: #009944;
-  --accent-hover: #007a33;
-  --accent-pressed: #006b2a;
-  --accent-soft: rgba(0,153,68,0.08);
-  --accent-glow: rgba(0,153,68,0.12);
-  --red: #cc3333;
-  --red-soft: rgba(204,51,51,0.08);
-  --amber: #b36d00;
-  --amber-soft: rgba(179,109,0,0.08);
-  --blue: #2266cc;
-  --blue-soft: rgba(34,102,204,0.08);
-  --purple: #7733cc;
-  --purple-soft: rgba(119,51,204,0.08);
+  --border-subtle: rgba(0,0,0,0.04);
+  --text-primary: #18181b;
+  --text-secondary: #3f3f46;
+  --text-muted: #52525b;
+  --text-placeholder: #71717a;
+  --text-inverse: #fafafa;
+  --accent: #059669;
+  --accent-hover: #047857;
+  --accent-pressed: #065f46;
+  --accent-soft: rgba(5,150,105,0.08);
+  --accent-glow: rgba(5,150,105,0.12);
+  --accent-glow-strong: rgba(5,150,105,0.2);
+  --accent-text: #065f46;
+  --red: #dc2626;
+  --red-hover: #ef4444;
+  --red-soft: rgba(220,38,38,0.08);
+  --amber: #d97706;
+  --amber-soft: rgba(217,119,6,0.08);
+  --blue: #2563eb;
+  --blue-soft: rgba(37,99,235,0.08);
+  --purple: #7c3aed;
+  --purple-soft: rgba(124,58,237,0.08);
+  --cyan: #0891b2;
+  --cyan-soft: rgba(8,145,178,0.08);
+  --method-get: #2563eb;
+  --method-post: #16a34a;
+  --method-put: #d97706;
+  --method-patch: #7c3aed;
+  --method-delete: #dc2626;
+  --method-head: #0891b2;
+  --method-options: #636370;
+  --shadow-sm: 0 1px 2px rgba(0,0,0,0.05);
+  --shadow: 0 2px 8px rgba(0,0,0,0.08);
+  --shadow-lg: 0 8px 24px rgba(0,0,0,0.12);
+  --shadow-glow: 0 0 16px var(--accent-glow);
 }
 
+/* ════════════════════════════════════════════════════════════
+   Warm Theme — 暖色护眼
+   ════════════════════════════════════════════════════════════ */
+.theme-warm {
+  --bg-base: #1f1a14;
+  --bg-surface: #262017;
+  --bg-elevated: #2d261c;
+  --bg-hover: #332b20;
+  --bg-active: #3a3125;
+  --bg-inset: #17130e;
+  --border-primary: #3d3228;
+  --border-hover: #5c4d3b;
+  --border-focus: #d97706;
+  --border-subtle: rgba(200,160,100,0.04);
+  --text-primary: #e6d4b8;
+  --text-secondary: #b09878;
+  --text-muted: #806850;
+  --text-placeholder: #6b5a42;
+  --text-inverse: #1f1a14;
+  --accent: #f0a848;
+  --accent-hover: #f5b85e;
+  --accent-pressed: #d8922f;
+  --accent-soft: rgba(240,168,72,0.07);
+  --accent-glow: rgba(240,168,72,0.14);
+  --accent-glow-strong: rgba(240,168,72,0.28);
+  --accent-text: #f0a848;
+  --red: #e05548;
+  --red-hover: #f07065;
+  --red-soft: rgba(224,85,72,0.1);
+  --amber: #d9a05b;
+  --amber-soft: rgba(217,160,91,0.1);
+  --blue: #7b9ec7;
+  --blue-soft: rgba(123,158,199,0.1);
+  --purple: #b898c8;
+  --purple-soft: rgba(184,152,200,0.1);
+  --cyan: #7bb8b0;
+  --cyan-soft: rgba(123,184,176,0.1);
+  --method-get: #7b9ec7;
+  --method-post: #8bba6a;
+  --method-put: #d9a05b;
+  --method-patch: #b898c8;
+  --method-delete: #e05548;
+  --method-head: #7bb8b0;
+  --method-options: #806850;
+  --shadow-sm: 0 1px 2px rgba(0,0,0,0.2);
+  --shadow: 0 2px 8px rgba(0,0,0,0.3);
+  --shadow-lg: 0 8px 24px rgba(0,0,0,0.4);
+  --shadow-glow: 0 0 20px var(--accent-glow);
+}
+
+/* ════════════════════════════════════════════════════════════
+   Nord Theme — 冰湖蓝灰
+   ════════════════════════════════════════════════════════════ */
+.theme-nord {
+  --bg-base: #1f2535;
+  --bg-surface: #242b3c;
+  --bg-elevated: #293148;
+  --bg-hover: #2e364d;
+  --bg-active: #333c55;
+  --bg-inset: #191e2c;
+  --border-primary: #313b50;
+  --border-hover: #4a5670;
+  --border-focus: #5eead4;
+  --border-subtle: rgba(100,140,180,0.04);
+  --text-primary: #dde4ee;
+  --text-secondary: #a0aec0;
+  --text-muted: #6b7a8d;
+  --text-placeholder: #52607a;
+  --text-inverse: #1f2535;
+  --accent: #5eead4;
+  --accent-hover: #7df0de;
+  --accent-pressed: #4ac0ac;
+  --accent-soft: rgba(94,234,212,0.07);
+  --accent-glow: rgba(94,234,212,0.14);
+  --accent-glow-strong: rgba(94,234,212,0.28);
+  --accent-text: #5eead4;
+  --red: #e06070;
+  --red-hover: #f08090;
+  --red-soft: rgba(224,96,112,0.1);
+  --amber: #e0b060;
+  --amber-soft: rgba(224,176,96,0.1);
+  --blue: #7b9ed0;
+  --blue-soft: rgba(123,158,208,0.1);
+  --purple: #b898d8;
+  --purple-soft: rgba(184,152,216,0.1);
+  --cyan: #78c8c0;
+  --cyan-soft: rgba(120,200,192,0.1);
+  --method-get: #7b9ed0;
+  --method-post: #90c878;
+  --method-put: #e0b060;
+  --method-patch: #b898d8;
+  --method-delete: #e06070;
+  --method-head: #78c8c0;
+  --method-options: #6b7a8d;
+  --shadow-sm: 0 1px 2px rgba(0,0,0,0.2);
+  --shadow: 0 2px 8px rgba(0,0,0,0.3);
+  --shadow-lg: 0 8px 24px rgba(0,0,0,0.4);
+  --shadow-glow: 0 0 20px var(--accent-glow);
+}
+
+/* ════════════════════════════════════════════════════════════
+   Catppuccin Theme — 薄暮柔紫
+   ════════════════════════════════════════════════════════════ */
+.theme-catppuccin {
+  --bg-base: #1a1826;
+  --bg-surface: #201e30;
+  --bg-elevated: #27243a;
+  --bg-hover: #2d2a42;
+  --bg-active: #33304a;
+  --bg-inset: #13121e;
+  --border-primary: #353058;
+  --border-hover: #524a75;
+  --border-focus: #c4a0f8;
+  --border-subtle: rgba(140,120,200,0.04);
+  --text-primary: #dedcf0;
+  --text-secondary: #b8b4d0;
+  --text-muted: #7a7698;
+  --text-placeholder: #656080;
+  --text-inverse: #1a1826;
+  --accent: #c4a0f8;
+  --accent-hover: #d4b8ff;
+  --accent-pressed: #a880d8;
+  --accent-soft: rgba(196,160,248,0.07);
+  --accent-glow: rgba(196,160,248,0.14);
+  --accent-glow-strong: rgba(196,160,248,0.28);
+  --accent-text: #c4a0f8;
+  --red: #f08898;
+  --red-hover: #f8a8b8;
+  --red-soft: rgba(240,136,152,0.1);
+  --amber: #f0b878;
+  --amber-soft: rgba(240,184,120,0.1);
+  --blue: #8eb8e0;
+  --blue-soft: rgba(142,184,224,0.1);
+  --purple: #c8a8e8;
+  --purple-soft: rgba(200,168,232,0.1);
+  --cyan: #88d0c8;
+  --cyan-soft: rgba(136,208,200,0.1);
+  --method-get: #8eb8e0;
+  --method-post: #98d078;
+  --method-put: #f0b878;
+  --method-patch: #c8a8e8;
+  --method-delete: #f08898;
+  --method-head: #88d0c8;
+  --method-options: #7a7698;
+  --shadow-sm: 0 1px 2px rgba(0,0,0,0.2);
+  --shadow: 0 2px 8px rgba(0,0,0,0.3);
+  --shadow-lg: 0 8px 24px rgba(0,0,0,0.4);
+  --shadow-glow: 0 0 20px var(--accent-glow);
+}
+
+/* ════════════════════════════════════════════════════════════
+   Neon Theme — 赛博霓虹
+   ════════════════════════════════════════════════════════════ */
+.theme-neon {
+  --bg-base: #0a0a0f;
+  --bg-surface: #0f0f18;
+  --bg-elevated: #151524;
+  --bg-hover: #1a1a2c;
+  --bg-active: #202033;
+  --bg-inset: #06060c;
+  --border-primary: #1e1e33;
+  --border-hover: #383858;
+  --border-focus: #ff0088;
+  --border-subtle: rgba(255,0,136,0.04);
+  --text-primary: #e6e6f2;
+  --text-secondary: #a8a8c0;
+  --text-muted: #686880;
+  --text-placeholder: #525268;
+  --text-inverse: #0a0a0f;
+  --accent: #ff0088;
+  --accent-hover: #ff3399;
+  --accent-pressed: #cc0066;
+  --accent-soft: rgba(255,0,136,0.07);
+  --accent-glow: rgba(255,0,136,0.14);
+  --accent-glow-strong: rgba(255,0,136,0.28);
+  --accent-text: #ff0088;
+  --red: #ff4466;
+  --red-hover: #ff6688;
+  --red-soft: rgba(255,68,102,0.1);
+  --amber: #ff8844;
+  --amber-soft: rgba(255,136,68,0.1);
+  --blue: #4488ff;
+  --blue-soft: rgba(68,136,255,0.1);
+  --purple: #aa44ff;
+  --purple-soft: rgba(170,68,255,0.1);
+  --cyan: #44ccff;
+  --cyan-soft: rgba(68,204,255,0.1);
+  --method-get: #4488ff;
+  --method-post: #44ff66;
+  --method-put: #ff8844;
+  --method-patch: #aa44ff;
+  --method-delete: #ff4466;
+  --method-head: #44ccff;
+  --method-options: #686880;
+  --shadow-sm: 0 1px 2px rgba(0,0,0,0.3);
+  --shadow: 0 2px 8px rgba(0,0,0,0.4);
+  --shadow-lg: 0 8px 24px rgba(0,0,0,0.5);
+  --shadow-glow: 0 0 24px var(--accent-glow);
+}
+
+/* ════════════════════════════════════════════════════════════
+   Base Reset
+   ════════════════════════════════════════════════════════════ */
 html, body, #app {
   margin: 0; padding: 0; height: 100%;
   font-family: var(--font-family); font-size: var(--fs-base);
   color: var(--text-primary); background: var(--bg-base);
-  -webkit-font-smoothing: antialiased; overflow: hidden;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  overflow: hidden;
+}
+
+#app *,
+.n-modal *,
+.n-drawer *,
+.n-popover *,
+.n-dropdown-menu * {
+  font-family: inherit !important;
 }
 
 .app-container {
@@ -166,20 +454,132 @@ html, body, #app {
   overflow: hidden; position: relative; background: var(--bg-base);
 }
 
+/* ════════════════════════════════════════════════════════════
+   Texture Overlays
+   ════════════════════════════════════════════════════════════ */
 .noise-overlay {
   position: fixed; inset: 0; pointer-events: none; z-index: 9999;
   opacity: 0.025;
-  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='1'/%3E%3C/svg%3E");
-  background-size: 256px 256px;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.7' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='1'/%3E%3C/svg%3E");
+  background-size: 200px 200px;
+  mix-blend-mode: overlay;
 }
-.theme-light .noise-overlay { opacity: 0.012; }
+.theme-light .noise-overlay { opacity: 0.012; mix-blend-mode: multiply; }
 
-::-webkit-scrollbar { width: 6px; height: 6px; }
+.vignette-overlay {
+  position: fixed; inset: 0; pointer-events: none; z-index: 9998;
+  background: radial-gradient(ellipse 120% 100% at 50% 50%, transparent 55%, rgba(0,0,0,0.3) 100%);
+}
+.theme-light .vignette-overlay {
+  background: radial-gradient(ellipse 120% 100% at 50% 50%, transparent 60%, rgba(0,0,0,0.04) 100%);
+}
+
+/* ════════════════════════════════════════════════════════════
+   Transitions
+   ════════════════════════════════════════════════════════════ */
+.view-fade-enter-active, .view-fade-leave-active {
+  transition: opacity 0.25s var(--ease-out), transform 0.25s var(--ease-out);
+}
+.view-fade-enter-from { opacity: 0; transform: translateY(8px) scale(0.995); }
+.view-fade-leave-to { opacity: 0; transform: translateY(-4px) scale(1); }
+
+/* ════════════════════════════════════════════════════════════
+   Scrollbars
+   ════════════════════════════════════════════════════════════ */
+::-webkit-scrollbar { width: 7px; height: 7px; }
 ::-webkit-scrollbar-track { background: transparent; }
-::-webkit-scrollbar-thumb { background: #333; border-radius: 3px; }
-::-webkit-scrollbar-thumb:hover { background: #444; }
-.theme-light ::-webkit-scrollbar-thumb { background: #ccc; }
-.theme-light ::-webkit-scrollbar-thumb:hover { background: #aaa; }
+::-webkit-scrollbar-thumb {
+  background: rgba(255,255,255,0.08); border-radius: 4px;
+  border: 2px solid transparent; background-clip: padding-box;
+  transition: background 0.15s;
+}
+::-webkit-scrollbar-thumb:hover { background: rgba(255,255,255,0.16); background-clip: padding-box; border: 2px solid transparent; }
+::-webkit-scrollbar-corner { background: transparent; }
+.theme-light ::-webkit-scrollbar-thumb { background: rgba(0,0,0,0.1); }
+.theme-light ::-webkit-scrollbar-thumb:hover { background: rgba(0,0,0,0.2); }
 
+/* Hide scrollbar until hover for panels */
+.auto-hide-scroll::-webkit-scrollbar-thumb { background: transparent; }
+.auto-hide-scroll:hover::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.08); background-clip: padding-box; border: 2px solid transparent; }
+.theme-light .auto-hide-scroll::-webkit-scrollbar-thumb { background: transparent; }
+.theme-light .auto-hide-scroll:hover::-webkit-scrollbar-thumb { background: rgba(0,0,0,0.1); }
+
+/* ════════════════════════════════════════════════════════════
+   Selection & Focus
+   ════════════════════════════════════════════════════════════ */
 ::selection { background: var(--accent-soft); color: var(--accent); }
+:focus-visible { outline: 1.5px solid var(--accent); outline-offset: 1px; border-radius: var(--radius-xs); }
+
+/* ════════════════════════════════════════════════════════════
+   Utility Classes (shared across components)
+   ════════════════════════════════════════════════════════════ */
+
+/* HTTP Method Badges */
+.method-get    { color: var(--method-get) !important; }
+.method-post   { color: var(--method-post) !important; }
+.method-put    { color: var(--method-put) !important; }
+.method-patch  { color: var(--method-patch) !important; }
+.method-delete { color: var(--method-delete) !important; }
+.method-head   { color: var(--method-head) !important; }
+.method-options{ color: var(--method-options) !important; }
+
+.method-pill {
+  display: inline-flex; align-items: center; justify-content: center;
+  font-size: var(--fs-2xs); font-weight: 700; letter-spacing: 0.04em;
+  padding: 2px 7px; border-radius: var(--radius-xs);
+  line-height: 1.6; text-transform: uppercase; font-family: var(--font-mono);
+}
+.method-pill.method-get    { background: var(--blue-soft); color: var(--method-get); }
+.method-pill.method-post   { background: rgba(34,197,94,0.1); color: var(--method-post); }
+.method-pill.method-put    { background: var(--amber-soft); color: var(--method-put); }
+.method-pill.method-patch  { background: var(--purple-soft); color: var(--method-patch); }
+.method-pill.method-delete { background: var(--red-soft); color: var(--method-delete); }
+.method-pill.method-head   { background: var(--cyan-soft); color: var(--method-head); }
+.method-pill.method-options{ background: rgba(113,113,122,0.1); color: var(--method-options); }
+
+/* Status code pills */
+.status-pill {
+  display: inline-flex; align-items: center;
+  font-size: var(--fs-sm); font-weight: 600; letter-spacing: 0.02em;
+  padding: 2px 8px; border-radius: var(--radius-sm); font-family: var(--font-mono);
+}
+.status-pill.status-2xx { background: rgba(34,197,94,0.1); color: #22c55e; }
+.status-pill.status-3xx { background: var(--blue-soft); color: var(--blue); }
+.status-pill.status-4xx { background: var(--amber-soft); color: var(--amber); }
+.status-pill.status-5xx { background: var(--red-soft); color: var(--red); }
+.theme-light .status-pill.status-2xx { color: #16a34a; }
+
+/* ════════════════════════════════════════════════════════════
+   Select dropdown: keep font-size consistent with tiny trigger
+   ════════════════════════════════════════════════════════════ */
+.n-base-select-menu {
+  --n-option-font-size: var(--fs-xs) !important;
+}
+.n-base-select-menu .n-base-select-option__content {
+  text-align: center;
+}
+
+/* ════════════════════════════════════════════════════════════
+   Keyframes
+   ════════════════════════════════════════════════════════════ */
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(8px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+@keyframes fadeInScale {
+  from { opacity: 0; transform: scale(0.96); }
+  to   { opacity: 1; transform: scale(1); }
+}
+@keyframes slideUp {
+  from { opacity: 0; transform: translateY(12px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+@keyframes pulseGlow {
+  0%, 100% { box-shadow: 0 0 0 0 var(--accent-glow); }
+  50%      { box-shadow: 0 0 12px 2px var(--accent-glow); }
+}
+@keyframes shimmer {
+  0%   { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
 </style>
