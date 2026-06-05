@@ -3,7 +3,7 @@
     <n-global-style />
     <n-dialog-provider>
       <n-message-provider>
-        <div class="app-container" :class="{ 'theme-light': themeMode === 'light' }">
+        <div class="app-container">
           <div class="noise-overlay"></div>
           <div class="vignette-overlay"></div>
           <AppHeader
@@ -48,21 +48,25 @@ const collectionStore = useCollectionStore()
 const envStore = useEnvStore()
 const settingsStore = useSettingsStore()
 
-const themeMode = ref<'dark' | 'light'>('dark')
+const themeMode = ref<'dark' | 'light'>((settingsStore.settings.theme as 'dark' | 'light') || 'dark')
 const nTheme = computed(() => themeMode.value === 'dark' ? darkTheme : null)
+
+watch(() => settingsStore.settings.theme, (t) => {
+  themeMode.value = (t as 'dark' | 'light') || 'dark'
+})
 
 const naiveLocalePair = computed(() => getNaiveLocale(settingsStore.settings.locale))
 const naiveLocale = computed(() => naiveLocalePair.value.locale)
 const naiveDateLocale = computed(() => naiveLocalePair.value.dateLocale)
 
 const themeOverrides = ref<GlobalThemeOverrides>(
-  buildNaiveOverrides(settingsStore.settings, true)
+  buildNaiveOverrides(settingsStore.settings, settingsStore.settings.theme === 'dark')
 )
 
 watch(
-  () => [settingsStore.settings.fontSize, settingsStore.settings.fontFamily, themeMode.value] as const,
+  () => [settingsStore.settings.fontSize, settingsStore.settings.fontFamily, settingsStore.settings.theme, settingsStore.settings.accentColor] as const,
   () => {
-    themeOverrides.value = buildNaiveOverrides(settingsStore.settings, themeMode.value === 'dark')
+    themeOverrides.value = buildNaiveOverrides(settingsStore.settings, settingsStore.settings.theme === 'dark')
   }
 )
 
@@ -79,7 +83,7 @@ async function onProjectChanged(id: number) {
 }
 
 function toggleTheme() {
-  themeMode.value = themeMode.value === 'dark' ? 'light' : 'dark'
+  settingsStore.settings.theme = settingsStore.settings.theme === 'dark' ? 'light' : 'dark'
 }
 
 onMounted(async () => {
