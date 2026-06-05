@@ -4,7 +4,7 @@
     preset="card"
     :title="$t('settings.title')"
     :class="modalClass"
-    style="width: 780px; height: 700px"
+    style="width: 820px; height: 700px"
     :mask-closable="false"
     :segmented="{ footer: true }"
     @update:show="onClose"
@@ -39,7 +39,7 @@
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-2 2 2 2 0 01-2-2v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83 0 2 2 0 010-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 01-2-2 2 2 0 012-2h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 010-2.83 2 2 0 012.83 0l.06.06A1.65 1.65 0 009 4.68a1.65 1.65 0 001-1.51V3a2 2 0 012-2 2 2 0 012 2v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 0 2 2 0 010 2.83l-.06.06A1.65 1.65 0 0019.32 9a1.65 1.65 0 001.51 1H21a2 2 0 012 2 2 2 0 01-2 2h-.09a1.65 1.65 0 00-1.51 1z"/></svg>
             <span>{{ $t('settings.general.header') }}</span>
           </div>
-          <n-form label-placement="left" label-width="140px">
+          <n-form label-placement="left" label-width="180" label-align="left">
             <n-form-item :label="$t('settings.general.timeout')">
               <n-input-number v-model:value="timeout" :min="1" :max="300" style="width: 100px" />
             </n-form-item>
@@ -128,7 +128,7 @@
           </div>
 
           <!-- Accent color -->
-          <n-form label-placement="left" label-width="140px" class="accent-form">
+          <n-form label-placement="left" label-width="180" label-align="left" class="accent-form">
             <n-form-item :label="$t('settings.appearance.accentColor')">
               <div class="accent-swatches">
                 <div
@@ -148,7 +148,7 @@
           <!-- Font section with live preview -->
           <div class="setting-group">
             <div class="setting-group-hdr">{{ $t('settings.appearance.font') }}</div>
-            <n-form label-placement="left" label-width="140px">
+            <n-form label-placement="left" label-width="180" label-align="left">
               <n-form-item :label="$t('settings.appearance.fontSize')">
                 <div class="font-slider-wrap">
                   <n-slider
@@ -354,7 +354,8 @@ function onRestore() { message.info(t('settings.data.restoreComingSoon')) }
 
 /* -- Sidebar Navigation with icons -- */
 .settings-nav {
-  width: 100px;
+  width: auto;
+  min-width: 100px;
   border-right: 1px solid var(--border-primary);
   padding: 4px 0;
   flex-shrink: 0;
@@ -390,7 +391,11 @@ function onRestore() { message.info(t('settings.data.restoreComingSoon')) }
   flex-shrink: 0;
 }
 .nav-item.active .nav-icon { opacity: 1; }
-.nav-label { white-space: nowrap; }
+.nav-label {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
 .nav-spacer { flex: 1; }
 .nav-reset {
   border-top: 1px solid var(--border-primary);
@@ -590,6 +595,12 @@ function onRestore() { message.info(t('settings.data.restoreComingSoon')) }
   font-size: 0.85em;
 }
 .section-panel :deep(.n-form-item) { margin-bottom: 0; }
+.section-panel :deep(.n-form-item .n-form-item-label) {
+  flex-shrink: 0;
+}
+.section-panel :deep(.n-form-item .n-form-item-blank) {
+  justify-content: flex-end;
+}
 .form-hint { font-size: var(--fs-2xs, 9px); color: var(--text-secondary); }
 
 /* -- Constrain card internals so footer stays visible -- */

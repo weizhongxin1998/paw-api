@@ -96,7 +96,6 @@
               </span>
             </div>
             <div class="card-footer-right">
-              <span class="card-time" v-if="p.last_opened">{{ relativeTime(p.last_opened) }}</span>
               <div class="card-actions">
                 <button
                   class="card-action-btn"
@@ -316,25 +315,6 @@ const filteredProjects = computed(() => {
   list.sort((a, b) => (b.last_opened ?? 0) - (a.last_opened ?? 0))
   return list
 })
-
-/* ──────────────────────────── Relative time ──────────────────── */
-
-function relativeTime(ts: number): string {
-  // Support both seconds and milliseconds
-  const ms = ts > 1e12 ? ts : ts * 1000
-  const diff = Math.max(0, Date.now() - ms)
-  const seconds = Math.floor(diff / 1000)
-  if (seconds < 60) return t('time.justNow')
-  const minutes = Math.floor(seconds / 60)
-  if (minutes < 60) return t('time.minutesAgo', { n: minutes })
-  const hours = Math.floor(minutes / 60)
-  if (hours < 24) return t('time.hoursAgo', { n: hours })
-  const days = Math.floor(hours / 24)
-  if (days < 30) return t('time.daysAgo', { n: days })
-  const months = Math.floor(days / 30)
-  if (months < 12) return t('time.monthsAgo', { n: months })
-  return t('time.yearsAgo', { n: Math.floor(months / 12) })
-}
 
 /* ──────────────────────────── Data loading ───────────────────── */
 
@@ -817,13 +797,6 @@ watch(filteredProjects, () => {
   font-family: var(--font-ui);
 }
 .stat-divider { width: 1px; height: 18px; background: var(--border-primary); }
-
-.card-time {
-  font-size: var(--fs-xs);
-  color: var(--text-muted);
-  font-family: var(--font-ui);
-  white-space: nowrap;
-}
 
 /* ═══════════════════════════════════════════════════════════════
    Empty State  (paw-print themed)
