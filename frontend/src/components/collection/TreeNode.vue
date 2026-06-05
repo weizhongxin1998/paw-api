@@ -298,7 +298,7 @@ onUnmounted(() => document.removeEventListener('keydown', onKeydown))
   align-items: center;
   justify-content: center;
   min-width: 42px;
-  font-size: 9.5px;
+  font-size: var(--fs-2xs);
   font-weight: 700;
   text-align: center;
   padding: 2px 6px;

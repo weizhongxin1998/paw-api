@@ -983,16 +983,16 @@ defineExpose({ openTab, previewTab, tabs, activeTabId, selectTab, showHistoryDet
   align-items: center;
   justify-content: center;
   color: var(--text-muted);
-  gap: 8px;
+  gap: 10px;
   animation: slideUp 0.4s var(--ease-out) both;
-  padding: 32px 24px;
+  padding: 40px 28px;
   overflow-y: auto;
 }
 
 .empty-logo {
-  margin-bottom: 8px;
+  margin-bottom: 10px;
   color: var(--accent);
-  opacity: 0.6;
+  opacity: 0.75;
   animation: fadeIn 0.6s var(--ease-out) 0.1s both;
 }
 .empty-logo svg { width: 64px; height: 64px; }
@@ -1003,15 +1003,15 @@ defineExpose({ openTab, previewTab, tabs, activeTabId, selectTab, showHistoryDet
   font-family: var(--font-ui);
 }
 .empty-subtitle {
-  font-size: var(--fs-sm); color: var(--text-muted); margin: 0;
+  font-size: var(--fs-sm); color: var(--text-secondary); margin: 0;
   text-align: center; line-height: 1.6;
 }
 
 /* ── Feature Cards ── */
 .feature-cards {
   display: flex;
-  gap: 10px;
-  margin-top: 20px;
+  gap: 12px;
+  margin-top: 24px;
   flex-wrap: wrap;
   justify-content: center;
 }
@@ -1019,14 +1019,14 @@ defineExpose({ openTab, previewTab, tabs, activeTabId, selectTab, showHistoryDet
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 6px;
-  padding: 14px 18px;
+  gap: 7px;
+  padding: 16px 20px;
   background: var(--bg-surface);
   border: 1px solid var(--border-primary);
   border-radius: var(--radius-lg);
   cursor: pointer;
   transition: all 0.22s var(--ease-out);
-  min-width: 120px;
+  min-width: 130px;
   animation: fadeIn 0.5s var(--ease-out) 0.2s both;
 }
 .feature-card:hover {
@@ -1054,42 +1054,42 @@ defineExpose({ openTab, previewTab, tabs, activeTabId, selectTab, showHistoryDet
   font-family: var(--font-ui);
 }
 .feature-desc {
-  font-size: var(--fs-2xs);
-  color: var(--text-muted);
+  font-size: var(--fs-xs);
+  color: var(--text-secondary);
   font-family: var(--font-ui);
 }
 
 /* ── Quick Start ── */
 .quick-start {
-  margin-top: 24px;
-  max-width: 400px;
+  margin-top: 28px;
+  max-width: 420px;
   width: 100%;
   animation: fadeIn 0.5s var(--ease-out) 0.35s both;
 }
 .quick-start h3 {
-  font-size: var(--fs-xs);
-  color: var(--text-muted);
+  font-size: var(--fs-sm);
+  color: var(--text-secondary);
   font-weight: 600;
   text-transform: uppercase;
-  letter-spacing: 0.08em;
-  margin: 0 0 10px 0;
+  letter-spacing: 0.06em;
+  margin: 0 0 12px 0;
   font-family: var(--font-ui);
   text-align: center;
 }
 .qs-items {
   display: flex;
   flex-direction: column;
-  gap: 6px;
+  gap: 8px;
 }
 .qs-item {
   display: flex;
   align-items: center;
-  gap: 10px;
-  padding: 8px 12px;
+  gap: 12px;
+  padding: 10px 14px;
   background: var(--bg-surface);
   border: 1px solid var(--border-primary);
   border-radius: var(--radius);
-  font-size: var(--fs-xs);
+  font-size: var(--fs-sm);
   color: var(--text-secondary);
   font-family: var(--font-ui);
   cursor: default;
@@ -1122,19 +1122,19 @@ defineExpose({ openTab, previewTab, tabs, activeTabId, selectTab, showHistoryDet
 /* ── Shortcuts Hint ── */
 .shortcuts-hint {
   display: flex;
-  gap: 12px;
-  margin-top: 20px;
+  gap: 14px;
+  margin-top: 24px;
   flex-wrap: wrap;
   justify-content: center;
   animation: fadeIn 0.5s var(--ease-out) 0.45s both;
 }
 .shortcut {
-  font-size: var(--fs-2xs);
-  color: var(--text-placeholder);
+  font-size: var(--fs-xs);
+  color: var(--text-muted);
   font-family: var(--font-ui);
   display: flex;
   align-items: center;
-  gap: 3px;
+  gap: 4px;
 }
 .empty-state kbd {
   display: inline-block;
@@ -1162,10 +1162,10 @@ defineExpose({ openTab, previewTab, tabs, activeTabId, selectTab, showHistoryDet
   display: flex;
   background: var(--bg-surface);
   border-bottom: 1px solid var(--border-primary);
-  height: 36px;
+  height: 38px;
   align-items: flex-end;
-  padding: 0 6px;
-  gap: 2px;
+  padding: 0 8px;
+  gap: 3px;
   flex-shrink: 0;
   position: relative;
   box-shadow: 0 1px 4px rgba(0,0,0,0.06);
@@ -1174,8 +1174,8 @@ defineExpose({ openTab, previewTab, tabs, activeTabId, selectTab, showHistoryDet
 
 .tabs-msg {
   font-size: var(--fs-sm);
-  color: var(--text-muted);
-  padding: 6px 14px;
+  color: var(--text-secondary);
+  padding: 8px 14px;
   font-family: var(--font-mono);
   letter-spacing: 0.01em;
 }
@@ -1224,10 +1224,10 @@ defineExpose({ openTab, previewTab, tabs, activeTabId, selectTab, showHistoryDet
 
 /* ── Tab count indicator ── */
 .tab-count {
-  font-size: var(--fs-2xs);
-  color: var(--text-placeholder);
+  font-size: var(--fs-xs);
+  color: var(--text-muted);
   font-family: var(--font-mono);
-  padding: 0 6px 6px 4px;
+  padding: 0 8px 6px 6px;
   white-space: nowrap;
   flex-shrink: 0;
   user-select: none;
@@ -1238,7 +1238,7 @@ defineExpose({ openTab, previewTab, tabs, activeTabId, selectTab, showHistoryDet
    Tab Item — Enhanced
    ════════════════════════════════════════════ */
 .tab {
-  padding: 5px 12px;
+  padding: 6px 14px;
   font-size: var(--fs-sm);
   background: var(--bg-elevated);
   border: 1px solid transparent;
@@ -1248,10 +1248,10 @@ defineExpose({ openTab, previewTab, tabs, activeTabId, selectTab, showHistoryDet
   cursor: pointer;
   display: flex;
   align-items: center;
-  gap: 6px;
+  gap: 7px;
   white-space: nowrap;
   user-select: none;
-  color: var(--text-muted);
+  color: var(--text-secondary);
   font-family: var(--font-mono);
   transition: all var(--transition);
   max-width: 200px;
@@ -1400,12 +1400,12 @@ defineExpose({ openTab, previewTab, tabs, activeTabId, selectTab, showHistoryDet
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 0 10px;
+  padding: 0 12px;
   background: var(--bg-base);
   border-bottom: 1px solid var(--border-primary);
   flex-shrink: 0;
-  height: 36px;
-  gap: 12px;
+  height: 38px;
+  gap: 14px;
 }
 
 /* ── Pill toggle container ── */
@@ -1422,11 +1422,11 @@ defineExpose({ openTab, previewTab, tabs, activeTabId, selectTab, showHistoryDet
 .view-toggle-btn {
   display: flex;
   align-items: center;
-  gap: 5px;
-  padding: 4px 14px;
-  font-size: var(--fs-xs);
+  gap: 6px;
+  padding: 5px 16px;
+  font-size: var(--fs-sm);
   font-weight: 500;
-  color: var(--text-muted);
+  color: var(--text-secondary);
   background: transparent;
   border: none;
   border-radius: calc(var(--radius) - 2px);
@@ -1465,13 +1465,13 @@ defineExpose({ openTab, previewTab, tabs, activeTabId, selectTab, showHistoryDet
 .name-field {
   display: flex;
   align-items: center;
-  gap: 5px;
+  gap: 6px;
   background: var(--bg-surface);
   border: 1px solid var(--border-primary);
   border-radius: var(--radius-sm);
-  padding: 3px 8px;
+  padding: 4px 10px;
   transition: all var(--transition);
-  max-width: 300px;
+  max-width: 320px;
 }
 .name-field:hover {
   border-color: var(--border-hover);
@@ -1497,7 +1497,7 @@ defineExpose({ openTab, previewTab, tabs, activeTabId, selectTab, showHistoryDet
   width: 180px;
   max-width: 240px;
   padding: 0;
-  font-size: var(--fs-xs);
+  font-size: var(--fs-sm);
   font-family: var(--font-ui);
   color: var(--text-primary);
   background: transparent;
@@ -1585,12 +1585,12 @@ defineExpose({ openTab, previewTab, tabs, activeTabId, selectTab, showHistoryDet
   margin-bottom: 4px;
 }
 .hist-detail-label {
-  color: var(--text-muted);
-  width: 56px;
+  color: var(--text-secondary);
+  width: 60px;
   flex-shrink: 0;
-  font-size: var(--fs-xs);
+  font-size: var(--fs-sm);
   text-transform: uppercase;
-  letter-spacing: 0.06em;
+  letter-spacing: 0.05em;
   font-weight: 600;
 }
 .hist-detail-value {
@@ -1620,7 +1620,7 @@ defineExpose({ openTab, previewTab, tabs, activeTabId, selectTab, showHistoryDet
   animation: slideUp 0.3s var(--ease-out) both;
 }
 .hist-detail-section h4 {
-  margin: 0 0 8px; font-size: var(--fs-xs); color: var(--text-muted);
+  margin: 0 0 8px; font-size: var(--fs-xs); color: var(--text-secondary);
   font-weight: 600; text-transform: uppercase; letter-spacing: 0.06em;
   font-family: var(--font-ui);
 }

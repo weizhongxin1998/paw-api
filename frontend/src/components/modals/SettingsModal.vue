@@ -345,7 +345,7 @@ function onRestore() { message.info('恢复功能即将推出') }
   padding: 9px 14px;
   font-size: var(--fs-sm);
   cursor: pointer;
-  color: var(--text-muted);
+  color: var(--text-secondary);
   border-right: 2px solid transparent;
   transition: all 0.15s ease;
   font-family: var(--font-family);
@@ -531,7 +531,7 @@ function onRestore() { message.info('恢复功能即将推出') }
 }
 .setting-group-hdr {
   font-size: var(--fs-xs);
-  color: var(--text-muted);
+  color: var(--text-secondary);
   margin-bottom: 10px;
   text-transform: uppercase;
   letter-spacing: 0.5px;
@@ -567,7 +567,7 @@ function onRestore() { message.info('恢复功能即将推出') }
   font-size: 0.85em;
 }
 .section-panel :deep(.n-form-item) { margin-bottom: 0; }
-.form-hint { font-size: var(--fs-2xs, 9px); color: var(--text-muted); }
+.form-hint { font-size: var(--fs-2xs, 9px); color: var(--text-secondary); }
 
 /* -- Data section -- */
 .data-actions {
@@ -592,7 +592,7 @@ function onRestore() { message.info('恢复功能即将推出') }
 }
 .data-btn-desc {
   font-size: var(--fs-xs);
-  color: var(--text-muted);
+  color: var(--text-secondary);
   margin-top: 2px;
 }
 

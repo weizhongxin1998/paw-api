@@ -263,7 +263,7 @@ function onDrop(e: DragEvent) {
   font-size: var(--fs-xs);
   font-family: var(--font-mono);
   font-weight: 500;
-  color: var(--text-muted);
+  color: var(--text-secondary);
   background: transparent;
   border: none;
   border-radius: var(--radius-xs);
@@ -297,7 +297,7 @@ function onDrop(e: DragEvent) {
   opacity: 0.25;
 }
 .hint {
-  color: var(--text-muted);
+  color: var(--text-secondary);
   font-size: var(--fs-sm);
   font-family: var(--font-mono);
 }
@@ -352,7 +352,7 @@ function onDrop(e: DragEvent) {
   font-size: var(--fs-2xs);
   font-family: var(--font-mono);
   font-weight: 500;
-  color: var(--text-muted);
+  color: var(--text-secondary);
   background: transparent;
   border: none;
   border-radius: 2px;
@@ -406,7 +406,7 @@ function onDrop(e: DragEvent) {
 }
 .raw-hint {
   font-size: var(--fs-2xs);
-  color: var(--text-placeholder);
+  color: var(--text-muted);
   font-family: var(--font-ui);
   padding: 0 2px;
 }
@@ -459,7 +459,7 @@ function onDrop(e: DragEvent) {
 }
 .drop-hint {
   font-size: var(--fs-xs);
-  color: var(--text-placeholder);
+  color: var(--text-muted);
   font-family: var(--font-ui);
 }
 .file-name {

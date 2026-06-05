@@ -132,7 +132,7 @@ function onExportHTML() {
 }
 
 .docs-icon {
-  font-size: 14px;
+  font-size: var(--fs-md);
   opacity: 0.7;
 }
 
@@ -171,7 +171,7 @@ function onExportHTML() {
 }
 
 .refresh-icon {
-  font-size: 14px;
+  font-size: var(--fs-md);
   display: inline-block;
 }
 
@@ -216,7 +216,7 @@ function onExportHTML() {
 }
 
 .error-icon {
-  font-size: 16px;
+  font-size: var(--fs-lg);
 }
 
 .docs-content {

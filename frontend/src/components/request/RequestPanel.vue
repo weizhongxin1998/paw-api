@@ -336,17 +336,17 @@ function onParamsChange(items: KvItem[]) {
   align-items: center;
   border-bottom: 1px solid var(--border-primary);
   background: var(--bg-surface);
-  padding: 0 8px;
+  padding: 0 10px;
   gap: 0;
-  min-height: 36px;
+  min-height: 38px;
 }
 .sub-tabs-group {
   display: flex;
   gap: 0;
 }
 .sub-tabs button {
-  padding: 0 12px;
-  height: 36px;
+  padding: 0 14px;
+  height: 38px;
   font-size: var(--fs-sm);
   cursor: pointer;
   color: var(--text-muted);
@@ -360,7 +360,7 @@ function onParamsChange(items: KvItem[]) {
   position: relative;
   display: inline-flex;
   align-items: center;
-  gap: 4px;
+  gap: 5px;
 }
 /* Gradient underline for active tab */
 .sub-tabs button::after {
@@ -405,8 +405,8 @@ function onParamsChange(items: KvItem[]) {
 }
 /* Shortcut hint */
 .tab-shortcut {
-  font-size: var(--fs-2xs);
-  color: var(--text-placeholder);
+  font-size: var(--fs-xs);
+  color: var(--text-muted);
   font-family: var(--font-ui);
   font-weight: 600;
   opacity: 0;
@@ -416,7 +416,7 @@ function onParamsChange(items: KvItem[]) {
 }
 .sub-tabs button:hover .tab-shortcut,
 .sub-tabs button.active .tab-shortcut {
-  opacity: 0.6;
+  opacity: 0.7;
 }
 
 /* ── Count badges ── */
@@ -483,7 +483,7 @@ function onParamsChange(items: KvItem[]) {
   overflow-y: auto;
 }
 .params-content {
-  padding: 10px;
+  padding: 12px;
 }
 
 /* ══════════════════════════════════════════
@@ -513,7 +513,7 @@ function onParamsChange(items: KvItem[]) {
   opacity: 0.7;
 }
 .path-section-hint {
-  font-size: var(--fs-xs);
+  font-size: var(--fs-sm);
   color: var(--text-muted);
   font-family: var(--font-ui);
 }

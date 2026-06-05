@@ -403,14 +403,14 @@ watch([searchKeyword, methodFilter], () => { focusedIndex.value = -1 })
 .filter-count {
   position: absolute;
   right: 6px;
-  font-size: 9px;
+  font-size: var(--fs-2xs);
   font-family: var(--font-mono);
   color: var(--text-muted);
   background: var(--bg-elevated, var(--bg-base));
   padding: 1px 5px;
   border-radius: 6px;
   pointer-events: none;
-  opacity: 0.75;
+  opacity: 0.85;
   line-height: 1.4;
 }
 .method-filter { width: 76px; flex-shrink: 0; }
@@ -473,8 +473,8 @@ watch([searchKeyword, methodFilter], () => { focusedIndex.value = -1 })
   align-items: center;
 }
 .hist-url {
-  font-size: var(--fs-2xs);
-  color: var(--text-muted);
+  font-size: var(--fs-xs);
+  color: var(--text-secondary);
   margin-top: 4px;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -485,7 +485,7 @@ watch([searchKeyword, methodFilter], () => { focusedIndex.value = -1 })
 
 /* Method badge */
 .item-method {
-  font-size: 9px;
+  font-size: var(--fs-2xs);
   font-weight: 700;
   padding: 2px 6px;
   border-radius: var(--radius-xs);
@@ -501,7 +501,7 @@ watch([searchKeyword, methodFilter], () => { focusedIndex.value = -1 })
 
 /* Status code pill badges */
 .item-status-pill {
-  font-size: 9px;
+  font-size: var(--fs-2xs);
   font-weight: 700;
   font-family: var(--font-mono);
   padding: 1px 6px;
@@ -509,7 +509,7 @@ watch([searchKeyword, methodFilter], () => { focusedIndex.value = -1 })
   line-height: 1.5;
   flex-shrink: 0;
 }
-.status-2xx { background: rgba(34,197,94,0.12); color: #22c55e; }
+.status-2xx { background: rgba(34,197,94,0.12); color: var(--method-post); }
 .status-3xx { background: rgba(59,130,246,0.12); color: var(--blue, #3b82f6); }
 .status-4xx { background: rgba(245,158,11,0.12); color: var(--amber, #f59e0b); }
 .status-5xx { background: rgba(239,68,68,0.12); color: var(--red, #ef4444); }
@@ -521,7 +521,7 @@ watch([searchKeyword, methodFilter], () => { focusedIndex.value = -1 })
   font-family: var(--font-mono);
   flex-shrink: 0;
 }
-.dur-fast { color: #22c55e; }
+.dur-fast { color: var(--method-post); }
 .dur-mid  { color: var(--amber, #f59e0b); }
 .dur-slow { color: var(--red, #ef4444); }
 
@@ -555,8 +555,8 @@ watch([searchKeyword, methodFilter], () => { focusedIndex.value = -1 })
   line-height: 1.5;
 }
 .empty-hint {
-  font-size: var(--fs-2xs);
-  opacity: 0.45;
+  font-size: var(--fs-xs);
+  opacity: 0.6;
 }
 
 /* -- Footer -- */

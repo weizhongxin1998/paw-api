@@ -336,7 +336,7 @@ function onVarLeave(e: MouseEvent) {
 <style scoped>
 .url-bar {
   display: flex;
-  padding: 8px 10px;
+  padding: 10px 12px;
   gap: 0;
   background: var(--bg-base);
   border: 2px solid transparent;
@@ -581,7 +581,7 @@ function onVarLeave(e: MouseEvent) {
 .send-btn--loading { pointer-events: none; }
 .send-label { line-height: 1; }
 .send-arrow {
-  font-size: 14px;
+  font-size: var(--fs-md);
   line-height: 1;
   opacity: 0.85;
   transition: transform 0.2s ease;

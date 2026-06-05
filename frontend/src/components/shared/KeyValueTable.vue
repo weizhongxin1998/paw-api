@@ -104,13 +104,6 @@
 
     <!-- ── Footer ── -->
     <div class="kv-footer">
-      <button class="kv-add-btn" @click="onAddRow">
-        <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round">
-          <line x1="12" y1="5" x2="12" y2="19" />
-          <line x1="5" y1="12" x2="19" y2="12" />
-        </svg>
-        <span>添加</span>
-      </button>
       <div style="flex:1"></div>
       <n-button v-if="showBulkEdit" text size="tiny" class="kv-bulk-toggle" @click="isBulkEdit = !isBulkEdit">
         <template #icon>
@@ -340,9 +333,9 @@ table {
 }
 th {
   text-align: left;
-  padding: 6px 8px;
+  padding: 7px 10px;
   font-size: var(--fs-xs);
-  color: var(--text-muted);
+  color: var(--text-secondary);
   text-transform: uppercase;
   border-bottom: 1px solid var(--border-primary);
   font-weight: 600;
@@ -458,8 +451,8 @@ tr:hover .act-btn {
   line-height: 1.7;
 }
 .kv-bulk-hint {
-  font-size: var(--fs-2xs);
-  color: var(--text-placeholder);
+  font-size: var(--fs-xs);
+  color: var(--text-muted);
   font-family: var(--font-ui);
   padding: 0 4px;
 }
@@ -478,27 +471,8 @@ tr:hover .act-btn {
   display: flex;
   align-items: center;
   gap: 10px;
-  padding: 6px 4px;
-}
-.kv-add-btn {
-  display: inline-flex;
-  align-items: center;
-  gap: 4px;
-  padding: 4px 10px;
-  font-size: var(--fs-xs);
-  font-family: var(--font-ui);
-  font-weight: 500;
-  color: var(--text-muted);
-  background: transparent;
-  border: 1px dashed var(--border-primary);
-  border-radius: var(--radius-sm);
-  cursor: pointer;
-  transition: all var(--transition-fast);
-}
-.kv-add-btn:hover {
-  color: var(--accent);
-  border-color: var(--accent);
-  background: var(--accent-soft);
+  padding: 8px 4px;
+  justify-content: flex-end;
 }
 .kv-bulk-toggle {
   font-size: var(--fs-xs) !important;

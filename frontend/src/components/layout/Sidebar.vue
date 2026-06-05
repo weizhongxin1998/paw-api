@@ -35,7 +35,7 @@
           class="search-input"
         >
           <template #prefix>
-            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="opacity:0.5">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="opacity:0.65">
               <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
             </svg>
           </template>
@@ -306,10 +306,10 @@ defineExpose({ refreshTree })
 .sidebar-tabs {
   display: flex;
   align-items: center;
-  padding: 0 6px 0 6px;
-  height: 36px;
+  padding: 0 8px 0 8px;
+  height: 38px;
   border-bottom: 1px solid var(--border-subtle);
-  gap: 4px;
+  gap: 6px;
 }
 
 .tab-pills {
@@ -324,11 +324,11 @@ defineExpose({ refreshTree })
   flex: 1;
   border: none;
   background: transparent;
-  color: var(--text-muted);
+  color: var(--text-secondary);
   font-size: var(--fs-sm);
   font-weight: 500;
   font-family: var(--font-ui);
-  padding: 4px 0;
+  padding: 5px 0;
   border-radius: calc(var(--radius) - 2px);
   cursor: pointer;
   transition: all var(--transition);
@@ -368,11 +368,11 @@ defineExpose({ refreshTree })
 
 /* ── Search Input ── */
 .sidebar-search {
-  padding: 4px 8px;
+  padding: 6px 10px;
   border-bottom: 1px solid var(--border-subtle);
 }
 .search-input :deep(.n-input) {
-  --n-height: 26px !important;
+  --n-height: 28px !important;
   border-radius: var(--radius-sm) !important;
 }
 .search-input :deep(.n-input__border) {

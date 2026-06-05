@@ -336,8 +336,8 @@ function onPanelKeydown(e: KeyboardEvent) {
 
 /* ── Meta Info ── */
 .meta {
-  font-size: var(--fs-xs);
-  color: var(--text-muted);
+  font-size: var(--fs-sm);
+  color: var(--text-secondary);
   font-family: var(--font-mono);
   letter-spacing: 0.01em;
   display: inline-flex;
@@ -348,10 +348,10 @@ function onPanelKeydown(e: KeyboardEvent) {
   width: 13px;
   height: 13px;
   flex-shrink: 0;
-  opacity: 0.6;
+  opacity: 0.7;
 }
 .meta--timestamp {
-  opacity: 0.45;
+  opacity: 0.6;
 }
 .size-warning {
   font-size: var(--fs-xs);
@@ -367,7 +367,7 @@ function onPanelKeydown(e: KeyboardEvent) {
 }
 .placeholder {
   font-size: var(--fs-xs);
-  color: var(--text-muted);
+  color: var(--text-secondary);
   font-family: var(--font-mono);
   font-style: italic;
 }
@@ -377,10 +377,10 @@ function onPanelKeydown(e: KeyboardEvent) {
   display: flex;
   border-bottom: 1px solid var(--border-primary);
   background: var(--bg-surface);
-  padding: 0 10px;
+  padding: 0 12px;
 }
 .sub-tabs button {
-  padding: 7px 14px;
+  padding: 8px 16px;
   font-size: var(--fs-sm);
   cursor: pointer;
   color: var(--text-muted);
@@ -438,9 +438,9 @@ function onPanelKeydown(e: KeyboardEvent) {
 .terminal-title {
   margin-left: 8px;
   font-family: var(--font-mono);
-  font-size: var(--fs-2xs, 11px);
+  font-size: var(--fs-xs);
   color: var(--text-muted);
-  opacity: 0.6;
+  opacity: 0.8;
 }
 .terminal-body {
   padding: 16px 16px 20px;
@@ -477,7 +477,7 @@ function onPanelKeydown(e: KeyboardEvent) {
 .body-content {
   flex: 1;
   overflow-y: auto;
-  padding: 12px 14px;
+  padding: 14px 16px;
   background: var(--bg-base);
   position: relative;
 }
@@ -512,11 +512,11 @@ function onPanelKeydown(e: KeyboardEvent) {
   overflow: hidden;
 }
 .segmented-control button {
-  padding: 4px 14px;
+  padding: 5px 16px;
   border: none;
   border-right: 1px solid var(--border-primary);
   background: var(--bg-surface);
-  font-size: var(--fs-xs);
+  font-size: var(--fs-sm);
   cursor: pointer;
   color: var(--text-muted);
   outline: none;
@@ -540,11 +540,11 @@ function onPanelKeydown(e: KeyboardEvent) {
 
 /* ── Toolbar Buttons ── */
 .toolbar-btn {
-  padding: 4px 10px;
+  padding: 5px 12px;
   border: 1px solid var(--border-primary);
   border-radius: var(--radius-sm);
   background: var(--bg-surface);
-  font-size: var(--fs-xs);
+  font-size: var(--fs-sm);
   cursor: pointer;
   color: var(--text-muted);
   outline: none;
@@ -552,7 +552,7 @@ function onPanelKeydown(e: KeyboardEvent) {
   transition: all var(--transition);
   display: inline-flex;
   align-items: center;
-  gap: 4px;
+  gap: 5px;
   white-space: nowrap;
 }
 .toolbar-btn:hover {
@@ -571,9 +571,9 @@ function onPanelKeydown(e: KeyboardEvent) {
 }
 .line-count {
   font-family: var(--font-mono);
-  font-size: var(--fs-2xs, 11px);
-  color: var(--text-muted);
-  opacity: 0.7;
+  font-size: var(--fs-xs);
+  color: var(--text-secondary);
+  opacity: 0.8;
 }
 .copy-btn:hover {
   color: var(--accent);
@@ -605,7 +605,7 @@ function onPanelKeydown(e: KeyboardEvent) {
   line-height: 1.7;
   padding: 0 8px 0 6px;
   color: var(--text-muted);
-  opacity: 0.4;
+  opacity: 0.75;
 }
 .code-block {
   font-family: var(--font-mono);
@@ -657,10 +657,10 @@ function onPanelKeydown(e: KeyboardEvent) {
   background: var(--bg-elevated);
 }
 .kv-table th {
-  color: var(--text-muted);
+  color: var(--text-secondary);
   font-weight: 600;
   text-transform: uppercase;
-  font-size: var(--fs-2xs);
+  font-size: var(--fs-xs);
   letter-spacing: 0.05em;
   font-family: var(--font-ui);
 }

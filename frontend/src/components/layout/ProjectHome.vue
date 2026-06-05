@@ -545,8 +545,8 @@ watch(filteredProjects, () => {
   font-family: var(--font-ui);
 }
 .home-version {
-  font-size: var(--fs-2xs);
-  color: var(--text-muted);
+  font-size: var(--fs-xs);
+  color: var(--text-secondary);
   background: var(--bg-elevated);
   padding: 2px 7px;
   border-radius: var(--radius-sm);
@@ -695,7 +695,7 @@ watch(filteredProjects, () => {
 }
 .card-icon {
   color: var(--accent);
-  opacity: 0.5;
+  opacity: 0.7;
 }
 .card-arrow {
   font-size: var(--fs-lg);
@@ -769,7 +769,7 @@ watch(filteredProjects, () => {
 }
 .card-desc {
   font-size: var(--fs-sm);
-  color: var(--text-muted);
+  color: var(--text-secondary);
   margin-top: 4px;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -800,7 +800,7 @@ watch(filteredProjects, () => {
   font-family: var(--font-mono);
 }
 .stat-label {
-  font-size: var(--fs-xs);
+  font-size: var(--fs-sm);
   color: var(--text-muted);
   text-transform: uppercase;
   letter-spacing: 0.04em;
@@ -809,8 +809,8 @@ watch(filteredProjects, () => {
 .stat-divider { width: 1px; height: 18px; background: var(--border-primary); }
 
 .card-time {
-  font-size: var(--fs-2xs);
-  color: var(--text-placeholder);
+  font-size: var(--fs-xs);
+  color: var(--text-muted);
   font-family: var(--font-ui);
   white-space: nowrap;
 }
@@ -884,7 +884,7 @@ watch(filteredProjects, () => {
 }
 .empty-desc {
   font-size: var(--fs-base);
-  color: var(--text-muted);
+  color: var(--text-secondary);
   margin: 0 0 4px;
   font-family: var(--font-ui);
 }
@@ -899,7 +899,7 @@ watch(filteredProjects, () => {
 }
 .empty-filter-text {
   font-size: var(--fs-base);
-  color: var(--text-muted);
+  color: var(--text-secondary);
   margin: 0;
   font-family: var(--font-ui);
 }

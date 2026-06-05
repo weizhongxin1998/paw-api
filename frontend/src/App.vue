@@ -101,10 +101,10 @@ defineExpose({ toggleTheme, themeMode })
   --border-subtle: rgba(255,255,255,0.04);
 
   /* ── Typography ── */
-  --text-primary: #e4e4e7;
-  --text-secondary: #a1a1aa;
-  --text-muted: #71717a;
-  --text-placeholder: #52525b;
+  --text-primary: #ededf0;
+  --text-secondary: #b4b4bc;
+  --text-muted: #8a8a95;
+  --text-placeholder: #6b6b76;
   --text-inverse: #0a0a0b;
 
   /* ── Accent — neon mint ── */
@@ -114,6 +114,7 @@ defineExpose({ toggleTheme, themeMode })
   --accent-soft: rgba(0,224,90,0.07);
   --accent-glow: rgba(0,224,90,0.14);
   --accent-glow-strong: rgba(0,224,90,0.28);
+  --accent-text: #00e05a;
 
   /* ── Semantic ── */
   --red: #ef4444;
@@ -158,13 +159,13 @@ defineExpose({ toggleTheme, themeMode })
   --transition-slow: 0.3s var(--ease-out);
 
   /* ── Font sizes ── */
-  --fs-2xs: 9px;
-  --fs-xs: 10.5px;
-  --fs-sm: 11.5px;
-  --fs-base: 13px;
-  --fs-md: 14px;
-  --fs-lg: 16px;
-  --fs-xl: 18px;
+  --fs-2xs: 10px;
+  --fs-xs: 11.5px;
+  --fs-sm: 12.5px;
+  --fs-base: 13.5px;
+  --fs-md: 14.5px;
+  --fs-lg: 16.5px;
+  --fs-xl: 19px;
   --fs-2xl: 24px;
   --fs-3xl: 32px;
 
@@ -190,8 +191,8 @@ defineExpose({ toggleTheme, themeMode })
   --border-subtle: rgba(0,0,0,0.04);
   --text-primary: #18181b;
   --text-secondary: #3f3f46;
-  --text-muted: #71717a;
-  --text-placeholder: #a1a1aa;
+  --text-muted: #52525b;
+  --text-placeholder: #71717a;
   --text-inverse: #fafafa;
   --accent: #059669;
   --accent-hover: #047857;
@@ -199,6 +200,7 @@ defineExpose({ toggleTheme, themeMode })
   --accent-soft: rgba(5,150,105,0.08);
   --accent-glow: rgba(5,150,105,0.12);
   --accent-glow-strong: rgba(5,150,105,0.2);
+  --accent-text: #065f46;
   --red: #dc2626;
   --red-hover: #ef4444;
   --red-soft: rgba(220,38,38,0.08);
@@ -210,6 +212,13 @@ defineExpose({ toggleTheme, themeMode })
   --purple-soft: rgba(124,58,237,0.08);
   --cyan: #0891b2;
   --cyan-soft: rgba(8,145,178,0.08);
+  --method-get: #2563eb;
+  --method-post: #16a34a;
+  --method-put: #d97706;
+  --method-patch: #7c3aed;
+  --method-delete: #dc2626;
+  --method-head: #0891b2;
+  --method-options: #636370;
   --shadow-sm: 0 1px 2px rgba(0,0,0,0.05);
   --shadow: 0 2px 8px rgba(0,0,0,0.08);
   --shadow-lg: 0 8px 24px rgba(0,0,0,0.12);
@@ -305,7 +314,7 @@ html, body, #app {
 .method-pill {
   display: inline-flex; align-items: center; justify-content: center;
   font-size: var(--fs-2xs); font-weight: 700; letter-spacing: 0.04em;
-  padding: 1px 6px; border-radius: var(--radius-xs);
+  padding: 2px 7px; border-radius: var(--radius-xs);
   line-height: 1.6; text-transform: uppercase; font-family: var(--font-mono);
 }
 .method-pill.method-get    { background: var(--blue-soft); color: var(--method-get); }
@@ -319,13 +328,14 @@ html, body, #app {
 /* Status code pills */
 .status-pill {
   display: inline-flex; align-items: center;
-  font-size: var(--fs-xs); font-weight: 600; letter-spacing: 0.02em;
+  font-size: var(--fs-sm); font-weight: 600; letter-spacing: 0.02em;
   padding: 2px 8px; border-radius: var(--radius-sm); font-family: var(--font-mono);
 }
 .status-pill.status-2xx { background: rgba(34,197,94,0.1); color: #22c55e; }
 .status-pill.status-3xx { background: var(--blue-soft); color: var(--blue); }
 .status-pill.status-4xx { background: var(--amber-soft); color: var(--amber); }
 .status-pill.status-5xx { background: var(--red-soft); color: var(--red); }
+.theme-light .status-pill.status-2xx { color: #16a34a; }
 
 /* ════════════════════════════════════════════════════════════
    Select dropdown: keep font-size consistent with tiny trigger

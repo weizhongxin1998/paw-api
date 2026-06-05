@@ -295,7 +295,7 @@ watch([authType, token, username, password, apiKey, apiValue, apiAddTo], syncAut
 .auth-card-desc {
   font-size: var(--fs-2xs);
   font-family: var(--font-ui);
-  color: var(--text-muted);
+  color: var(--text-secondary);
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -338,7 +338,7 @@ watch([authType, token, username, password, apiKey, apiValue, apiAddTo], syncAut
 }
 .auth-empty-hint {
   font-size: var(--fs-xs);
-  color: var(--text-muted);
+  color: var(--text-secondary);
   font-family: var(--font-ui);
 }
 
@@ -380,7 +380,7 @@ watch([authType, token, username, password, apiKey, apiValue, apiAddTo], syncAut
 }
 .field-group label {
   font-size: var(--fs-xs);
-  color: var(--text-muted);
+  color: var(--text-secondary);
   text-transform: uppercase;
   letter-spacing: 0.05em;
   font-family: var(--font-ui);
@@ -391,7 +391,7 @@ watch([authType, token, username, password, apiKey, apiValue, apiAddTo], syncAut
   align-items: center;
   gap: 4px;
   font-size: var(--fs-2xs);
-  color: var(--text-placeholder);
+  color: var(--text-muted);
   font-family: var(--font-ui);
   padding: 2px 0;
 }

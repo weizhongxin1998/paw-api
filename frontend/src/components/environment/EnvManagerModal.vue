@@ -3,6 +3,7 @@
     :show="show"
     preset="card"
     title="环境管理"
+    :class="modalClass"
     style="width: 760px"
     :mask-closable="false"
     @update:show="$emit('update:show', $event)"
@@ -188,7 +189,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, watch } from 'vue'
+import { ref, computed, watch, onMounted } from 'vue'
 import { NModal, NButton, NInput, NCheckbox, NDropdown, useMessage } from 'naive-ui'
 import {
   ListEnvironments, CreateEnvironment, RenameEnvironment, DeleteEnvironment,
@@ -200,6 +201,16 @@ import type { Environment, EnvVariable } from '../../types/environment'
 interface Props { show: boolean; projectId: number | null }
 const props = defineProps<Props>()
 const emit = defineEmits<{ 'update:show': [value: boolean]; refresh: [] }>()
+
+// Detect light mode so teleported modal gets correct CSS variables
+const isLightMode = ref(false)
+onMounted(() => {
+  const check = () => { isLightMode.value = !!document.querySelector('.theme-light') }
+  check()
+  const observer = new MutationObserver(check)
+  observer.observe(document.documentElement, { attributes: true, attributeFilter: ['class'], subtree: true })
+})
+const modalClass = computed(() => isLightMode.value ? 'env-manager-modal theme-light' : 'env-manager-modal')
 const environments = ref<Environment[]>([])
 const editingEnvId = ref<number | null>(null)
 const renamingId = ref<number | null>(null)
@@ -503,7 +514,7 @@ async function onTestConnection() {
 
 /* Environment type badges */
 .env-type-badge {
-  font-size: 8px;
+  font-size: var(--fs-2xs);
   font-weight: 700;
   letter-spacing: 0.5px;
   padding: 1px 5px;
@@ -511,14 +522,14 @@ async function onTestConnection() {
   flex-shrink: 0;
   line-height: 1.4;
 }
-.env-type-badge.dev     { background: rgba(59,130,246,0.15); color: #3b82f6; }
-.env-type-badge.staging { background: rgba(245,158,11,0.15); color: #f59e0b; }
-.env-type-badge.prod    { background: rgba(34,197,94,0.15); color: #22c55e; }
-.env-type-badge.default { background: rgba(113,113,122,0.12); color: var(--text-muted); }
+.env-type-badge.dev     { background: rgba(59,130,246,0.15); color: var(--method-get); }
+.env-type-badge.staging { background: rgba(245,158,11,0.15); color: var(--method-put); }
+.env-type-badge.prod    { background: rgba(34,197,94,0.15); color: var(--method-post); }
+.env-type-badge.default { background: rgba(113,113,122,0.12); color: var(--text-secondary); }
 
 .env-card-url {
   font-size: var(--fs-2xs, 9px);
-  color: var(--text-muted);
+  color: var(--text-secondary);
   font-family: var(--font-mono);
   overflow: hidden;
   text-overflow: ellipsis;
@@ -526,8 +537,8 @@ async function onTestConnection() {
   margin-top: 2px;
 }
 .env-active-label {
-  font-size: 8px;
-  color: var(--accent);
+  font-size: var(--fs-2xs);
+  color: var(--accent-text);
   font-weight: 600;
   letter-spacing: 0.3px;
   margin-top: 2px;
@@ -548,7 +559,7 @@ async function onTestConnection() {
   align-items: center;
   gap: 6px;
   padding: 30px;
-  color: var(--text-muted);
+  color: var(--text-secondary);
   font-size: var(--fs-sm);
 }
 
@@ -559,7 +570,7 @@ async function onTestConnection() {
 .base-url-section label {
   display: block;
   font-size: var(--fs-xs);
-  color: var(--text-muted);
+  color: var(--text-secondary);
   margin-bottom: 4px;
   text-transform: uppercase;
   letter-spacing: 0.3px;
@@ -582,7 +593,7 @@ async function onTestConnection() {
 }
 .test-result.success {
   background: rgba(34,197,94,0.08);
-  color: #22c55e;
+  color: var(--method-post);
 }
 .test-result.error {
   background: rgba(239,68,68,0.08);
@@ -600,7 +611,7 @@ async function onTestConnection() {
 .var-row.var-header {
   font-size: var(--fs-xs);
   font-weight: 600;
-  color: var(--text-muted);
+  color: var(--text-secondary);
   padding-bottom: 6px;
   border-bottom: 1px solid var(--border-primary);
   margin-bottom: 4px;
@@ -619,7 +630,7 @@ async function onTestConnection() {
 .var-empty {
   padding: 24px;
   text-align: center;
-  color: var(--text-muted);
+  color: var(--text-secondary);
   font-size: var(--fs-sm);
 }
 
@@ -652,7 +663,7 @@ async function onTestConnection() {
   align-items: center;
   justify-content: center;
   gap: 8px;
-  color: var(--text-muted);
+  color: var(--text-secondary);
   font-size: var(--fs-sm);
 }
 </style>

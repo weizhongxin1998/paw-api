@@ -307,7 +307,7 @@ async function onExport() {
   border-radius: 4px;
 }
 .format-badge {
-  font-size: 9px;
+  font-size: var(--fs-2xs);
   color: var(--text-muted);
   background: var(--bg-hover);
   padding: 1px 6px;

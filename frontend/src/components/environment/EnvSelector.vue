@@ -198,17 +198,21 @@ watch(() => props.projectId, () => { fetchEnvs() }, { immediate: true })
 .env-select :deep(.n-base-selection-label),
 .env-select :deep(.n-base-selection-input) {
   font-size: var(--fs-xs) !important;
+  color: var(--text-primary) !important;
+}
+.env-select :deep(.n-base-selection-placeholder) {
+  color: var(--text-placeholder) !important;
 }
 .env-select :deep(.n-base-selection-input__prefix svg) {
-  opacity: 0.4;
+  opacity: 0.65;
 }
 
 /* Manage button with settings icon */
 .env-manage-btn {
-  color: var(--text-muted) !important;
-  font-size: var(--fs-xs) !important;
+  color: var(--text-secondary) !important;
+  font-size: var(--fs-sm) !important;
   border-radius: var(--radius-sm) !important;
-  height: 28px;
+  height: 30px;
   transition: all 0.15s ease;
 }
 .env-manage-btn:hover {
@@ -226,8 +230,8 @@ watch(() => props.projectId, () => { fetchEnvs() }, { immediate: true })
   align-items: center;
   gap: 4px;
   padding: 3px 10px;
-  font-size: 9px;
-  color: var(--accent);
+  font-size: var(--fs-2xs);
+  color: var(--accent-text);
   background: var(--accent-soft, rgba(0,224,90,0.08));
   border-radius: 6px;
   white-space: nowrap;

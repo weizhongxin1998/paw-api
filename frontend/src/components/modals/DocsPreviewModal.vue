@@ -293,7 +293,7 @@ onUnmounted(() => {
   border-bottom: 1px solid var(--border-primary);
 }
 .md-lang-badge {
-  font-size: 9px;
+  font-size: var(--fs-2xs);
   font-weight: 600;
   text-transform: uppercase;
   letter-spacing: 0.5px;

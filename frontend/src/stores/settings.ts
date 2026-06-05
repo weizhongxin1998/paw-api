@@ -35,13 +35,13 @@ export function applySettingsToDOM(settings: Settings) {
 
   root.style.fontSize = base + 'px'
   root.style.fontFamily = fam
-  root.style.setProperty('--fs-2xs', Math.round(9 * scale) + 'px')
-  root.style.setProperty('--fs-xs', Math.round(10.5 * scale) + 'px')
-  root.style.setProperty('--fs-sm', Math.round(11.5 * scale) + 'px')
+  root.style.setProperty('--fs-2xs', Math.round(10 * scale) + 'px')
+  root.style.setProperty('--fs-xs', Math.round(11.5 * scale) + 'px')
+  root.style.setProperty('--fs-sm', Math.round(12.5 * scale) + 'px')
   root.style.setProperty('--fs-base', base + 'px')
-  root.style.setProperty('--fs-md', Math.round(14 * scale) + 'px')
-  root.style.setProperty('--fs-lg', Math.round(16 * scale) + 'px')
-  root.style.setProperty('--fs-xl', Math.round(18 * scale) + 'px')
+  root.style.setProperty('--fs-md', Math.round(14.5 * scale) + 'px')
+  root.style.setProperty('--fs-lg', Math.round(16.5 * scale) + 'px')
+  root.style.setProperty('--fs-xl', Math.round(19 * scale) + 'px')
   root.style.setProperty('--fs-2xl', Math.round(24 * scale) + 'px')
   root.style.setProperty('--fs-3xl', Math.round(32 * scale) + 'px')
   root.style.setProperty('--font-family', fam)
@@ -81,24 +81,36 @@ export function buildNaiveOverrides(settings: Settings, dark: boolean): GlobalTh
       fontSizeLarge: ns(16),
       fontSizeHuge: ns(18),
       lineHeight: '1.6',
-      textColor1: dark ? '#e4e4e7' : '#18181b',
-      textColor2: dark ? '#a1a1aa' : '#3f3f46',
-      textColor3: dark ? '#71717a' : '#71717a',
-      placeholderColor: dark ? '#52525b' : '#a1a1aa',
+      textColor1: dark ? '#ededf0' : '#18181b',
+      textColor2: dark ? '#b4b4bc' : '#3f3f46',
+      textColor3: dark ? '#8a8a95' : '#52525b',
+      placeholderColor: dark ? '#6b6b76' : '#71717a',
       inputColor: dark ? '#111113' : '#ffffff',
       scrollbarColor: 'rgba(128,128,128,0.15)',
       scrollbarColorHover: 'rgba(128,128,128,0.25)',
     },
     Button: {
-      textColor: dark ? '#00e05a' : '#059669',
-      textColorHover: dark ? '#00ff66' : '#047857',
-      textColorPressed: dark ? '#00b84a' : '#065f46',
+      textColor: dark ? '#ededf0' : '#18181b',
+      textColorHover: dark ? '#ededf0' : '#18181b',
+      textColorPressed: dark ? '#ededf0' : '#18181b',
+      textColorPrimary: dark ? '#0a0a0b' : '#ffffff',
+      textColorPrimaryHover: dark ? '#0a0a0b' : '#ffffff',
+      textColorPrimaryPressed: dark ? '#0a0a0b' : '#ffffff',
+      textColorGhost: dark ? '#00e05a' : '#059669',
+      textColorGhostHover: dark ? '#00ff66' : '#047857',
+      textColorGhostPressed: dark ? '#00b84a' : '#065f46',
       border: dark ? '1px solid #27272a' : '1px solid #d4d4d1',
       borderHover: dark ? '1px solid #3f3f46' : '1px solid #a8a8a4',
       borderFocus: dark ? '1px solid #00e05a' : '1px solid #059669',
+      borderPrimary: dark ? '1px solid #00e05a' : '1px solid #059669',
+      borderPrimaryHover: dark ? '1px solid #00ff66' : '1px solid #047857',
+      borderPrimaryPressed: dark ? '1px solid #00b84a' : '1px solid #065f46',
       color: dark ? '#18181b' : '#f4f4f3',
       colorHover: dark ? '#1e1e22' : '#ededeb',
       colorPressed: dark ? '#26262b' : '#e4e4e2',
+      colorPrimary: dark ? '#00e05a' : '#059669',
+      colorPrimaryHover: dark ? '#00ff66' : '#047857',
+      colorPrimaryPressed: dark ? '#00b84a' : '#065f46',
       borderRadiusSmall: '5px',
       borderRadiusMedium: '8px',
     },
@@ -108,12 +120,21 @@ export function buildNaiveOverrides(settings: Settings, dark: boolean): GlobalTh
       borderFocus: dark ? '1px solid #00e05a' : '1px solid #059669',
       borderRadius: '8px',
       color: dark ? '#111113' : '#ffffff',
-      textColor: dark ? '#e4e4e7' : '#18181b',
-      placeholderColor: dark ? '#52525b' : '#a1a1aa',
+      textColor: dark ? '#ededf0' : '#18181b',
+      placeholderColor: dark ? '#6b6b76' : '#71717a',
       lineHeight: '1.6',
     },
     Select: {
-      peers: { InternalSelection: { textColor: dark ? '#e4e4e7' : '#18181b' } },
+      peers: {
+        InternalSelection: {
+          textColor: dark ? '#ededf0' : '#18181b',
+          placeholderColor: dark ? '#6b6b76' : '#71717a',
+        },
+        InternalSelectMenu: {
+          optionTextColor: dark ? '#b4b4bc' : '#3f3f46',
+          optionTextColorActive: dark ? '#00e05a' : '#059669',
+        },
+      },
     },
     Checkbox: {
       colorChecked: dark ? '#00e05a' : '#059669',
@@ -124,14 +145,15 @@ export function buildNaiveOverrides(settings: Settings, dark: boolean): GlobalTh
     Dropdown: {
       color: dark ? '#18181b' : '#ffffff',
       dividerColor: dark ? '#27272a' : '#e4e4e2',
+      optionTextColor: dark ? '#b4b4bc' : '#3f3f46',
       optionColorActive: dark ? 'rgba(0,224,90,0.06)' : 'rgba(5,150,105,0.06)',
       optionTextColorActive: dark ? '#00e05a' : '#059669',
       borderRadius: '8px',
     },
     Modal: {
       color: dark ? '#111113' : '#ffffff',
-      textColor: dark ? '#e4e4e7' : '#18181b',
-      titleTextColor: dark ? '#e4e4e7' : '#18181b',
+      textColor: dark ? '#ededf0' : '#18181b',
+      titleTextColor: dark ? '#ededf0' : '#18181b',
       borderRadius: '12px',
     },
     Tabs: {
@@ -141,8 +163,8 @@ export function buildNaiveOverrides(settings: Settings, dark: boolean): GlobalTh
     },
     Spin: { color: dark ? '#00e05a' : '#059669' },
     Result: {
-      titleTextColor: dark ? '#e4e4e7' : '#18181b',
-      textColor: dark ? '#a1a1aa' : '#3f3f46',
+      titleTextColor: dark ? '#ededf0' : '#18181b',
+      textColor: dark ? '#b4b4bc' : '#3f3f46',
     },
   }
 }

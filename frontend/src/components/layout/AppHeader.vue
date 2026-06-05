@@ -218,8 +218,8 @@ onUnmounted(() => {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 0 12px;
-  height: 40px;
+  padding: 0 14px;
+  height: 42px;
   background: linear-gradient(180deg, var(--bg-elevated) 0%, var(--bg-surface) 100%);
   border-bottom: 1px solid var(--border-primary);
   flex-shrink: 0;
@@ -305,7 +305,7 @@ onUnmounted(() => {
 .header-right .n-button {
   color: var(--text-muted) !important;
   border-radius: var(--radius-sm) !important;
-  height: 28px;
+  height: 30px;
   transition: all var(--transition);
 }
 .header-right .n-button:hover {
@@ -324,8 +324,8 @@ onUnmounted(() => {
 .shortcut-hint {
   display: inline-block;
   margin-left: 8px;
-  font-size: var(--fs-2xs);
-  opacity: 0.45;
+  font-size: var(--fs-xs);
+  opacity: 0.55;
   font-weight: 400;
   letter-spacing: 0.02em;
   font-family: var(--font-mono);
