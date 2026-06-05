@@ -8,16 +8,16 @@
       </div>
       <div class="docs-actions">
         <n-button-group size="tiny">
-          <n-button :type="viewMode === 'html' ? 'primary' : 'default'" @click="viewMode = 'html'">Preview</n-button>
-          <n-button :type="viewMode === 'markdown' ? 'primary' : 'default'" @click="viewMode = 'markdown'">Markdown</n-button>
+          <n-button :type="viewMode === 'html' ? 'primary' : 'default'" @click="viewMode = 'html'">预览</n-button>
+          <n-button :type="viewMode === 'markdown' ? 'primary' : 'default'" @click="viewMode = 'markdown'">源码</n-button>
         </n-button-group>
-        <n-button size="tiny" quaternary @click="onRefresh" :loading="loading">
+        <n-button size="tiny" quaternary @click="onRefresh" :loading="loading" title="刷新">
           <template #icon><span class="refresh-icon">&#8635;</span></template>
         </n-button>
-        <n-button size="tiny" quaternary @click="onExportMD" :disabled="!markdownContent" title="Export .md">
+        <n-button size="tiny" quaternary @click="onExportMD" :disabled="!markdownContent" title="导出 .md 文件">
           <template #icon><span class="export-icon">MD</span></template>
         </n-button>
-        <n-button size="tiny" quaternary @click="onExportHTML" :disabled="!htmlContent" title="Export .html">
+        <n-button size="tiny" quaternary @click="onExportHTML" :disabled="!htmlContent" title="导出 .html 文件">
           <template #icon><span class="export-icon">&lt;/&gt;</span></template>
         </n-button>
       </div>
@@ -25,7 +25,7 @@
 
     <div v-if="loading && !markdownContent" class="docs-loading">
       <span class="loading-spinner"></span>
-      <span>Generating docs...</span>
+      <span>正在生成文档...</span>
     </div>
 
     <div v-else-if="error" class="docs-error">
@@ -69,7 +69,7 @@ async function generateDocs() {
     markdownContent.value = md
     htmlContent.value = html
   } catch (err: any) {
-    error.value = err?.message || err?.toString() || 'Unknown error'
+    error.value = err?.message || err?.toString() || '未知错误'
   } finally {
     loading.value = false
   }

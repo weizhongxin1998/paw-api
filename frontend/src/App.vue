@@ -277,6 +277,12 @@ html, body, #app {
 .theme-light ::-webkit-scrollbar-thumb { background: rgba(0,0,0,0.1); }
 .theme-light ::-webkit-scrollbar-thumb:hover { background: rgba(0,0,0,0.2); }
 
+/* Hide scrollbar until hover for panels */
+.auto-hide-scroll::-webkit-scrollbar-thumb { background: transparent; }
+.auto-hide-scroll:hover::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.08); background-clip: padding-box; border: 2px solid transparent; }
+.theme-light .auto-hide-scroll::-webkit-scrollbar-thumb { background: transparent; }
+.theme-light .auto-hide-scroll:hover::-webkit-scrollbar-thumb { background: rgba(0,0,0,0.1); }
+
 /* ════════════════════════════════════════════════════════════
    Selection & Focus
    ════════════════════════════════════════════════════════════ */
