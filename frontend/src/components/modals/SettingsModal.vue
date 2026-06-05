@@ -156,11 +156,11 @@
                     :min="12"
                     :max="16"
                     :step="1"
+                    :marks="fontSizeMarks"
                     :format-tooltip="(v: number) => v + 'px'"
                     style="flex: 1"
                     @update:value="onFontSizeLive"
                   />
-                  <span class="fs-val">{{ fontSize }}px</span>
                 </div>
               </n-form-item>
               <n-form-item :label="$t('settings.appearance.fontFamily')">
@@ -218,7 +218,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, watch, onMounted } from 'vue'
+import { ref, computed, watch } from 'vue'
 import {
   NModal, NButton, NForm, NFormItem, NInputNumber,
   NSelect, NSwitch, NSlider, useMessage,
@@ -233,9 +233,9 @@ const DEFAULTS = {
   followRedirects: true,
   maxRedirects: 10,
   sslVerify: true,
-  theme: 'dark',
+  theme: 'light',
   accentColor: 'green',
-  fontSize: 13,
+  fontSize: 14,
   fontFamily: 'JetBrains Mono',
 }
 
@@ -244,15 +244,7 @@ const emit = defineEmits<{ 'update:show': [value: boolean] }>()
 const settingsStore = useSettingsStore()
 const message = useMessage()
 
-// Detect light mode so teleported modal gets correct CSS variables
-const isLightMode = ref(false)
-onMounted(() => {
-  const check = () => { isLightMode.value = !!document.querySelector('.theme-light') }
-  check()
-  const observer = new MutationObserver(check)
-  observer.observe(document.documentElement, { attributes: true, attributeFilter: ['class'], subtree: true })
-})
-const modalClass = computed(() => isLightMode.value ? 'settings-modal theme-light' : 'settings-modal')
+const modalClass = computed(() => 'settings-modal')
 
 const navTabs = computed(() => [
   { key: 'general', label: t('settings.nav.general'), icon: '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 11-2.83 2.83l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 11-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 11-2.83-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 110-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 112.83-2.83l.06.06A1.65 1.65 0 009 4.68a1.65 1.65 0 001-1.51V3a2 2 0 114 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 112.83 2.83l-.06.06A1.65 1.65 0 0019.32 9a1.65 1.65 0 001.51 1H21a2 2 0 110 4h-.09a1.65 1.65 0 00-1.51 1z"/></svg>' },
@@ -276,9 +268,16 @@ const timeout = ref(settingsStore.settings.timeout ?? 30)
 const followRedirects = ref(settingsStore.settings.followRedirects ?? true)
 const maxRedirects = ref(settingsStore.settings.maxRedirects ?? 10)
 const sslVerify = ref(settingsStore.settings.sslVerify ?? true)
-const theme = ref(settingsStore.settings.theme ?? 'dark')
+const theme = ref(settingsStore.settings.theme ?? 'light')
 const accentColor = ref(settingsStore.settings.accentColor ?? 'green')
-const fontSize = ref(settingsStore.settings.fontSize ?? 13)
+const fontSize = ref(settingsStore.settings.fontSize ?? 14)
+const fontSizeMarks = {
+  12: '12px',
+  13: '13px',
+  14: '14px',
+  15: '15px',
+  16: '16px',
+}
 const fontFamily = ref(settingsStore.settings.fontFamily ?? 'JetBrains Mono')
 const locale = ref(settingsStore.settings.locale ?? 'zh-CN')
 const localeOptions = [

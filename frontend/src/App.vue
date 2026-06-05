@@ -48,11 +48,11 @@ const collectionStore = useCollectionStore()
 const envStore = useEnvStore()
 const settingsStore = useSettingsStore()
 
-const themeMode = ref<'dark' | 'light'>((settingsStore.settings.theme as 'dark' | 'light') || 'dark')
+const themeMode = ref<'dark' | 'light'>((settingsStore.settings.theme as 'dark' | 'light') || 'light')
 const nTheme = computed(() => themeMode.value === 'dark' ? darkTheme : null)
 
 watch(() => settingsStore.settings.theme, (t) => {
-  themeMode.value = (t as 'dark' | 'light') || 'dark'
+  themeMode.value = (t as 'dark' | 'light') || 'light'
 })
 
 const naiveLocalePair = computed(() => getNaiveLocale(settingsStore.settings.locale))

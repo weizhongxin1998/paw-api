@@ -286,9 +286,9 @@ export const useSettingsStore = defineStore('settings', () => {
     followRedirects: true,
     maxRedirects: 10,
     sslVerify: true,
-    theme: 'dark',
+    theme: 'light',
     accentColor: 'green',
-    fontSize: 13,
+    fontSize: 14,
     fontFamily: 'JetBrains Mono',
     locale: 'zh-CN',
   })
