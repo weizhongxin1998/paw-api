@@ -223,7 +223,7 @@ import {
   NModal, NButton, NForm, NFormItem, NInputNumber,
   NSelect, NSwitch, NSlider, useMessage,
 } from 'naive-ui'
-import { useSettingsStore, applySettingsToDOM } from '../../stores/settings'
+import { useSettingsStore, applySettingsToDOM, buildFontStack } from '../../stores/settings'
 import { useI18n } from 'vue-i18n'
 
 const { t } = useI18n()
@@ -236,7 +236,7 @@ const DEFAULTS = {
   theme: 'light',
   accentColor: 'green',
   fontSize: 14,
-  fontFamily: 'JetBrains Mono',
+  fontFamily: 'Microsoft YaHei',
 }
 
 defineProps<{ show: boolean }>()
@@ -287,9 +287,7 @@ const localeOptions = [
 
 const fontOptions = settingsStore.FONT_FAMILIES
 
-const sampleFontStack = computed(() =>
-  `'${fontFamily.value}', 'Cascadia Code', 'Fira Code', 'SF Mono', 'Consolas', monospace`
-)
+const sampleFontStack = computed(() => buildFontStack(fontFamily.value))
 
 // -- Auto-save: watch all settings and apply to store --
 let saveTimer: ReturnType<typeof setTimeout> | null = null
@@ -318,12 +316,32 @@ watch([timeout, followRedirects, maxRedirects, sslVerify, theme, accentColor, fo
 
 // -- Live preview for font size slider --
 function onFontSizeLive(val: number) {
-  document.documentElement.style.fontSize = val + 'px'
+  const root = document.documentElement
+  root.style.fontSize = val + 'px'
+  document.body.style.fontSize = val + 'px'
+  const scale = val / 13
+  root.style.setProperty('--fs-2xs', Math.round(10 * scale) + 'px')
+  root.style.setProperty('--fs-xs', Math.round(11.5 * scale) + 'px')
+  root.style.setProperty('--fs-sm', Math.round(12.5 * scale) + 'px')
+  root.style.setProperty('--fs-base', val + 'px')
+  root.style.setProperty('--fs-md', Math.round(14.5 * scale) + 'px')
+  root.style.setProperty('--fs-lg', Math.round(16.5 * scale) + 'px')
+  root.style.setProperty('--fs-xl', Math.round(19 * scale) + 'px')
+  root.style.setProperty('--fs-2xl', Math.round(24 * scale) + 'px')
+  root.style.setProperty('--fs-3xl', Math.round(32 * scale) + 'px')
 }
 
 function onFontFamilyChange() {
-  const fam = `'${fontFamily.value}', 'Cascadia Code', 'Fira Code', 'SF Mono', 'Consolas', monospace`
-  document.documentElement.style.fontFamily = fam
+  const fam = buildFontStack(fontFamily.value)
+  const root = document.documentElement
+  root.style.fontFamily = fam
+  document.body.style.fontFamily = fam
+  document.body.style.setProperty('--n-font-family', fam)
+  document.body.style.setProperty('--n-font-family-mono', fam)
+  root.style.setProperty('--n-font-family', fam)
+  root.style.setProperty('--n-font-family-mono', fam)
+  root.style.setProperty('--font-family', fam)
+  root.style.setProperty('--font-mono', fam)
 }
 
 // -- Restore defaults --

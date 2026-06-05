@@ -32,7 +32,7 @@
 
 <script setup lang="ts">
 import { ref, computed, onMounted, watch } from 'vue'
-import { darkTheme, type GlobalThemeOverrides } from 'naive-ui'
+import { darkTheme } from 'naive-ui'
 import { NConfigProvider, NMessageProvider, NDialogProvider, NGlobalStyle } from 'naive-ui'
 import AppHeader from './components/layout/AppHeader.vue'
 import AppBody from './components/layout/AppBody.vue'
@@ -59,15 +59,8 @@ const naiveLocalePair = computed(() => getNaiveLocale(settingsStore.settings.loc
 const naiveLocale = computed(() => naiveLocalePair.value.locale)
 const naiveDateLocale = computed(() => naiveLocalePair.value.dateLocale)
 
-const themeOverrides = ref<GlobalThemeOverrides>(
+const themeOverrides = computed(() =>
   buildNaiveOverrides(settingsStore.settings, settingsStore.settings.theme === 'dark')
-)
-
-watch(
-  () => [settingsStore.settings.fontSize, settingsStore.settings.fontFamily, settingsStore.settings.theme, settingsStore.settings.accentColor] as const,
-  () => {
-    themeOverrides.value = buildNaiveOverrides(settingsStore.settings, settingsStore.settings.theme === 'dark')
-  }
 )
 
 async function onEnterProject(id: number) {
@@ -94,6 +87,8 @@ defineExpose({ toggleTheme, themeMode })
 </script>
 
 <style>
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600&family=Noto+Sans+SC:wght@400;600&display=swap');
+
 :root {
   /* ── Surface hierarchy ── */
   --bg-base: #0a0a0b;
@@ -179,8 +174,8 @@ defineExpose({ toggleTheme, themeMode })
   --fs-3xl: 32px;
 
   /* ── Font families ── */
-  --font-family: 'JetBrains Mono', 'Cascadia Code', 'Fira Code', 'SF Mono', 'Consolas', monospace;
-  --font-mono: 'JetBrains Mono', 'Cascadia Code', 'Fira Code', 'SF Mono', 'Consolas', monospace;
+  --font-family: 'Microsoft YaHei', sans-serif;
+  --font-mono: 'Microsoft YaHei', sans-serif;
   --font-ui: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
 }
 
@@ -244,6 +239,14 @@ html, body, #app {
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   overflow: hidden;
+}
+
+#app *,
+.n-modal *,
+.n-drawer *,
+.n-popover *,
+.n-dropdown-menu * {
+  font-family: inherit !important;
 }
 
 .app-container {

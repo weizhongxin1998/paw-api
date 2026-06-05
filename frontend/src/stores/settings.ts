@@ -109,17 +109,17 @@ function hexToRgba(hex: string, alpha: number): string {
 }
 
 const FONT_FAMILIES = [
-  { label: 'JetBrains Mono', value: 'JetBrains Mono' },
-  { label: 'Cascadia Code', value: 'Cascadia Code' },
-  { label: 'Fira Code', value: 'Fira Code' },
-  { label: 'Consolas', value: 'Consolas' },
-  { label: 'SF Mono', value: 'SF Mono' },
-  { label: 'Source Code Pro', value: 'Source Code Pro' },
-  { label: 'IBM Plex Mono', value: 'IBM Plex Mono' },
+  { label: 'Microsoft YaHei', value: 'Microsoft YaHei' },
+  { label: 'Noto Sans SC', value: 'Noto Sans SC' },
+  { label: 'Inter', value: 'Inter' },
+  { label: 'Segoe UI', value: 'Segoe UI' },
+  { label: 'Calibri', value: 'Calibri' },
+  { label: 'Trebuchet MS', value: 'Trebuchet MS' },
+  { label: 'Georgia', value: 'Georgia' },
 ]
 
-function buildFontStack(family: string): string {
-  return `'${family}', 'Cascadia Code', 'Fira Code', 'SF Mono', 'Consolas', monospace`
+export function buildFontStack(family: string): string {
+  return `'${family}', 'Microsoft YaHei', sans-serif`
 }
 
 export function applySettingsToDOM(settings: Settings) {
@@ -130,6 +130,12 @@ export function applySettingsToDOM(settings: Settings) {
 
   root.style.fontSize = base + 'px'
   root.style.fontFamily = fam
+  document.body.style.fontSize = base + 'px'
+  document.body.style.fontFamily = fam
+  document.body.style.setProperty('--n-font-family', fam)
+  document.body.style.setProperty('--n-font-family-mono', fam)
+  root.style.setProperty('--n-font-family', fam)
+  root.style.setProperty('--n-font-family-mono', fam)
   root.style.setProperty('--fs-2xs', Math.round(10 * scale) + 'px')
   root.style.setProperty('--fs-xs', Math.round(11.5 * scale) + 'px')
   root.style.setProperty('--fs-sm', Math.round(12.5 * scale) + 'px')
@@ -289,7 +295,7 @@ export const useSettingsStore = defineStore('settings', () => {
     theme: 'light',
     accentColor: 'green',
     fontSize: 14,
-    fontFamily: 'JetBrains Mono',
+    fontFamily: 'Microsoft YaHei',
     locale: 'zh-CN',
   })
 
