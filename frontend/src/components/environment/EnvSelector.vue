@@ -6,27 +6,27 @@
       <n-select
         v-model:value="selectedId"
         :options="envOptions"
-        placeholder="选择环境"
+        :placeholder="$t('env.selectPlaceholder')"
         size="tiny"
         class="env-select"
         @update:value="onSelect"
         clearable
       />
     </div>
-    <n-button text size="tiny" @click="showManager = true" title="管理环境 (Ctrl+E 切换)" class="env-manage-btn">
+    <n-button text size="tiny" @click="showManager = true" :title="$t('env.manageBtnTitle')" class="env-manage-btn">
       <template #icon>
         <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
           <circle cx="12" cy="12" r="3"/>
           <path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 11-2.83 2.83l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 11-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 11-2.83-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 110-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 112.83-2.83l.06.06A1.65 1.65 0 009 4.68a1.65 1.65 0 001-1.51V3a2 2 0 114 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 112.83 2.83l-.06.06A1.65 1.65 0 0019.32 9a1.65 1.65 0 001.51 1H21a2 2 0 110 4h-.09a1.65 1.65 0 00-1.51 1z"/>
         </svg>
       </template>
-      环境
+      {{ $t('env.manageBtnLabel') }}
     </n-button>
     <!-- Visual feedback when switching -->
     <Transition name="env-switch">
       <div v-if="switching" class="env-switch-toast">
         <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>
-        已切换环境
+        {{ $t('env.switchedToast') }}
       </div>
     </Transition>
     <EnvManagerModal
@@ -39,11 +39,14 @@
 
 <script setup lang="ts">
 import { ref, watch, onMounted, onUnmounted, computed } from 'vue'
+import { useI18n } from 'vue-i18n'
 import { NSelect, NButton, useMessage } from 'naive-ui'
 import { ListEnvironments, ActivateEnvironment } from '../../../wailsjs/go/main/App'
 import { useEnvStore } from '../../stores/env'
 import type { Environment } from '../../types/environment'
 import EnvManagerModal from './EnvManagerModal.vue'
+
+const { t } = useI18n()
 
 const props = defineProps<{ projectId: number | null }>()
 const emit = defineEmits<{ 'update:activeEnvId': [value: number | null] }>()
@@ -139,7 +142,7 @@ async function cycleEnvironment() {
   if (nextEnv) {
     selectedId.value = nextEnv.id
     await onSelect(nextEnv.id)
-    message.success(`已切换到: ${nextEnv.name}`)
+    message.success(t('env.switchSuccess', { name: nextEnv.name }))
   }
 }
 

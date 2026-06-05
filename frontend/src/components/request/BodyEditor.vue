@@ -19,7 +19,7 @@
         <circle cx="12" cy="12" r="10" />
         <line x1="4.93" y1="4.93" x2="19.07" y2="19.07" />
       </svg>
-      <span class="hint">此请求没有 body</span>
+      <span class="hint">{{ $t('body.noBody') }}</span>
     </div>
 
     <!-- ── form-data ── -->
@@ -59,7 +59,7 @@
         <button
           v-if="rawSubType === 'json'"
           class="fmt-btn"
-          title="格式化 JSON (Ctrl+Shift+F)"
+          :title="$t('body.raw.formatTitle')"
           @click="beautify"
         >
           <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -68,7 +68,7 @@
             <line x1="16" y1="13" x2="8" y2="13" />
             <line x1="16" y1="17" x2="8" y2="17" />
           </svg>
-          <span>格式化</span>
+          <span>{{ $t('body.raw.format') }}</span>
         </button>
       </div>
       <n-input
@@ -80,7 +80,7 @@
         @update:value="onRawChange"
       />
       <div class="raw-footer-hint">
-        <span v-if="rawSubType === 'json'" class="raw-hint">Ctrl+Shift+F 格式化 JSON</span>
+        <span v-if="rawSubType === 'json'" class="raw-hint">{{ $t('body.raw.formatHint') }}</span>
       </div>
     </div>
 
@@ -100,8 +100,8 @@
           <line x1="12" y1="3" x2="12" y2="15" />
         </svg>
         <span v-if="binaryFileName" class="file-name">{{ binaryFileName }}</span>
-        <span v-else class="drop-text">点击选择文件或拖拽到此处</span>
-        <span class="drop-hint">支持任意二进制文件</span>
+        <span v-else class="drop-text">{{ $t('body.binary.dropText') }}</span>
+        <span class="drop-hint">{{ $t('body.binary.dropHint') }}</span>
       </div>
     </div>
   </div>
@@ -109,9 +109,12 @@
 
 <script setup lang="ts">
 import { ref, computed, watch } from 'vue'
+import { useI18n } from 'vue-i18n'
 import { NInput } from 'naive-ui'
 import KeyValueTable from '../shared/KeyValueTable.vue'
 import type { KvItem } from '../../types/request'
+
+const { t } = useI18n()
 
 const props = defineProps<{
   bodyType: string
@@ -180,10 +183,10 @@ const rawPlaceholder = computed(() => {
     json: '{\n  "key": "value"\n}',
     xml: '<root>\n  <item>value</item>\n</root>',
     html: '<html>\n  <body>...</body>\n</html>',
-    text: '输入纯文本内容...',
+    text: t('body.raw.placeholderText'),
     javascript: '// JavaScript code\nconst data = {}',
   }
-  return hints[rawSubType.value] || '输入请求体...'
+  return hints[rawSubType.value] || t('body.raw.placeholderDefault')
 })
 
 watch(() => props.bodyType, (v) => { bodyType.value = v })
@@ -227,7 +230,7 @@ function onEditorKeydown(e: KeyboardEvent) {
 }
 
 function onSelectFile() {
-  binaryFileName.value = '未实现'
+  binaryFileName.value = t('body.binary.notImplemented')
 }
 
 function onDrop(e: DragEvent) {

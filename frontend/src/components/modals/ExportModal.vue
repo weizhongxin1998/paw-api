@@ -2,7 +2,7 @@
   <n-modal
     :show="show"
     preset="card"
-    title="导出"
+    :title="$t('export.title')"
     :class="modalClass"
     style="width: 540px"
     :mask-closable="false"
@@ -12,8 +12,8 @@
     <template v-if="status === 'result'">
       <n-result :status="resultType" :title="resultTitle" :description="resultDesc">
         <template #footer>
-          <n-button @click="onReset">继续导出</n-button>
-          <n-button type="primary" @click="onClose">完成</n-button>
+          <n-button @click="onReset">{{ $t('export.continueExport') }}</n-button>
+          <n-button type="primary" @click="onClose">{{ $t('common.done') }}</n-button>
         </template>
       </n-result>
     </template>
@@ -22,7 +22,7 @@
     <template v-else>
       <!-- Scope selector: visual cards -->
       <div class="field-section">
-        <label class="field-label">导出范围</label>
+        <label class="field-label">{{ $t('export.scopeLabel') }}</label>
         <div class="scope-cards">
           <div
             class="scope-card"
@@ -31,8 +31,8 @@
           >
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M22 19a2 2 0 01-2 2H4a2 2 0 01-2-2V5a2 2 0 012-2h5l2 3h9a2 2 0 012 2z"/></svg>
             <div class="scope-info">
-              <span class="scope-name">整个项目</span>
-              <span class="scope-desc">导出所有集合和请求</span>
+              <span class="scope-name">{{ $t('export.scopeProject') }}</span>
+              <span class="scope-desc">{{ $t('export.scopeProjectDesc') }}</span>
             </div>
           </div>
           <div
@@ -41,8 +41,8 @@
           >
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
             <div class="scope-info">
-              <span class="scope-name">指定集合</span>
-              <span class="scope-desc">即将推出</span>
+              <span class="scope-name">{{ $t('export.scopeCollection') }}</span>
+              <span class="scope-desc">{{ $t('common.comingSoon') }}</span>
             </div>
           </div>
         </div>
@@ -50,7 +50,7 @@
 
       <!-- Format selector with icon badge -->
       <div class="field-section">
-        <label class="field-label">导出格式</label>
+        <label class="field-label">{{ $t('export.formatLabel') }}</label>
         <div class="format-options">
           <div
             class="format-option"
@@ -67,8 +67,8 @@
             <span class="format-icon">
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
             </span>
-            <span class="format-name">Paw 自有格式</span>
-            <span class="format-badge">即将推出</span>
+            <span class="format-name">{{ $t('export.formatPaw') }}</span>
+            <span class="format-badge">{{ $t('common.comingSoon') }}</span>
           </div>
         </div>
       </div>
@@ -76,23 +76,23 @@
       <!-- Summary preview -->
       <div class="export-summary" v-if="stats">
         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
-        <span>将导出 <strong>{{ stats.request_count }}</strong> 个请求，<strong>{{ stats.collection_count }}</strong> 个集合</span>
+        <span v-html="summaryHtml"></span>
       </div>
 
       <!-- File path with folder icon browse button -->
       <div class="field-section">
-        <label class="field-label">保存路径</label>
+        <label class="field-label">{{ $t('export.savePathLabel') }}</label>
         <n-input-group>
           <n-input
             v-model:value="filePath"
-            placeholder="选择保存路径或留空使用默认路径"
+            :placeholder="$t('export.savePathPlaceholder')"
             :disabled="status === 'exporting'"
           >
             <template #prefix>
               <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M22 19a2 2 0 01-2 2H4a2 2 0 01-2-2V5a2 2 0 012-2h5l2 3h9a2 2 0 012 2z"/></svg>
             </template>
           </n-input>
-          <n-button :disabled="status === 'exporting'" @click="onBrowse" title="浏览文件夹">
+          <n-button :disabled="status === 'exporting'" @click="onBrowse" :title="$t('common.browseFolder')">
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M22 19a2 2 0 01-2 2H4a2 2 0 01-2-2V5a2 2 0 012-2h5l2 3h9a2 2 0 012 2z"/></svg>
           </n-button>
         </n-input-group>
@@ -101,20 +101,20 @@
       <!-- Progress indicator -->
       <div class="export-progress" v-if="status === 'exporting'">
         <n-progress type="line" :percentage="exportProgress" :show-indicator="false" processing />
-        <span class="progress-text">正在导出...</span>
+        <span class="progress-text">{{ $t('export.exporting') }}</span>
       </div>
 
       <!-- Error message with suggestion -->
       <n-alert v-if="exportError" type="error" :bordered="false" style="margin-top: 12px">
         <div class="error-content">
           <span class="error-msg">{{ exportError }}</span>
-          <span class="error-hint">请检查项目是否正常，或尝试重新导出</span>
+          <span class="error-hint">{{ $t('export.errorHint') }}</span>
         </div>
       </n-alert>
 
       <!-- Footer -->
       <div class="modal-footer">
-        <n-button @click="onClose" :disabled="status === 'exporting'">取消</n-button>
+        <n-button @click="onClose" :disabled="status === 'exporting'">{{ $t('common.cancel') }}</n-button>
         <n-button
           type="primary"
           :loading="status === 'exporting'"
@@ -124,7 +124,7 @@
           <template #icon>
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
           </template>
-          导出
+          {{ $t('export.exportBtn') }}
         </n-button>
       </div>
     </template>
@@ -138,11 +138,13 @@ import {
   NButton, NResult, NProgress, NAlert, useMessage,
 } from 'naive-ui'
 import { ExportPostman, GetProjectStats } from '../../../wailsjs/go/main/App'
+import { useI18n } from 'vue-i18n'
 
 interface Props { show: boolean; projectId: number | null }
 const props = defineProps<Props>()
 const emit = defineEmits<{ 'update:show': [value: boolean]; exported: [] }>()
 const message = useMessage()
+const { t } = useI18n()
 
 type Status = 'idle' | 'exporting' | 'result'
 const status = ref<Status>('idle')
@@ -168,6 +170,11 @@ onMounted(() => {
 
 const canExport = computed(() => props.projectId !== null)
 
+const summaryHtml = computed(() => {
+  if (!stats.value) return ''
+  return t('export.summary', { requests: `<strong>${stats.value.request_count}</strong>`, collections: `<strong>${stats.value.collection_count}</strong>` })
+})
+
 // Fetch project stats when modal opens
 watch(() => props.show, async (visible) => {
   if (visible && props.projectId) {
@@ -182,7 +189,7 @@ watch(() => props.show, async (visible) => {
 function onBrowse() {
   // Wails does not expose a native SaveFile dialog in this runtime.
   // The parent component can listen for browse events or we show a hint.
-  message.info('请手动输入保存路径，导出后将保存到该位置')
+  message.info(t('export.browseHint'))
 }
 
 function onReset() {
@@ -220,17 +227,17 @@ async function onExport() {
     clearInterval(progressInterval)
     exportProgress.value = 100
     resultType.value = 'success'
-    resultTitle.value = '导出成功'
-    resultDesc.value = result ? '文件已保存至: ' + result : '导出完成'
+    resultTitle.value = t('export.successTitle')
+    resultDesc.value = result ? t('export.successDescSaved') + result : t('export.successDescDone')
     status.value = 'result'
     emit('exported')
   } catch (err: any) {
     clearInterval(progressInterval)
     exportProgress.value = 0
-    const msg = err?.message || err?.toString() || '未知错误'
+    const msg = err?.message || err?.toString() || t('common.unknownError')
     exportError.value = msg
     resultType.value = 'error'
-    resultTitle.value = '导出失败'
+    resultTitle.value = t('export.failTitle')
     resultDesc.value = msg
     status.value = 'result'
   }

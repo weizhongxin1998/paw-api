@@ -24,7 +24,7 @@
       <button
         v-if="(activeTab === 'params' || activeTab === 'headers') && hasActiveItems"
         class="toolbar-btn clear-btn"
-        title="清空全部"
+        :title="$t('request.clearAllTitle')"
         @click="onClearAll"
       >
         <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -32,7 +32,7 @@
           <path d="M19 6l-1 14a2 2 0 01-2 2H8a2 2 0 01-2-2L5 6" />
           <path d="M10 11v6" /><path d="M14 11v6" />
         </svg>
-        <span>清空</span>
+        <span>{{ $t('request.clearAll') }}</span>
       </button>
       <!-- Bulk edit toggle (headers) -->
       <button
@@ -52,7 +52,7 @@
           <line x1="3" y1="9" x2="21" y2="9" />
           <line x1="9" y1="21" x2="9" y2="9" />
         </svg>
-        <span>{{ isBulkEdit ? '表格' : '批量' }}</span>
+        <span>{{ isBulkEdit ? $t('request.tableView') : $t('request.bulkEdit') }}</span>
       </button>
     </div>
 
@@ -77,17 +77,17 @@
                 <path d="M10 13a5 5 0 007.54.54l3-3a5 5 0 00-7.07-7.07l-1.72 1.71" />
                 <path d="M14 11a5 5 0 00-7.54-.54l-3 3a5 5 0 007.07 7.07l1.71-1.71" />
               </svg>
-              <span>路径变量</span>
+              <span>{{ $t('request.pathVariables') }}</span>
             </div>
-            <span class="path-section-hint">URL 中 <code>:param</code> 或 <code>{param}</code> 自动识别</span>
+            <span class="path-section-hint">{{ $t('request.pathVarHint') }}</span>
           </div>
           <div class="path-table-wrap">
             <table class="kvt">
               <thead>
                 <tr>
-                  <th class="kvt-th-key">变量名</th>
-                  <th class="kvt-th-val">值</th>
-                  <th class="kvt-th-desc">描述</th>
+                  <th class="kvt-th-key">{{ $t('request.pathVarName') }}</th>
+                  <th class="kvt-th-val">{{ $t('request.pathVarValue') }}</th>
+                  <th class="kvt-th-desc">{{ $t('request.pathVarDesc') }}</th>
                 </tr>
               </thead>
               <tbody>
@@ -97,8 +97,8 @@
                       <span class="kvt-key-badge">{{ pv.key }}</span>
                     </div>
                   </td>
-                  <td><input class="kvt-input" v-model="pv.value" placeholder="输入值..." @input="onPathVarChange" /></td>
-                  <td><input class="kvt-input" v-model="pv.description" placeholder="描述 (可选)" @input="onPathVarChange" /></td>
+                  <td><input class="kvt-input" v-model="pv.value" :placeholder="$t('request.pathVarValuePlaceholder')" @input="onPathVarChange" /></td>
+                  <td><input class="kvt-input" v-model="pv.description" :placeholder="$t('request.pathVarDescPlaceholder')" @input="onPathVarChange" /></td>
                 </tr>
               </tbody>
             </table>
@@ -109,8 +109,8 @@
             <path d="M10 13a5 5 0 007.54.54l3-3a5 5 0 00-7.07-7.07l-1.72 1.71" />
             <path d="M14 11a5 5 0 00-7.54-.54l-3 3a5 5 0 007.07 7.07l1.71-1.71" />
           </svg>
-          <span class="path-empty-title">未检测到路径变量</span>
-          <span class="path-empty-hint">在 URL 中使用以下语法定义路径变量：</span>
+          <span class="path-empty-title">{{ $t('request.noPathVar') }}</span>
+          <span class="path-empty-hint">{{ $t('request.pathVarSyntaxHint') }}</span>
           <div class="path-empty-examples">
             <code>GET /users/:userId/posts/:postId</code>
             <code>GET /items/{itemId}/detail</code>
@@ -148,10 +148,13 @@
 
 <script setup lang="ts">
 import { ref, computed, watch, nextTick } from 'vue'
+import { useI18n } from 'vue-i18n'
 import KeyValueTable from '../shared/KeyValueTable.vue'
 import BodyEditor from './BodyEditor.vue'
 import AuthEditor from './AuthEditor.vue'
 import type { KvItem } from '../../types/request'
+
+const { t } = useI18n()
 
 interface PathVariable { key: string; value: string; description: string }
 
@@ -170,13 +173,13 @@ const emit = defineEmits<{
   (e: 'update:paramsEnabled', v: boolean): void
 }>()
 
-const tabs = [
-  { key: 'params', label: '参数', count: undefined as number | undefined },
-  { key: 'path', label: '路径', count: undefined as number | undefined },
-  { key: 'headers', label: '请求头', count: undefined as number | undefined },
-  { key: 'body', label: '请求体' },
-  { key: 'auth', label: '认证' },
-]
+const tabs = computed(() => [
+  { key: 'params', label: t('request.tab.params'), count: undefined as number | undefined },
+  { key: 'path', label: t('request.tab.path'), count: undefined as number | undefined },
+  { key: 'headers', label: t('request.tab.headers'), count: undefined as number | undefined },
+  { key: 'body', label: t('request.tab.body') },
+  { key: 'auth', label: t('request.tab.auth') },
+])
 
 const activeTab = ref('params')
 const isBulkEdit = ref(false)
@@ -214,7 +217,7 @@ function onPanelKeydown(e: KeyboardEvent) {
   const num = parseInt(e.key)
   if (num >= 1 && num <= 5) {
     e.preventDefault()
-    const tab = tabs[num - 1]
+    const tab = tabs.value[num - 1]
     if (tab) switchTab(tab.key)
   }
 }
@@ -234,11 +237,11 @@ function onClearAll() {
   const empty = [{ id: String(++iid), key: '', value: '', description: '', enabled: true }]
   if (activeTab.value === 'params') {
     paramsItems.value = empty
-    tabs[0].count = undefined
+    tabs.value[0].count = undefined
     sync()
   } else if (activeTab.value === 'headers') {
     headersItems.value = empty
-    tabs[2].count = 0
+    tabs.value[2].count = 0
     sync()
   }
 }
@@ -269,7 +272,7 @@ watch(pathVarPatterns, (patterns) => {
     const s = storedMap.get(key); const e = existing.get(key)
     return { key, value: s?.value || e?.value || '', description: s?.description || e?.description || '' }
   })
-  tabs[1].count = patterns.length > 0 ? patterns.length : undefined
+  tabs.value[1].count = patterns.length > 0 ? patterns.length : undefined
   syncPathVars()
 }, { immediate: true })
 
@@ -306,13 +309,13 @@ function sync() {
 
 function onHeadersChange(items: KvItem[]) {
   headersItems.value = items
-  tabs[2].count = items.filter(i => i.enabled && i.key).length
+  tabs.value[2].count = items.filter(i => i.enabled && i.key).length
   sync()
 }
 
 function onParamsChange(items: KvItem[]) {
   paramsItems.value = items
-  tabs[0].count = items.filter(i => i.enabled && i.key).length
+  tabs.value[0].count = items.filter(i => i.enabled && i.key).length
   sync()
 }
 </script>

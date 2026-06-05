@@ -2,7 +2,7 @@
   <n-modal
     :show="show"
     preset="card"
-    title="环境管理"
+    :title="$t('envManager.title')"
     :class="modalClass"
     style="width: 760px"
     :mask-closable="false"
@@ -12,12 +12,12 @@
       <!-- Environment list panel with card-style items -->
       <div class="env-list-panel">
         <div class="panel-header">
-          <span>环境列表</span>
+          <span>{{ $t('envManager.listTitle') }}</span>
           <n-button size="tiny" @click="addEnv">
             <template #icon>
               <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
             </template>
-            新建
+            {{ $t('envManager.btnNew') }}
           </n-button>
         </div>
         <div class="env-list">
@@ -52,7 +52,7 @@
                 {{ env.base_url }}
               </div>
               <!-- Active label -->
-              <span class="env-active-label" v-if="env.is_active">当前活跃</span>
+              <span class="env-active-label" v-if="env.is_active">{{ $t('envManager.activeLabel') }}</span>
             </div>
 
             <!-- Actions dropdown -->
@@ -67,7 +67,7 @@
               <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z"/>
               <circle cx="12" cy="10" r="3"/>
             </svg>
-            <span>暂无环境</span>
+            <span>{{ $t('envManager.noEnvironments') }}</span>
           </div>
         </div>
       </div>
@@ -76,31 +76,31 @@
       <div class="var-list-panel">
         <template v-if="editingEnvId">
           <div class="panel-header">
-            <span>变量配置</span>
+            <span>{{ $t('envManager.varConfigTitle') }}</span>
             <div class="panel-header-actions">
               <!-- Test connection button -->
               <n-button size="tiny" :loading="testing" @click="onTestConnection" :disabled="!baseURL" secondary>
                 <template #icon>
                   <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M22 11.08V12a10 10 0 11-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
                 </template>
-                测试连接
+                {{ $t('envManager.btnTestConnection') }}
               </n-button>
               <n-button size="tiny" @click="addVariable">
                 <template #icon>
                   <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
                 </template>
-                添加
+                {{ $t('envManager.btnAddVariable') }}
               </n-button>
             </div>
           </div>
 
           <!-- Base URL section with validation -->
           <div class="base-url-section">
-            <label>前置 URL</label>
+            <label>{{ $t('envManager.baseUrlLabel') }}</label>
             <n-input
               v-model:value="baseURL"
               size="small"
-              placeholder="https://api.example.com"
+              :placeholder="$t('envManager.baseUrlPlaceholder')"
               :status="baseUrlError ? 'error' : undefined"
             >
               <template #prefix>
@@ -122,8 +122,8 @@
               <span class="col-check">
                 <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 11 12 14 22 4"/><path d="M21 12v7a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h11"/></svg>
               </span>
-              <span class="col-key">键</span>
-              <span class="col-value">值</span>
+              <span class="col-key">{{ $t('envManager.colKey') }}</span>
+              <span class="col-value">{{ $t('envManager.colValue') }}</span>
               <span class="col-action"></span>
             </div>
             <div v-for="(variable, idx) in variables" :key="idx" class="var-row" :class="{ 'var-disabled': !variable.enabled }">
@@ -134,7 +134,7 @@
                 <n-input
                   v-model:value="variable.key"
                   size="small"
-                  placeholder="变量名"
+                  :placeholder="$t('envManager.varKeyPlaceholder')"
                   :status="validateVarKey(variable.key, idx) ? undefined : 'warning'"
                 />
               </span>
@@ -142,7 +142,7 @@
                 <n-input
                   v-model:value="variable.value"
                   size="small"
-                  placeholder="变量值"
+                  :placeholder="$t('envManager.varValuePlaceholder')"
                   :type="isSecretValue(variable.key) ? 'password' : 'text'"
                   show-password-on="click"
                 />
@@ -155,7 +155,7 @@
             </div>
             <!-- Empty variables hint -->
             <div v-if="variables.length === 0" class="var-empty">
-              暂无变量，点击上方"添加"按钮
+              {{ $t('envManager.noVariables') }}
             </div>
           </div>
 
@@ -172,7 +172,7 @@
               <template #icon>
                 <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M19 21H5a2 2 0 01-2-2V5a2 2 0 012-2h11l5 5v11a2 2 0 01-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
               </template>
-              保存
+              {{ $t('envManager.btnSave') }}
             </n-button>
           </div>
         </template>
@@ -181,7 +181,7 @@
             <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z"/>
             <circle cx="12" cy="10" r="3"/>
           </svg>
-          <span>选择一个环境以编辑变量</span>
+          <span>{{ $t('envManager.selectEnvHint') }}</span>
         </div>
       </div>
     </div>
@@ -190,6 +190,7 @@
 
 <script setup lang="ts">
 import { ref, computed, watch, onMounted } from 'vue'
+import { useI18n } from 'vue-i18n'
 import { NModal, NButton, NInput, NCheckbox, NDropdown, useMessage } from 'naive-ui'
 import {
   ListEnvironments, CreateEnvironment, RenameEnvironment, DeleteEnvironment,
@@ -197,6 +198,8 @@ import {
 } from '../../../wailsjs/go/main/App'
 import { useEnvStore } from '../../stores/env'
 import type { Environment, EnvVariable } from '../../types/environment'
+
+const { t } = useI18n()
 
 interface Props { show: boolean; projectId: number | null }
 const props = defineProps<Props>()
@@ -267,14 +270,14 @@ const varWarnings = computed(() => {
   const seen = new Set<string>()
   for (const key of keys) {
     if (key && seen.has(key)) {
-      warnings.push(`变量 "${key}" 存在重复键名`)
+      warnings.push(t('envManager.warningDuplicateKey', { key }))
     }
     if (key) seen.add(key)
   }
   // Check for empty enabled keys
   const emptyKeys = variables.value.filter(v => v.enabled && (!v.key || v.key.trim() === ''))
   if (emptyKeys.length > 0) {
-    warnings.push(`${emptyKeys.length} 个已启用的变量缺少键名`)
+    warnings.push(t('envManager.warningEmptyKey', { count: emptyKeys.length }))
   }
   return warnings
 })
@@ -298,7 +301,7 @@ async function selectEnv(env: Environment) {
 
 async function addEnv() {
   if (!props.projectId) return
-  const name = `环境 ${environments.value.length + 1}`
+  const name = t('envManager.defaultEnvName', { n: environments.value.length + 1 })
   try {
     await CreateEnvironment(props.projectId, name, '', null)
     await loadEnvs()
@@ -308,11 +311,11 @@ async function addEnv() {
 
 function envMenuOptions(env: Environment) {
   return [
-    { label: '重命名', key: 'rename' },
-    { label: '复制环境', key: 'duplicate' },
-    { label: '复制', key: 'copy' },
+    { label: t('envManager.ctxRename'), key: 'rename' },
+    { label: t('envManager.ctxDuplicateEnv'), key: 'duplicate' },
+    { label: t('envManager.ctxCopy'), key: 'copy' },
     { type: 'divider', key: 'd1' },
-    { label: '删除', key: 'delete', props: { style: 'color: var(--red, #ef4444)' } },
+    { label: t('common.delete'), key: 'delete', props: { style: 'color: var(--red, #ef4444)' } },
   ]
 }
 
@@ -327,11 +330,11 @@ async function onEnvMenu(key: string, env: Environment) {
       if (!props.projectId) return
       try {
         // Duplicate: create new env with same name + suffix, then copy variables
-        const newName = env.name + ' (副本)'
+        const newName = env.name + t('envManager.copySuffix')
         const newEnv = await CreateEnvironment(props.projectId, newName, env.base_url || '', env.id as any)
         await loadEnvs()
         emit('refresh')
-        message.success('环境已复制')
+        message.success(t('envManager.copySuccess'))
       } catch {}
       break
     case 'delete':
@@ -343,7 +346,7 @@ async function onEnvMenu(key: string, env: Environment) {
         }
         await loadEnvs()
         emit('refresh')
-        message.success('环境已删除')
+        message.success(t('envManager.deleteSuccess'))
       } catch {}
       break
   }
@@ -374,7 +377,7 @@ async function saveVariables() {
 
   // Validate base URL format
   if (baseURL.value && !baseURL.value.match(/^https?:\/\//)) {
-    baseUrlError.value = 'URL 应以 http:// 或 https:// 开头'
+    baseUrlError.value = t('envManager.baseUrlError')
     return
   }
   baseUrlError.value = ''
@@ -395,7 +398,7 @@ async function saveVariables() {
     )
     await SaveEnvBaseURL(editingEnvId.value, baseURL.value)
     if (props.projectId) await envStore.loadEnvironments(props.projectId)
-    message.success('环境变量已保存')
+    message.success(t('envManager.saveSuccess'))
     // Reload current env variables
     await selectEnv({
       id: editingEnvId.value,
@@ -407,7 +410,7 @@ async function saveVariables() {
       updated_at: '',
     })
   } catch (e: any) {
-    message.error('保存失败: ' + (e?.message || String(e)))
+    message.error(t('envManager.saveFailed', { error: e?.message || String(e) }))
   }
   saving.value = false
 }
@@ -420,14 +423,14 @@ async function onTestConnection() {
   try {
     const resp = await SendQuickRequest(editingEnvId.value, 'GET', baseURL.value, '', '', 0)
     if (resp && resp.status >= 200 && resp.status < 400) {
-      testResult.value = { success: true, message: `连接成功 (${resp.status} ${resp.status_text || ''}, ${resp.time}ms)` }
+      testResult.value = { success: true, message: t('envManager.testSuccess', { status: resp.status, statusText: resp.status_text || '', time: resp.time }) }
     } else if (resp) {
-      testResult.value = { success: false, message: `连接返回 ${resp.status} ${resp.status_text || ''}` }
+      testResult.value = { success: false, message: t('envManager.testBadStatus', { status: resp.status, statusText: resp.status_text || '' }) }
     } else {
-      testResult.value = { success: false, message: '无响应' }
+      testResult.value = { success: false, message: t('envManager.testNoResponse') }
     }
   } catch (e: any) {
-    testResult.value = { success: false, message: '连接失败: ' + (e?.message || String(e)) }
+    testResult.value = { success: false, message: t('envManager.testFailed', { error: e?.message || String(e) }) }
   }
   testing.value = false
 }

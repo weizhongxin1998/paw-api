@@ -2,7 +2,7 @@
   <n-modal
     :show="show"
     preset="card"
-    title="导入"
+    :title="$t('import.title')"
     :class="modalClass"
     style="width: 540px"
     :mask-closable="false"
@@ -12,8 +12,8 @@
     <template v-if="status === 'result'">
       <n-result :status="resultType" :title="resultTitle" :description="resultDesc">
         <template #footer>
-          <n-button @click="onReset">继续导入</n-button>
-          <n-button type="primary" @click="onClose">完成</n-button>
+          <n-button @click="onReset">{{ $t('import.continueImport') }}</n-button>
+          <n-button type="primary" @click="onClose">{{ $t('common.done') }}</n-button>
         </template>
       </n-result>
     </template>
@@ -22,7 +22,7 @@
     <template v-else>
       <!-- Format selector with icon badges -->
       <div class="field-section">
-        <label class="field-label">导入格式</label>
+        <label class="field-label">{{ $t('import.formatLabel') }}</label>
         <div class="format-options">
           <div
             class="format-option"
@@ -40,21 +40,21 @@
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
             </span>
             <span class="format-name">OpenAPI 3.x</span>
-            <span class="format-badge">即将推出</span>
+            <span class="format-badge">{{ $t('common.comingSoon') }}</span>
           </div>
           <div class="format-option disabled">
             <span class="format-icon">
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
             </span>
             <span class="format-name">Swagger 2.x</span>
-            <span class="format-badge">即将推出</span>
+            <span class="format-badge">{{ $t('common.comingSoon') }}</span>
           </div>
         </div>
       </div>
 
       <!-- Drag-and-drop file zone -->
       <div class="field-section">
-        <label class="field-label">文件路径</label>
+        <label class="field-label">{{ $t('import.fileLabel') }}</label>
         <div
           class="drop-zone"
           :class="{ dragging: isDragging, 'has-file': !!filePath }"
@@ -79,8 +79,8 @@
               <polyline points="17 8 12 3 7 8"/>
               <line x1="12" y1="3" x2="12" y2="15"/>
             </svg>
-            <span class="drop-text">{{ isDragging ? '松开鼠标以选择文件' : '拖拽文件到此处，或点击浏览' }}</span>
-            <span class="drop-hint">支持 .json (Postman Collection)</span>
+            <span class="drop-text">{{ isDragging ? $t('import.dropRelease') : $t('import.dropText') }}</span>
+            <span class="drop-hint">{{ $t('import.dropHint') }}</span>
           </template>
         </div>
 
@@ -89,7 +89,7 @@
           <n-input-group>
             <n-input
               v-model:value="filePath"
-              placeholder="或手动输入文件路径"
+              :placeholder="$t('import.manualPlaceholder')"
               size="small"
               :disabled="status === 'importing'"
             >
@@ -97,7 +97,7 @@
                 <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
               </template>
             </n-input>
-            <n-button size="small" :disabled="status === 'importing'" @click.stop="onBrowse" title="浏览文件夹">
+            <n-button size="small" :disabled="status === 'importing'" @click.stop="onBrowse" :title="$t('common.browseFolder')">
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M22 19a2 2 0 01-2 2H4a2 2 0 01-2-2V5a2 2 0 012-2h5l2 3h9a2 2 0 012 2z"/></svg>
             </n-button>
           </n-input-group>
@@ -107,20 +107,20 @@
       <!-- Progress indicator -->
       <div class="import-progress" v-if="status === 'importing'">
         <n-progress type="line" :percentage="importProgress" :show-indicator="false" processing />
-        <span class="progress-text">正在导入...</span>
+        <span class="progress-text">{{ $t('import.importing') }}</span>
       </div>
 
       <!-- Error with suggestion -->
       <n-alert v-if="importError" type="error" :bordered="false" style="margin-top: 12px">
         <div class="error-content">
           <span class="error-msg">{{ importError }}</span>
-          <span class="error-hint">请确认文件为有效的 Postman Collection JSON 格式</span>
+          <span class="error-hint">{{ $t('import.errorHint') }}</span>
         </div>
       </n-alert>
 
       <!-- Footer -->
       <div class="modal-footer">
-        <n-button @click="onClose" :disabled="status === 'importing'">取消</n-button>
+        <n-button @click="onClose" :disabled="status === 'importing'">{{ $t('common.cancel') }}</n-button>
         <n-button
           type="primary"
           :loading="status === 'importing'"
@@ -130,7 +130,7 @@
           <template #icon>
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
           </template>
-          导入
+          {{ $t('import.importBtn') }}
         </n-button>
       </div>
     </template>
@@ -145,11 +145,13 @@ import {
 } from 'naive-ui'
 import { ImportPostman } from '../../../wailsjs/go/main/App'
 import { OnFileDrop, OnFileDropOff } from '../../../wailsjs/runtime/runtime'
+import { useI18n } from 'vue-i18n'
 
 interface Props { show: boolean; projectId: number | null }
 const props = defineProps<Props>()
 const emit = defineEmits<{ 'update:show': [value: boolean]; imported: [] }>()
 const message = useMessage()
+const { t } = useI18n()
 
 type Status = 'idle' | 'importing' | 'result'
 const status = ref<Status>('idle')
@@ -201,7 +203,7 @@ function onDrop(e: DragEvent) {
     if (path) {
       filePath.value = path
     } else {
-      message.warning('无法获取文件路径，请使用手动输入路径')
+      message.warning(t('import.dropPathError'))
     }
   }
 }
@@ -209,7 +211,7 @@ function onDrop(e: DragEvent) {
 function onBrowse() {
   // Wails runtime does not expose OpenFile in this build.
   // Show a hint for the user to input the path manually.
-  message.info('请手动输入文件路径，或将文件拖拽到上方区域')
+  message.info(t('import.browseHint'))
 }
 
 function onReset() {
@@ -247,17 +249,17 @@ async function onImport() {
     clearInterval(progressInterval)
     importProgress.value = 100
     resultType.value = 'success'
-    resultTitle.value = '导入成功'
-    resultDesc.value = `成功导入 ${result.collections} 个集合, ${result.requests} 个请求`
+    resultTitle.value = t('import.successTitle')
+    resultDesc.value = t('import.successDesc', { collections: result.collections, requests: result.requests })
     status.value = 'result'
     emit('imported')
   } catch (err: any) {
     clearInterval(progressInterval)
     importProgress.value = 0
-    const msg = err?.message || err?.toString() || '未知错误'
+    const msg = err?.message || err?.toString() || t('common.unknownError')
     importError.value = msg
     resultType.value = 'error'
-    resultTitle.value = '导入失败'
+    resultTitle.value = t('import.failTitle')
     resultDesc.value = msg
     status.value = 'result'
   }

@@ -5,7 +5,7 @@
       <div class="search-wrap">
         <n-input
           v-model:value="searchKeyword"
-          placeholder="搜索 URL..."
+          :placeholder="$t('history.searchPlaceholder')"
           size="small"
           clearable
           class="search-input"
@@ -59,8 +59,8 @@
         <circle cx="12" cy="12" r="10"/>
         <polyline points="12 6 12 12 16 14"/>
       </svg>
-      <span class="empty-text">{{ searchKeyword || methodFilter !== '全部' ? '没有匹配的历史记录' : '发送请求后，历史记录将在此显示' }}</span>
-      <span class="empty-hint" v-if="!searchKeyword && methodFilter === '全部'">双击历史记录可重放请求</span>
+      <span class="empty-text">{{ searchKeyword || methodFilter !== t('history.filterAll') ? t('history.emptyFiltered') : t('history.emptyDefault') }}</span>
+      <span class="empty-hint" v-if="!searchKeyword && methodFilter === t('history.filterAll')">{{ $t('history.emptyHint') }}</span>
     </div>
 
     <!-- Footer -->
@@ -69,7 +69,7 @@
         <template #icon>
           <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a2 2 0 012-2h4a2 2 0 012 2v2"/></svg>
         </template>
-        清空全部
+        {{ $t('history.clearAll') }}
       </n-button>
       <n-select
         v-model:value="retentionDays"
@@ -90,16 +90,16 @@
         >
           <div class="ctx-item" @click="ctxReplay">
             <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polygon points="5 3 19 12 5 21 5 3"/></svg>
-            <span>重放此请求</span>
+            <span>{{ $t('history.ctx.replay') }}</span>
           </div>
           <div class="ctx-item" @click="ctxCopyUrl">
             <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/></svg>
-            <span>复制 URL</span>
+            <span>{{ $t('history.ctx.copyUrl') }}</span>
           </div>
           <div class="ctx-divider"></div>
           <div class="ctx-item ctx-danger" @click="ctxDelete">
             <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a2 2 0 012-2h4a2 2 0 012 2v2"/></svg>
-            <span>删除此记录</span>
+            <span>{{ $t('history.ctx.delete') }}</span>
           </div>
         </div>
       </Transition>
@@ -109,10 +109,13 @@
 
 <script setup lang="ts">
 import { ref, computed, onMounted, onUnmounted, watch, nextTick } from 'vue'
+import { useI18n } from 'vue-i18n'
 import { NInput, NSelect, NButton, useDialog, useMessage } from 'naive-ui'
 import { ListHistory, ClearHistory, DeleteHistory } from '../../../wailsjs/go/main/App'
 import { ClipboardSetText, EventsOn, EventsOff } from '../../../wailsjs/runtime/runtime'
 import { useProjectStore } from '../../stores/project'
+
+const { t } = useI18n()
 
 interface HistoryItem {
   id: number
@@ -140,7 +143,7 @@ const message = useMessage()
 
 const items = ref<HistoryItem[]>([])
 const searchKeyword = ref('')
-const methodFilter = ref('全部')
+const methodFilter = ref(t('history.filterAll'))
 const selectedId = ref<number | null>(null)
 const retentionDays = ref(30)
 const focusedIndex = ref(-1)
@@ -150,7 +153,7 @@ const listRef = ref<HTMLElement | null>(null)
 const ctxMenu = ref({ visible: false, x: 0, y: 0, item: null as HistoryItem | null })
 
 const methodOptions = [
-  { label: '全部', value: '全部' },
+  { label: t('history.filterAll'), value: t('history.filterAll') },
   { label: 'GET', value: 'GET' },
   { label: 'POST', value: 'POST' },
   { label: 'PUT', value: 'PUT' },
@@ -158,9 +161,9 @@ const methodOptions = [
 ]
 
 const retentionOptions = [
-  { label: '30 天', value: 30 },
-  { label: '60 天', value: 60 },
-  { label: '永久', value: 0 },
+  { label: t('history.retention30'), value: 30 },
+  { label: t('history.retention60'), value: 60 },
+  { label: t('history.retentionForever'), value: 0 },
 ]
 
 const filteredItems = computed(() => {
@@ -169,7 +172,7 @@ const filteredItems = computed(() => {
     const kw = searchKeyword.value.toLowerCase()
     result = result.filter(i => i.url.toLowerCase().includes(kw))
   }
-  if (methodFilter.value !== '全部') {
+  if (methodFilter.value !== t('history.filterAll')) {
     result = result.filter(i => i.method === methodFilter.value)
   }
   return result
@@ -212,11 +215,11 @@ function formatTime(raw: string): string {
     const now = Date.now()
     const diffMs = now - d.getTime()
     const diffMin = Math.floor(diffMs / 60000)
-    if (diffMin < 1) return '刚刚'
-    if (diffMin < 60) return `${diffMin}m`
+    if (diffMin < 1) return t('timeShort.justNow')
+    if (diffMin < 60) return t('timeShort.minutesAgo', { n: diffMin })
     const diffHour = Math.floor(diffMin / 60)
-    if (diffHour < 24) return `${diffHour}h`
-    return `${Math.floor(diffHour / 24)}d`
+    if (diffHour < 24) return t('timeShort.hoursAgo', { n: diffHour })
+    return t('timeShort.daysAgo', { n: Math.floor(diffHour / 24) })
   } catch { return raw }
 }
 
@@ -262,9 +265,9 @@ async function ctxCopyUrl() {
   if (ctxMenu.value.item) {
     try {
       await ClipboardSetText(ctxMenu.value.item.url)
-      message.success('URL 已复制到剪贴板')
+      message.success(t('history.copySuccess'))
     } catch {
-      message.error('复制失败')
+      message.error(t('history.copyFailed'))
     }
   }
   closeCtxMenu()
@@ -281,8 +284,8 @@ async function ctxDelete() {
       selectedId.value = null
       emit('select-detail', null as any)
     }
-    message.success('已删除')
-  } catch { message.error('删除失败') }
+    message.success(t('history.deleteSuccess'))
+  } catch { message.error(t('history.deleteFailed')) }
 }
 
 // -- Clear all history --
@@ -290,10 +293,10 @@ async function onClearAll() {
   const pid = projectStore.currentId
   if (!pid) return
   dialog.warning({
-    title: '确认清空',
-    content: '确定要清空所有历史记录吗？此操作不可撤销。',
-    positiveText: '清空',
-    negativeText: '取消',
+    title: t('history.dialogTitle'),
+    content: t('history.dialogContent'),
+    positiveText: t('history.clearAll'),
+    negativeText: t('common.cancel'),
     onPositiveClick: async () => {
       try {
         await ClearHistory(pid)
@@ -301,7 +304,7 @@ async function onClearAll() {
         selectedId.value = null
         focusedIndex.value = -1
         emit('select-detail', null as any)
-        message.success('已清空历史记录')
+        message.success(t('history.clearSuccess'))
       } catch { /* ignore */ }
     },
   })

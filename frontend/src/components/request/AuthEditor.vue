@@ -31,8 +31,8 @@
           <path d="M7 11V7a5 5 0 0110 0v4" />
           <line x1="4" y1="4" x2="20" y2="20" />
         </svg>
-        <span class="auth-empty-text">此请求不使用认证</span>
-        <span class="auth-empty-hint">请求将以无认证方式发送</span>
+        <span class="auth-empty-text">{{ $t('auth.noneText') }}</span>
+        <span class="auth-empty-hint">{{ $t('auth.noneHint') }}</span>
       </div>
 
       <!-- Bearer Token -->
@@ -41,18 +41,18 @@
           <svg class="auth-form-icon bearer" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
             <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
           </svg>
-          <span class="auth-form-title">Bearer Token</span>
+          <span class="auth-form-title">{{ $t('auth.bearer.title') }}</span>
         </div>
         <div class="field-group">
-          <label>Token</label>
-          <n-input v-model:value="token" size="small" placeholder="输入 token 或使用 {{variable}}" />
+          <label>{{ $t('auth.bearer.tokenLabel') }}</label>
+          <n-input v-model:value="token" size="small" :placeholder="$t('auth.bearer.tokenPlaceholder')" />
           <div class="field-hint">
             <svg viewBox="0 0 24 24" width="11" height="11" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
               <circle cx="12" cy="12" r="10" />
               <line x1="12" y1="16" x2="12" y2="12" />
               <line x1="12" y1="8" x2="12.01" y2="8" />
             </svg>
-            <span>Token 将作为 <code>Authorization: Bearer &lt;token&gt;</code> 请求头发送</span>
+            <span>{{ $t('auth.bearer.hint') }}</span>
           </div>
         </div>
       </div>
@@ -64,22 +64,22 @@
             <path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2" />
             <circle cx="12" cy="7" r="4" />
           </svg>
-          <span class="auth-form-title">Basic Auth</span>
+          <span class="auth-form-title">{{ $t('auth.basic.title') }}</span>
         </div>
         <div class="field-group">
-          <label>用户名</label>
-          <n-input v-model:value="username" size="small" placeholder="输入用户名" />
+          <label>{{ $t('auth.basic.usernameLabel') }}</label>
+          <n-input v-model:value="username" size="small" :placeholder="$t('auth.basic.usernamePlaceholder')" />
         </div>
         <div class="field-group">
-          <label>密码</label>
+          <label>{{ $t('auth.basic.passwordLabel') }}</label>
           <div class="pwd-wrap">
             <n-input
               v-model:value="password"
               size="small"
               :type="showPwd ? 'text' : 'password'"
-              placeholder="输入密码"
+              :placeholder="$t('auth.basic.passwordPlaceholder')"
             />
-            <button class="pwd-toggle" @click="showPwd = !showPwd" :title="showPwd ? '隐藏密码' : '显示密码'">
+            <button class="pwd-toggle" @click="showPwd = !showPwd" :title="showPwd ? $t('auth.basic.hidePassword') : $t('auth.basic.showPassword')">
               <!-- Eye open -->
               <svg v-if="!showPwd" viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                 <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" />
@@ -98,7 +98,7 @@
               <line x1="12" y1="16" x2="12" y2="12" />
               <line x1="12" y1="8" x2="12.01" y2="8" />
             </svg>
-            <span>凭据将经过 Base64 编码后作为 <code>Authorization: Basic &lt;encoded&gt;</code> 发送</span>
+            <span>{{ $t('auth.basic.hint') }}</span>
           </div>
         </div>
       </div>
@@ -109,32 +109,32 @@
           <svg class="auth-form-icon apikey" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
             <path d="M21 2l-2 2m-7.61 7.61a5.5 5.5 0 11-7.778 7.778 5.5 5.5 0 017.777-7.777zm0 0L15.5 7.5m0 0l3 3L22 7l-3-3m-3.5 3.5L19 4" />
           </svg>
-          <span class="auth-form-title">API Key</span>
+          <span class="auth-form-title">{{ $t('auth.apikey.title') }}</span>
         </div>
         <div class="field-group">
-          <label>键名</label>
-          <n-input v-model:value="apiKey" size="small" placeholder="例如: X-API-Key, api-key" />
+          <label>{{ $t('auth.apikey.keyLabel') }}</label>
+          <n-input v-model:value="apiKey" size="small" :placeholder="$t('auth.apikey.keyPlaceholder')" />
         </div>
         <div class="field-group">
-          <label>键值</label>
-          <n-input v-model:value="apiValue" size="small" placeholder="输入 key 值或使用 {{variable}}" />
+          <label>{{ $t('auth.apikey.valueLabel') }}</label>
+          <n-input v-model:value="apiValue" size="small" :placeholder="$t('auth.apikey.valuePlaceholder')" />
         </div>
         <div class="field-group">
-          <label>添加到</label>
+          <label>{{ $t('auth.apikey.addToLabel') }}</label>
           <div class="addto-bar">
             <button :class="{ active: apiAddTo === 'header' }" class="addto-btn" @click="apiAddTo = 'header'">
               <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                 <path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z" />
                 <polyline points="14 2 14 8 20 8" />
               </svg>
-              <span>请求头</span>
+              <span>{{ $t('auth.apikey.addToHeader') }}</span>
             </button>
             <button :class="{ active: apiAddTo === 'query' }" class="addto-btn" @click="apiAddTo = 'query'">
               <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                 <circle cx="11" cy="11" r="8" />
                 <line x1="21" y1="21" x2="16.65" y2="16.65" />
               </svg>
-              <span>查询参数</span>
+              <span>{{ $t('auth.apikey.addToQuery') }}</span>
             </button>
           </div>
           <div class="field-hint">
@@ -144,10 +144,10 @@
               <line x1="12" y1="8" x2="12.01" y2="8" />
             </svg>
             <span v-if="apiAddTo === 'header'">
-              API Key 将作为 <code>{{ apiKey || '键名' }}: &lt;value&gt;</code> 请求头发送
+              {{ $t('auth.apikey.hintHeader', { keyName: apiKey || $t('auth.apikey.fallbackKeyName') }) }}
             </span>
             <span v-else>
-              API Key 将作为 <code>{{ apiKey || '键名' }}=&lt;value&gt;</code> 查询参数附加到 URL
+              {{ $t('auth.apikey.hintQuery', { keyName: apiKey || $t('auth.apikey.fallbackKeyName') }) }}
             </span>
           </div>
         </div>
@@ -157,8 +157,11 @@
 </template>
 
 <script setup lang="ts">
-import { ref, watch } from 'vue'
+import { ref, watch, computed } from 'vue'
+import { useI18n } from 'vue-i18n'
 import { NInput } from 'naive-ui'
+
+const { t } = useI18n()
 
 const props = defineProps<{
   modelValue: string
@@ -168,28 +171,28 @@ const emit = defineEmits<{
   (e: 'update:modelValue', v: string): void
 }>()
 
-const authTypeOptions = [
+const authTypeOptions = computed(() => [
   {
-    label: '无认证', value: 'none',
-    desc: '不添加任何认证信息',
+    label: t('auth.type.none'), value: 'none',
+    desc: t('auth.type.noneDesc'),
     icon: '<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="4.93" y1="4.93" x2="19.07" y2="19.07"/></svg>',
   },
   {
-    label: 'Bearer Token', value: 'bearer',
-    desc: '使用 Bearer token 认证',
+    label: t('auth.type.bearer'), value: 'bearer',
+    desc: t('auth.type.bearerDesc'),
     icon: '<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>',
   },
   {
-    label: 'Basic Auth', value: 'basic',
-    desc: '用户名 + 密码 Base64 认证',
+    label: t('auth.type.basic'), value: 'basic',
+    desc: t('auth.type.basicDesc'),
     icon: '<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>',
   },
   {
-    label: 'API Key', value: 'apikey',
-    desc: '自定义 API Key 认证',
+    label: t('auth.type.apikey'), value: 'apikey',
+    desc: t('auth.type.apikeyDesc'),
     icon: '<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 2l-2 2m-7.61 7.61a5.5 5.5 0 11-7.778 7.778 5.5 5.5 0 017.777-7.777zm0 0L15.5 7.5m0 0l3 3L22 7l-3-3m-3.5 3.5L19 4"/></svg>',
   },
-]
+])
 
 const authType = ref('none')
 const token = ref('')

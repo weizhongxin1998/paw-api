@@ -13,10 +13,10 @@
                 @update:checked="(v: boolean) => emit('update:headerCheck', v)"
               />
             </th>
-            <th style="width:25%">键</th>
-            <th style="width:35%">值</th>
-            <th style="width:25%">描述</th>
-            <th v-if="showType" style="width:40px">类型</th>
+            <th style="width:25%">{{ $t('kv.key') }}</th>
+            <th style="width:35%">{{ $t('kv.value') }}</th>
+            <th style="width:25%">{{ $t('kv.desc') }}</th>
+            <th v-if="showType" style="width:40px">{{ $t('kv.type') }}</th>
             <th class="th-actions"></th>
           </tr>
         </thead>
@@ -35,7 +35,7 @@
                 v-model:value="item.key"
                 size="small"
                 borderless
-                placeholder="键"
+                :placeholder="$t('kv.placeholderKey')"
                 @keydown="onCellKeydown($event, index, 'key')"
               />
             </td>
@@ -45,7 +45,7 @@
                 v-model:value="item.value"
                 size="small"
                 borderless
-                placeholder="值"
+                :placeholder="$t('kv.placeholderValue')"
                 @keydown="onCellKeydown($event, index, 'value')"
               />
             </td>
@@ -55,7 +55,7 @@
                 v-model:value="item.description"
                 size="small"
                 borderless
-                placeholder="描述"
+                :placeholder="$t('kv.placeholderDesc')"
                 @keydown="onCellKeydown($event, index, 'desc')"
               />
             </td>
@@ -64,14 +64,14 @@
             </td>
             <td class="td-actions">
               <!-- Duplicate button -->
-              <button class="act-btn dup-btn" title="复制行 (Ctrl+D)" @click="onDuplicate(index)">
+              <button class="act-btn dup-btn" :title="$t('kv.duplicateRow')" @click="onDuplicate(index)">
                 <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                   <rect x="9" y="9" width="13" height="13" rx="2" />
                   <path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1" />
                 </svg>
               </button>
               <!-- Remove button -->
-              <button class="act-btn rm-btn" title="删除行" @click="onRemove(index)">
+              <button class="act-btn rm-btn" :title="$t('kv.removeRow')" @click="onRemove(index)">
                 <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                   <polyline points="3 6 5 6 21 6" />
                   <path d="M19 6l-1 14a2 2 0 01-2 2H8a2 2 0 01-2-2L5 6" />
@@ -94,12 +94,12 @@
           type="textarea"
           :value="bulkText"
           :rows="8"
-          placeholder="键: 值 (每行一个)"
+          :placeholder="$t('kv.bulkPlaceholder')"
           class="kv-bulk-input"
           @update:value="onBulkChange"
         />
       </div>
-      <div class="kv-bulk-hint">每行格式: <code>键: 值</code>，支持多行批量编辑</div>
+      <div class="kv-bulk-hint">{{ $t('kv.bulkHint', { code: $t('kv.bulkHintCode') }) }}</div>
     </div>
 
     <!-- ── Footer ── -->
@@ -120,7 +120,7 @@
             <line x1="9" y1="21" x2="9" y2="9" />
           </svg>
         </template>
-        {{ isBulkEdit ? '表格模式' : '批量编辑' }}
+        {{ isBulkEdit ? $t('kv.tableMode') : $t('kv.bulkEdit') }}
       </n-button>
     </div>
   </div>
@@ -128,8 +128,11 @@
 
 <script setup lang="ts">
 import { ref, computed, watch, nextTick } from 'vue'
+import { useI18n } from 'vue-i18n'
 import { NInput, NCheckbox, NButton, NSelect } from 'naive-ui'
 import type { KvItem } from '../../types/request'
+
+const { t } = useI18n()
 
 const props = defineProps<{
   items: KvItem[]

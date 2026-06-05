@@ -73,8 +73,11 @@
 
 <script setup lang="ts">
 import { ref, computed, onMounted, onUnmounted } from 'vue'
+import { useI18n } from 'vue-i18n'
 import { NDropdown } from 'naive-ui'
 import type { TreeItem } from '../../types/collection'
+
+const { t } = useI18n()
 
 const props = defineProps<{
   node: TreeItem
@@ -105,22 +108,22 @@ const isActive = computed(() => {
 const ctxMenuOptions = computed(() => {
   if (props.node.type === 'root' || props.node.type === 'folder') {
     return [
-      { label: '新建请求', key: 'new-request' },
-      { label: '新建文件夹', key: 'new-folder' },
+      { label: t('treeNode.ctx.newRequest'), key: 'new-request' },
+      { label: t('treeNode.ctx.newFolder'), key: 'new-folder' },
       { type: 'divider' as const, key: 'd1' },
-      { label: '重命名              F2', key: 'rename' },
-      ...(props.node.type === 'folder' ? [{ label: '导出此集合', key: 'export' }] : []),
+      { label: t('treeNode.ctx.rename'), key: 'rename' },
+      ...(props.node.type === 'folder' ? [{ label: t('treeNode.ctx.exportCollection'), key: 'export' }] : []),
       { type: 'divider' as const, key: 'd2' },
-      { label: '删除', key: 'delete' },
+      { label: t('common.delete'), key: 'delete' },
     ]
   }
   return [
-    { label: '在标签中打开', key: 'open-in-tab' },
+    { label: t('treeNode.ctx.openInTab'), key: 'open-in-tab' },
     { type: 'divider' as const, key: 'd0' },
-    { label: '重命名              F2', key: 'rename' },
-    { label: '复制', key: 'duplicate' },
+    { label: t('treeNode.ctx.rename'), key: 'rename' },
+    { label: t('treeNode.ctx.duplicate'), key: 'duplicate' },
     { type: 'divider' as const, key: 'd1' },
-    { label: '删除', key: 'delete' },
+    { label: t('common.delete'), key: 'delete' },
   ]
 })
 

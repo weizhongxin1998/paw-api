@@ -26,28 +26,28 @@
           </svg>
           {{ formatSize(response.size) }}
         </span>
-        <span v-if="response.size > SIZE_WARN_THRESHOLD" class="size-warning" title="响应体较大，可能影响渲染">
+        <span v-if="response.size > SIZE_WARN_THRESHOLD" class="size-warning" :title="$t('response.largeResponseTitle')">
           <svg class="meta-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
             <path d="M8 1.5l6.5 12H1.5L8 1.5z"/>
             <path d="M8 6v3"/>
             <circle cx="8" cy="11.5" r="0.5" fill="currentColor"/>
           </svg>
-          大响应
+          {{ $t('response.largeResponse') }}
         </span>
         <span style="flex:1"></span>
         <span class="meta meta--timestamp">{{ new Date().toLocaleTimeString() }}</span>
       </div>
       <div v-if="!response" class="status-bar-inner">
-        <span class="placeholder">等待响应...</span>
+        <span class="placeholder">{{ $t('response.waiting') }}</span>
       </div>
     </div>
 
     <!-- Sub Tabs -->
     <div class="sub-tabs">
-      <button :class="{ active: activeTab === 'Body' }" @click="activeTab = 'Body'">响应体</button>
-      <button :class="{ active: activeTab === 'Headers' }" @click="activeTab = 'Headers'">响应头</button>
-      <button :class="{ active: activeTab === 'Cookies' }" @click="activeTab = 'Cookies'">Cookies</button>
-      <button :class="{ active: activeTab === 'Log' }" @click="activeTab = 'Log'">日志</button>
+      <button :class="{ active: activeTab === 'Body' }" @click="activeTab = 'Body'">{{ $t('response.tab.body') }}</button>
+      <button :class="{ active: activeTab === 'Headers' }" @click="activeTab = 'Headers'">{{ $t('response.tab.headers') }}</button>
+      <button :class="{ active: activeTab === 'Cookies' }" @click="activeTab = 'Cookies'">{{ $t('response.tab.cookies') }}</button>
+      <button :class="{ active: activeTab === 'Log' }" @click="activeTab = 'Log'">{{ $t('response.tab.log') }}</button>
     </div>
 
     <!-- Empty State -->
@@ -57,11 +57,11 @@
           <span class="terminal-dot terminal-dot--red"></span>
           <span class="terminal-dot terminal-dot--yellow"></span>
           <span class="terminal-dot terminal-dot--green"></span>
-          <span class="terminal-title">response</span>
+          <span class="terminal-title">{{ $t('response.terminalTitle') }}</span>
         </div>
         <div class="terminal-body">
           <span class="terminal-prompt">$</span>
-          <span class="terminal-cursor">等待响应...</span>
+          <span class="terminal-cursor">{{ $t('response.waiting') }}</span>
         </div>
       </div>
     </div>
@@ -72,18 +72,18 @@
         <!-- Body Mode Toggle (Segmented Control) + extras -->
         <div class="body-toolbar">
           <div class="segmented-control">
-            <button :class="{ active: bodyMode === 'pretty' }" @click="bodyMode = 'pretty'">格式化</button>
-            <button :class="{ active: bodyMode === 'raw' }" @click="bodyMode = 'raw'">原始</button>
-            <button :class="{ active: bodyMode === 'preview' }" @click="bodyMode = 'preview'">预览</button>
+            <button :class="{ active: bodyMode === 'pretty' }" @click="bodyMode = 'pretty'">{{ $t('response.bodyPretty') }}</button>
+            <button :class="{ active: bodyMode === 'raw' }" @click="bodyMode = 'raw'">{{ $t('response.bodyRaw') }}</button>
+            <button :class="{ active: bodyMode === 'preview' }" @click="bodyMode = 'preview'">{{ $t('response.bodyPreview') }}</button>
           </div>
           <span style="flex:1"></span>
-          <span v-if="bodyMode === 'pretty' && lineCount > 0" class="line-count">{{ lineCount }} 行</span>
+          <span v-if="bodyMode === 'pretty' && lineCount > 0" class="line-count">{{ $t('response.lineCount', { count: lineCount }) }}</span>
           <button
             v-if="bodyMode === 'pretty' || bodyMode === 'raw'"
             class="toolbar-btn"
             :class="{ active: wordWrap }"
             @click="wordWrap = !wordWrap"
-            :title="wordWrap ? '关闭自动换行' : '开启自动换行'"
+            :title="wordWrap ? $t('response.wordWrapOff') : $t('response.wordWrapOn')"
           >
             <svg class="toolbar-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round">
               <path d="M2 4h12"/>
@@ -91,7 +91,7 @@
               <path d="M11 10l-2 2 2 2"/>
               <path d="M2 14h5"/>
             </svg>
-            换行
+            {{ $t('response.wordWrap') }}
           </button>
           <button class="toolbar-btn copy-btn" @click="copyResponse" v-if="response.body">
             <svg v-if="!copiedResponse" class="toolbar-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round">
@@ -101,7 +101,7 @@
             <svg v-else class="toolbar-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
               <path d="M3 8.5l3 3 7-7"/>
             </svg>
-            {{ copiedResponse ? '已复制' : '复制' }}
+            {{ copiedResponse ? $t('response.copied') : $t('response.copy') }}
           </button>
         </div>
 
@@ -121,14 +121,14 @@
         <!-- Preview -->
         <div v-else class="preview-hint">
           <iframe v-if="isHtml(response.body)" :srcdoc="response.body" class="preview-iframe" sandbox="allow-scripts"></iframe>
-          <span v-else>非 HTML 响应，无法预览</span>
+          <span v-else>{{ $t('response.notHtml') }}</span>
         </div>
       </div>
 
       <!-- Headers Tab -->
       <div v-else-if="activeTab === 'Headers'">
         <table class="kv-table">
-          <thead><tr><th>键</th><th>值</th></tr></thead>
+          <thead><tr><th>{{ $t('response.headerKey') }}</th><th>{{ $t('response.headerValue') }}</th></tr></thead>
           <tbody>
             <tr v-for="(v, k) in response.headers" :key="k">
               <td class="key-cell">{{ k }}</td><td class="val-cell">{{ v }}</td>
@@ -140,20 +140,20 @@
       <!-- Cookies Tab -->
       <div v-else-if="activeTab === 'Cookies'">
         <table v-if="response.cookies?.length" class="kv-table">
-          <thead><tr><th>名称</th><th>值</th><th>域</th><th>路径</th></tr></thead>
+          <thead><tr><th>{{ $t('response.cookieName') }}</th><th>{{ $t('response.cookieValue') }}</th><th>{{ $t('response.cookieDomain') }}</th><th>{{ $t('response.cookiePath') }}</th></tr></thead>
           <tbody>
             <tr v-for="c in response.cookies" :key="c.name">
               <td>{{ c.name }}</td><td>{{ c.value }}</td><td>{{ c.domain }}</td><td>{{ c.path }}</td>
             </tr>
           </tbody>
         </table>
-        <span v-else class="hint">无 Cookie</span>
+        <span v-else class="hint">{{ $t('response.noCookies') }}</span>
       </div>
 
       <!-- Log Tab -->
       <div v-else-if="activeTab === 'Log'">
-        <button class="copy-curl-btn" @click="copyCurl">{{ copiedCurl ? '已复制 ✓' : '复制 cURL' }}</button>
-        <pre class="code-block">{{ response.rawRequest || '(暂无)' }}</pre>
+        <button class="copy-curl-btn" @click="copyCurl">{{ copiedCurl ? $t('response.curlCopied') + ' \u2713' : $t('response.copyCurl') }}</button>
+        <pre class="code-block">{{ response.rawRequest || $t('response.noLog') }}</pre>
       </div>
     </div>
   </div>
@@ -161,7 +161,10 @@
 
 <script setup lang="ts">
 import { ref, computed } from 'vue'
+import { useI18n } from 'vue-i18n'
 import type { HttpResponse } from '../../types/response'
+
+const { t } = useI18n()
 
 const SIZE_WARN_THRESHOLD = 1024 * 1024 // 1MB
 

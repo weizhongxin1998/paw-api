@@ -14,7 +14,7 @@
         </svg>
       </div>
       <h2>Paw API</h2>
-      <p class="empty-subtitle">轻量级 API 调试工具 · 为效率而生</p>
+      <p class="empty-subtitle">{{ t('workspace.emptySubtitle') }}</p>
 
       <div class="feature-cards">
         <div class="feature-card" @click="addNewTab">
@@ -23,8 +23,8 @@
               <line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>
             </svg>
           </div>
-          <span class="feature-title">新建请求</span>
-          <span class="feature-desc">创建 API 调试请求</span>
+          <span class="feature-title">{{ t('workspace.newRequest') }}</span>
+          <span class="feature-desc">{{ t('workspace.newRequestDesc') }}</span>
         </div>
         <div class="feature-card" @click="reopenLastClosed">
           <div class="feature-icon">
@@ -32,8 +32,8 @@
               <polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10"/>
             </svg>
           </div>
-          <span class="feature-title">恢复标签</span>
-          <span class="feature-desc">重新打开已关闭标签</span>
+          <span class="feature-title">{{ t('workspace.restoreTab') }}</span>
+          <span class="feature-desc">{{ t('workspace.restoreTabDesc') }}</span>
         </div>
         <div class="feature-card">
           <div class="feature-icon">
@@ -41,63 +41,63 @@
               <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/>
             </svg>
           </div>
-          <span class="feature-title">快速发送</span>
-          <span class="feature-desc">Ctrl+Enter 立即调试</span>
+          <span class="feature-title">{{ t('workspace.quickSend') }}</span>
+          <span class="feature-desc">{{ t('workspace.quickSendDesc') }}</span>
         </div>
       </div>
 
       <div class="quick-start">
-        <h3>快速开始</h3>
+        <h3>{{ t('workspace.quickStart') }}</h3>
         <div class="qs-items">
           <div class="qs-item" @click="addNewTab">
             <span class="qs-step">1</span>
-            <span>点击左侧集合中的请求，或创建新请求</span>
+            <span>{{ t('workspace.qsStep1') }}</span>
           </div>
           <div class="qs-item">
             <span class="qs-step">2</span>
-            <span>输入 URL，配置请求头和参数</span>
+            <span>{{ t('workspace.qsStep2') }}</span>
           </div>
           <div class="qs-item">
             <span class="qs-step">3</span>
-            <span>按 <kbd>Ctrl</kbd>+<kbd>Enter</kbd> 发送请求查看响应</span>
+            <span>{{ t('workspace.qsStep3') }}</span>
           </div>
         </div>
       </div>
 
       <div class="shortcuts-hint">
-        <span class="shortcut"><kbd>Ctrl</kbd>+<kbd>N</kbd> 新建标签</span>
-        <span class="shortcut"><kbd>Ctrl</kbd>+<kbd>S</kbd> 保存</span>
-        <span class="shortcut"><kbd>Ctrl</kbd>+<kbd>Enter</kbd> 发送</span>
-        <span class="shortcut"><kbd>Ctrl</kbd>+<kbd>W</kbd> 关闭</span>
-        <span class="shortcut"><kbd>Ctrl</kbd>+<kbd>Shift</kbd>+<kbd>T</kbd> 恢复</span>
-        <span class="shortcut"><kbd>Ctrl</kbd>+<kbd>1-9</kbd> 切换</span>
+        <span class="shortcut"><kbd>Ctrl</kbd>+<kbd>N</kbd> {{ t('workspace.shortcutNewTab') }}</span>
+        <span class="shortcut"><kbd>Ctrl</kbd>+<kbd>S</kbd> {{ t('workspace.shortcutSave') }}</span>
+        <span class="shortcut"><kbd>Ctrl</kbd>+<kbd>Enter</kbd> {{ t('workspace.shortcutSend') }}</span>
+        <span class="shortcut"><kbd>Ctrl</kbd>+<kbd>W</kbd> {{ t('workspace.shortcutClose') }}</span>
+        <span class="shortcut"><kbd>Ctrl</kbd>+<kbd>Shift</kbd>+<kbd>T</kbd> {{ t('workspace.shortcutRestore') }}</span>
+        <span class="shortcut"><kbd>Ctrl</kbd>+<kbd>1-9</kbd> {{ t('workspace.shortcutSwitch') }}</span>
       </div>
     </div>
 
     <!-- ════════ History Detail View ════════ -->
     <div v-if="historyItem" class="workspace-editor">
       <div class="tabs-bar">
-        <span class="tabs-msg">历史记录详情 · 双击可回放至新标签</span>
+        <span class="tabs-msg">{{ t('workspace.historyDetailMsg') }}</span>
       </div>
       <div class="history-detail">
-        <div class="hist-detail-row"><span class="hist-detail-label">方法</span><span class="method-badge" :class="historyItem.method?.toLowerCase()">{{ historyItem.method }}</span></div>
-        <div class="hist-detail-row"><span class="hist-detail-label">URL</span><span class="hist-detail-value">{{ historyItem.url }}</span></div>
-        <div class="hist-detail-row"><span class="hist-detail-label">状态码</span><span class="hist-detail-value" :class="statusClass(historyItem.response_status)">{{ historyItem.response_status }}</span></div>
-        <div class="hist-detail-row"><span class="hist-detail-label">耗时</span><span class="hist-detail-value">{{ historyItem.duration_ms }}ms</span></div>
+        <div class="hist-detail-row"><span class="hist-detail-label">{{ t('workspace.method') }}</span><span class="method-badge" :class="historyItem.method?.toLowerCase()">{{ historyItem.method }}</span></div>
+        <div class="hist-detail-row"><span class="hist-detail-label">{{ t('workspace.url') }}</span><span class="hist-detail-value">{{ historyItem.url }}</span></div>
+        <div class="hist-detail-row"><span class="hist-detail-label">{{ t('workspace.statusCode') }}</span><span class="hist-detail-value" :class="statusClass(historyItem.response_status)">{{ historyItem.response_status }}</span></div>
+        <div class="hist-detail-row"><span class="hist-detail-label">{{ t('workspace.duration') }}</span><span class="hist-detail-value">{{ historyItem.duration_ms }}ms</span></div>
         <div v-if="historyItem.request_headers" class="hist-detail-section">
-          <h4>请求头</h4>
+          <h4>{{ t('workspace.requestHeaders') }}</h4>
           <pre class="hist-detail-pre">{{ formatJson(historyItem.request_headers) }}</pre>
         </div>
         <div v-if="historyItem.request_body" class="hist-detail-section">
-          <h4>请求体</h4>
+          <h4>{{ t('workspace.requestBody') }}</h4>
           <pre class="hist-detail-pre">{{ formatJson(historyItem.request_body) }}</pre>
         </div>
         <div v-if="historyItem.response_headers" class="hist-detail-section">
-          <h4>响应头</h4>
+          <h4>{{ t('workspace.responseHeaders') }}</h4>
           <pre class="hist-detail-pre">{{ formatJson(historyItem.response_headers) }}</pre>
         </div>
         <div v-if="historyItem.response_body" class="hist-detail-section">
-          <h4>响应体</h4>
+          <h4>{{ t('workspace.responseBody') }}</h4>
           <pre class="hist-detail-pre">{{ formatJson(historyItem.response_body) }}</pre>
         </div>
       </div>
@@ -154,8 +154,8 @@
             />
             <span v-else class="tab-name">{{ tab.name }}</span>
 
-            <span v-if="tab.isDirty" class="tab-dirty" title="未保存的更改"></span>
-            <span class="tab-close" @click.stop="onCloseTab(tab)" title="关闭 (Ctrl+W)">
+            <span v-if="tab.isDirty" class="tab-dirty" :title="t('workspace.unsavedChanges')"></span>
+            <span class="tab-close" @click.stop="onCloseTab(tab)" :title="t('workspace.closeTab')">
               <svg width="10" height="10" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="3" y1="3" x2="9" y2="9"/><line x1="9" y1="3" x2="3" y2="9"/></svg>
             </span>
           </div>
@@ -169,7 +169,7 @@
           <svg width="10" height="10" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="4 2 8 6 4 10"/></svg>
         </button>
 
-        <span class="tab-plus" @click="addNewTab" title="新建标签 (Ctrl+N)">+</span>
+        <span class="tab-plus" @click="addNewTab" :title="t('workspace.newTabTooltip')">+</span>
 
         <span v-if="tabs.length > 1" class="tab-count">{{ activeTabIndex + 1 }}/{{ tabs.length }}</span>
       </div>
@@ -186,7 +186,7 @@
               <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
               <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
             </svg>
-            请求
+            {{ t('workspace.request') }}
           </button>
           <button
             class="view-toggle-btn"
@@ -199,7 +199,7 @@
               <line x1="16" y1="13" x2="8" y2="13"/>
               <line x1="16" y1="17" x2="8" y2="17"/>
             </svg>
-            文档
+            {{ t('workspace.docs') }}
           </button>
         </div>
 
@@ -213,7 +213,7 @@
             <input
               v-model="currentName"
               class="name-input"
-              placeholder="接口名称"
+              :placeholder="t('workspace.interfaceName')"
               @focus="nameFocused = true"
               @blur="onNameBlur"
               @keydown.enter="($event.target as HTMLInputElement).blur()"
@@ -298,6 +298,7 @@
 
 <script setup lang="ts">
 import { ref, computed, onMounted, onUnmounted, nextTick, watch } from 'vue'
+import { useI18n } from 'vue-i18n'
 import { NDropdown, useDialog, useMessage } from 'naive-ui'
 import UrlBar from '../request/UrlBar.vue'
 import RequestPanel from '../request/RequestPanel.vue'
@@ -306,6 +307,8 @@ import RequestDocsView from '../request/RequestDocsView.vue'
 import type { HttpResponse } from '../../types/response'
 import { SendRequest, UpdateRequest } from '../../../wailsjs/go/main/App'
 import { useEnvStore } from '../../stores/env'
+
+const { t } = useI18n()
 
 interface Tab {
   id: string
@@ -516,7 +519,7 @@ function syncToActiveTab() {
 function addNewTab() {
   const id = 'tab-' + (++tabIdCounter) + '-' + Date.now()
   const tab: Tab = {
-    id, requestId: 0, method: 'GET', name: '新建请求', url: '',
+    id, requestId: 0, method: 'GET', name: t('workspace.defaultRequestName'), url: '',
     pathVars: '[]', isDirty: true, isPreview: false,
     headers: '[]', params: '[]', paramsEnabled: true, bodyType: 'none', bodyData: '{}',
     authData: '{"type":"none"}', collectionId: 0,
@@ -579,7 +582,7 @@ async function onSend() {
   } catch (e: any) {
     response.value = {
       status: 0, time: 0, size: 0, headers: {}, cookies: [],
-      body: '请求失败: ' + (e?.message || e), rawRequest: '', curlCommand: '',
+      body: t('workspace.requestFailed', { error: e?.message || e }), rawRequest: '', curlCommand: '',
     }
   } finally {
     isSending.value = false
@@ -601,10 +604,10 @@ async function onSave() {
   try {
     await UpdateRequest(reqModel as any)
     if (activeTab.value) activeTab.value.isDirty = false
-    message.success('已保存')
+    message.success(t('workspace.saved'))
     emit('request-saved')
   } catch (e: any) {
-    message.error('保存失败: ' + (e?.message || String(e)))
+    message.error(t('workspace.saveFailed', { error: e?.message || String(e) }))
   }
 }
 
@@ -629,9 +632,9 @@ function selectTab(id: string) {
 function onCloseTab(tab: Tab) {
   if (tab.isDirty) {
     dialog.warning({
-      title: '确认关闭',
-      content: '未保存的修改将丢失，确定关闭？',
-      positiveText: '确定', negativeText: '取消',
+      title: t('workspace.confirmCloseTitle'),
+      content: t('workspace.confirmCloseContent'),
+      positiveText: t('common.confirm'), negativeText: t('common.cancel'),
       onPositiveClick: () => closeTab(tab.id),
     })
   } else {
@@ -686,7 +689,7 @@ function closeOthers(tabId: string) {
     selectTab(tabId)
   }
   if (dirtyOthers) {
-    dialog.warning({ title: '确认关闭', content: '未保存的修改将丢失，确定关闭？', positiveText: '确定', negativeText: '取消', onPositiveClick: doClose })
+    dialog.warning({ title: t('workspace.confirmCloseTitle'), content: t('workspace.confirmCloseContent'), positiveText: t('common.confirm'), negativeText: t('common.cancel'), onPositiveClick: doClose })
   } else { doClose() }
 }
 
@@ -703,7 +706,7 @@ function closeRight(idx: number) {
       selectTab(tabs.value[tabs.value.length - 1].id)
   }
   if (dirtyRight) {
-    dialog.warning({ title: '确认关闭', content: '未保存的修改将丢失，确定关闭？', positiveText: '确定', negativeText: '取消', onPositiveClick: doClose })
+    dialog.warning({ title: t('workspace.confirmCloseTitle'), content: t('workspace.confirmCloseContent'), positiveText: t('common.confirm'), negativeText: t('common.cancel'), onPositiveClick: doClose })
   } else { doClose() }
 }
 
@@ -720,7 +723,7 @@ function closeLeft(idx: number) {
       selectTab(tabs.value[0].id)
   }
   if (dirtyLeft) {
-    dialog.warning({ title: '确认关闭', content: '未保存的修改将丢失，确定关闭？', positiveText: '确定', negativeText: '取消', onPositiveClick: doClose })
+    dialog.warning({ title: t('workspace.confirmCloseTitle'), content: t('workspace.confirmCloseContent'), positiveText: t('common.confirm'), negativeText: t('common.cancel'), onPositiveClick: doClose })
   } else { doClose() }
 }
 
@@ -734,7 +737,7 @@ function closeAll() {
     tabs.value = []; activeTabId.value = null; activeTab.value = null
   }
   if (dirty) {
-    dialog.warning({ title: '确认关闭', content: '未保存的修改将丢失，确定关闭？', positiveText: '确定', negativeText: '取消', onPositiveClick: doClose })
+    dialog.warning({ title: t('workspace.confirmCloseTitle'), content: t('workspace.confirmCloseContent'), positiveText: t('common.confirm'), negativeText: t('common.cancel'), onPositiveClick: doClose })
   } else { doClose() }
 }
 
@@ -751,18 +754,18 @@ let ctxTarget: { tab: Tab; idx: number } | null = null
 
 const ctxMenuOptions = computed(() => {
   const opts = [
-    { label: '关闭', key: 'close' },
-    { label: '关闭其他', key: 'close-others' },
+    { label: t('workspace.ctxClose'), key: 'close' },
+    { label: t('workspace.ctxCloseOthers'), key: 'close-others' },
   ]
   if (ctxTarget && ctxTarget.idx > 0) {
-    opts.push({ label: '关闭左侧', key: 'close-left' })
+    opts.push({ label: t('workspace.ctxCloseLeft'), key: 'close-left' })
   }
   if (ctxTarget && ctxTarget.idx < tabs.value.length - 1) {
-    opts.push({ label: '关闭右侧', key: 'close-right' })
+    opts.push({ label: t('workspace.ctxCloseRight'), key: 'close-right' })
   }
-  opts.push({ label: '关闭全部', key: 'close-all' })
+  opts.push({ label: t('workspace.ctxCloseAll'), key: 'close-all' })
   if (closedTabs.length > 0) {
-    opts.push({ label: `恢复已关闭 (${closedTabs.length})`, key: 'reopen' })
+    opts.push({ label: t('workspace.ctxReopen', { count: closedTabs.length }), key: 'reopen' })
   }
   return opts
 })
@@ -875,9 +878,9 @@ function onKeydown(e: KeyboardEvent) {
         // Don't close the last tab — just clear to empty state
         if (activeTab.value.isDirty) {
           dialog.warning({
-            title: '确认关闭',
-            content: '未保存的修改将丢失，确定关闭？',
-            positiveText: '确定', negativeText: '取消',
+            title: t('workspace.confirmCloseTitle'),
+            content: t('workspace.confirmCloseContent'),
+            positiveText: t('common.confirm'), negativeText: t('common.cancel'),
             onPositiveClick: () => {
               const removed = tabs.value[0]
               closedTabs.push({ ...removed })

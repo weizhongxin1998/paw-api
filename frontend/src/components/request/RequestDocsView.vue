@@ -3,21 +3,21 @@
     <div class="docs-toolbar">
       <div class="docs-title">
         <span class="docs-icon">&#128196;</span>
-        <span class="docs-label">{{ requestName || '接口文档' }}</span>
+        <span class="docs-label">{{ requestName || $t('docs.defaultTitle') }}</span>
         <span class="method-badge" :class="requestMethod?.toLowerCase()">{{ requestMethod }}</span>
       </div>
       <div class="docs-actions">
         <n-button-group size="tiny">
-          <n-button :type="viewMode === 'html' ? 'primary' : 'default'" @click="viewMode = 'html'">预览</n-button>
-          <n-button :type="viewMode === 'markdown' ? 'primary' : 'default'" @click="viewMode = 'markdown'">源码</n-button>
+          <n-button :type="viewMode === 'html' ? 'primary' : 'default'" @click="viewMode = 'html'">{{ $t('docs.preview') }}</n-button>
+          <n-button :type="viewMode === 'markdown' ? 'primary' : 'default'" @click="viewMode = 'markdown'">{{ $t('docs.source') }}</n-button>
         </n-button-group>
-        <n-button size="tiny" quaternary @click="onRefresh" :loading="loading" title="刷新">
+        <n-button size="tiny" quaternary @click="onRefresh" :loading="loading" :title="$t('docs.refreshTitle')">
           <template #icon><span class="refresh-icon">&#8635;</span></template>
         </n-button>
-        <n-button size="tiny" quaternary @click="onExportMD" :disabled="!markdownContent" title="导出 .md 文件">
+        <n-button size="tiny" quaternary @click="onExportMD" :disabled="!markdownContent" :title="$t('docs.exportMdTitle')">
           <template #icon><span class="export-icon">MD</span></template>
         </n-button>
-        <n-button size="tiny" quaternary @click="onExportHTML" :disabled="!htmlContent" title="导出 .html 文件">
+        <n-button size="tiny" quaternary @click="onExportHTML" :disabled="!htmlContent" :title="$t('docs.exportHtmlTitle')">
           <template #icon><span class="export-icon">&lt;/&gt;</span></template>
         </n-button>
       </div>
@@ -25,7 +25,7 @@
 
     <div v-if="loading && !markdownContent" class="docs-loading">
       <span class="loading-spinner"></span>
-      <span>正在生成文档...</span>
+      <span>{{ $t('docs.loading') }}</span>
     </div>
 
     <div v-else-if="error" class="docs-error">
@@ -42,8 +42,11 @@
 
 <script setup lang="ts">
 import { ref, watch } from 'vue'
+import { useI18n } from 'vue-i18n'
 import { NButton, NButtonGroup } from 'naive-ui'
 import { GenerateRequestDocsMarkdown, GenerateRequestDocsHTML } from '../../../wailsjs/go/main/App'
+
+const { t } = useI18n()
 
 const props = defineProps<{
   requestId: number
@@ -69,7 +72,7 @@ async function generateDocs() {
     markdownContent.value = md
     htmlContent.value = html
   } catch (err: any) {
-    error.value = err?.message || err?.toString() || '未知错误'
+    error.value = err?.message || err?.toString() || t('docs.unknownError')
   } finally {
     loading.value = false
   }

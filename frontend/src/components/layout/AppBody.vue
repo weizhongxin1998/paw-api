@@ -16,15 +16,15 @@
       :project-id="currentProjectId"
     />
 
-    <n-modal v-model:show="showRenameModal" preset="card" title="重命名" :class="modalClass" style="width: 360px" :mask-closable="false">
+    <n-modal v-model:show="showRenameModal" preset="card" :title="t('appBody.rename')" :class="modalClass" style="width: 360px" :mask-closable="false">
       <n-form label-placement="top">
-        <n-form-item label="新名称">
-          <n-input v-model:value="renameValue" placeholder="输入新名称" @keydown.enter="onRenameConfirm" />
+        <n-form-item :label="t('common.newName')">
+          <n-input v-model:value="renameValue" :placeholder="t('common.newNamePlaceholder')" @keydown.enter="onRenameConfirm" />
         </n-form-item>
       </n-form>
       <template #footer>
-        <n-button @click="showRenameModal = false">取消</n-button>
-        <n-button type="primary" :disabled="!renameValue.trim()" @click="onRenameConfirm">确定</n-button>
+        <n-button @click="showRenameModal = false">{{ t('common.cancel') }}</n-button>
+        <n-button type="primary" :disabled="!renameValue.trim()" @click="onRenameConfirm">{{ t('common.confirm') }}</n-button>
       </template>
     </n-modal>
   </div>
@@ -32,6 +32,7 @@
 
 <script setup lang="ts">
 import { ref, computed, onMounted } from 'vue'
+import { useI18n } from 'vue-i18n'
 import { useDialog, useMessage, NModal, NForm, NFormItem, NInput, NButton } from 'naive-ui'
 import Sidebar from './Sidebar.vue'
 import Workspace from './Workspace.vue'
@@ -40,6 +41,8 @@ import { useCollectionStore } from '../../stores/collection'
 import { GetRequest, UpdateRequest } from '../../../wailsjs/go/main/App'
 import { models } from '../../../wailsjs/go/models'
 import type { TreeItem } from '../../types/collection'
+
+const { t } = useI18n()
 
 const props = defineProps<{
   projectId: number | null
@@ -93,10 +96,10 @@ async function onTreeAction(action: string, node: TreeItem) {
     }
     case 'delete': {
       dialog.warning({
-        title: '确认删除',
-        content: `确定要删除 "${node.name}" 吗？此操作不可撤销。`,
-        positiveText: '删除',
-        negativeText: '取消',
+        title: t('appBody.confirmDeleteTitle'),
+        content: t('appBody.confirmDeleteContent', { name: node.name }),
+        positiveText: t('common.delete'),
+        negativeText: t('common.cancel'),
         onPositiveClick: async () => {
           try {
             if (node.type === 'folder' || node.type === 'root')
@@ -104,9 +107,9 @@ async function onTreeAction(action: string, node: TreeItem) {
             else
               await collectionStore.removeRequest(node.id)
             await sidebarRef.value?.refreshTree()
-            message.success(`已删除 "${node.name}"`)
+            message.success(t('appBody.deleted', { name: node.name }))
           } catch (e: any) {
-            message.error('删除失败: ' + (e?.message || String(e)))
+            message.error(t('appBody.deleteFailed', { error: e?.message || String(e) }))
           }
         },
       })
@@ -116,9 +119,9 @@ async function onTreeAction(action: string, node: TreeItem) {
       try {
         await collectionStore.duplicateRequest(node.id)
         await sidebarRef.value?.refreshTree()
-        message.success(`已复制 "${node.name}"`)
+        message.success(t('appBody.duplicated', { name: node.name }))
       } catch (e: any) {
-        message.error('复制失败: ' + (e?.message || String(e)))
+        message.error(t('appBody.duplicateFailed', { error: e?.message || String(e) }))
       }
       break
     }
@@ -126,11 +129,11 @@ async function onTreeAction(action: string, node: TreeItem) {
       const parentId = (node.type === 'folder' || node.type === 'root') ? node.id : 0
       if (parentId) {
         try {
-          await collectionStore.createRequest(parentId, '新建请求', 'GET')
+          await collectionStore.createRequest(parentId, t('appBody.newRequest'), 'GET')
           await sidebarRef.value?.refreshTree()
-          message.success('已创建新请求')
+          message.success(t('appBody.newRequestCreated'))
         } catch (e: any) {
-          message.error('创建失败: ' + (e?.message || String(e)))
+          message.error(t('appBody.createFailed', { error: e?.message || String(e) }))
         }
       }
       break
@@ -139,11 +142,11 @@ async function onTreeAction(action: string, node: TreeItem) {
       const parentId = (node.type === 'folder' || node.type === 'root') ? node.id : 0
       if (parentId) {
         try {
-          await collectionStore.createCollection(props.projectId, parentId, '新建文件夹')
+          await collectionStore.createCollection(props.projectId, parentId, t('appBody.newFolder'))
           await sidebarRef.value?.refreshTree()
-          message.success('已创建新文件夹')
+          message.success(t('appBody.newFolderCreated'))
         } catch (e: any) {
-          message.error('创建失败: ' + (e?.message || String(e)))
+          message.error(t('appBody.createFailed', { error: e?.message || String(e) }))
         }
       }
       break
@@ -170,9 +173,9 @@ async function onRenameConfirm() {
       workspaceRef.value?.renameOpenTab(renameNodeId, name)
     }
     showRenameModal.value = false
-    message.success('已重命名')
+    message.success(t('appBody.renamed'))
   } catch (e: any) {
-    message.error('重命名失败: ' + (e?.message || String(e)))
+    message.error(t('appBody.renameFailed', { error: e?.message || String(e) }))
   }
 }
 
@@ -251,7 +254,7 @@ async function onHistoryReplay(item: any) {
     id: newTabId(),
     requestId: request?.id || item.request_id || 0,
     method: request?.method || item.method || 'GET',
-    name: '回放: ' + (request?.name || item.url || ''),
+    name: t('appBody.replayPrefix', { name: request?.name || item.url || '' }),
     url: request?.url || item.url || '',
     pathVars: '[]',
     isDirty: false,

@@ -8,12 +8,12 @@
             class="tab-pill"
             :class="{ active: activePanel === 'collection' }"
             @click="activePanel = 'collection'"
-          >集合</button>
+          >{{ t('sidebar.collections') }}</button>
           <button
             class="tab-pill"
             :class="{ active: activePanel === 'history' }"
             @click="activePanel = 'history'"
-          >历史</button>
+          >{{ t('sidebar.history') }}</button>
         </div>
         <n-dropdown trigger="click" :options="addMenuOptions" @select="onAddMenuSelect">
           <n-button size="tiny" class="add-btn" circle>
@@ -29,7 +29,7 @@
         <n-input
           ref="searchInputRef"
           v-model:value="searchQuery"
-          placeholder="搜索集合..."
+          :placeholder="t('sidebar.searchCollections')"
           size="tiny"
           clearable
           class="search-input"
@@ -69,7 +69,7 @@
           class="rail-btn"
           :class="{ active: activePanel === 'collection' }"
           @click="activePanel = 'collection'; sidebarCollapsed = false"
-          title="集合 (Ctrl+B 展开)"
+          :title="t('sidebar.collectionsExpand')"
         >
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
             <path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/>
@@ -79,7 +79,7 @@
           class="rail-btn"
           :class="{ active: activePanel === 'history' }"
           @click="activePanel = 'history'; sidebarCollapsed = false"
-          title="历史"
+          :title="t('sidebar.historyTooltip')"
         >
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
             <circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/>
@@ -87,37 +87,37 @@
         </button>
         <div class="rail-spacer"></div>
         <n-dropdown trigger="click" :options="addMenuOptions" @select="onAddMenuSelect">
-          <button class="rail-btn rail-add-btn" title="新建">
+          <button class="rail-btn rail-add-btn" :title="t('sidebar.createNew')">
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
           </button>
         </n-dropdown>
       </div>
     </template>
 
-    <n-modal v-model:show="showCollectionModal" preset="card" title="新建集合" :class="modalClass" style="width: 360px" :mask-closable="false">
+    <n-modal v-model:show="showCollectionModal" preset="card" :title="t('sidebar.createCollection')" :class="modalClass" style="width: 360px" :mask-closable="false">
       <n-form label-placement="top">
-        <n-form-item label="名称">
-          <n-input v-model:value="collectionName" placeholder="集合名称" @keydown.enter="onCreateCollection" />
+        <n-form-item :label="t('common.name')">
+          <n-input v-model:value="collectionName" :placeholder="t('sidebar.collectionNamePlaceholder')" @keydown.enter="onCreateCollection" />
         </n-form-item>
       </n-form>
       <template #footer>
-        <n-button @click="showCollectionModal = false">取消</n-button>
-        <n-button type="primary" :disabled="!collectionName.trim()" @click="onCreateCollection">创建</n-button>
+        <n-button @click="showCollectionModal = false">{{ t('common.cancel') }}</n-button>
+        <n-button type="primary" :disabled="!collectionName.trim()" @click="onCreateCollection">{{ t('common.create') }}</n-button>
       </template>
     </n-modal>
 
-    <n-modal v-model:show="showRequestModal" preset="card" title="新建请求" :class="modalClass" style="width: 360px" :mask-closable="false">
+    <n-modal v-model:show="showRequestModal" preset="card" :title="t('sidebar.createRequest')" :class="modalClass" style="width: 360px" :mask-closable="false">
       <n-form label-placement="top">
-        <n-form-item label="名称">
-          <n-input v-model:value="requestName" placeholder="请求名称" @keydown.enter="onCreateRequest" />
+        <n-form-item :label="t('common.name')">
+          <n-input v-model:value="requestName" :placeholder="t('sidebar.requestNamePlaceholder')" @keydown.enter="onCreateRequest" />
         </n-form-item>
-        <n-form-item label="方法">
+        <n-form-item :label="t('sidebar.method')">
           <n-select v-model:value="requestMethod" :options="methodOptions" />
         </n-form-item>
       </n-form>
       <template #footer>
-        <n-button @click="showRequestModal = false">取消</n-button>
-        <n-button type="primary" :disabled="!requestName.trim()" @click="onCreateRequest">创建</n-button>
+        <n-button @click="showRequestModal = false">{{ t('common.cancel') }}</n-button>
+        <n-button type="primary" :disabled="!requestName.trim()" @click="onCreateRequest">{{ t('common.create') }}</n-button>
       </template>
     </n-modal>
   </div>
@@ -125,12 +125,15 @@
 
 <script setup lang="ts">
 import { ref, computed, watch, onMounted, onUnmounted, nextTick } from 'vue'
+import { useI18n } from 'vue-i18n'
 import { NButton, NDropdown, NModal, NForm, NFormItem, NInput, NSelect, useMessage } from 'naive-ui'
 import type { DropdownOption } from 'naive-ui'
 import { useCollectionStore } from '../../stores/collection'
 import CollectionTree from '../collection/CollectionTree.vue'
 import HistoryPanel from '../history/HistoryPanel.vue'
 import type { TreeItem } from '../../types/collection'
+
+const { t } = useI18n()
 
 const props = defineProps<{
   projectId: number | null
@@ -172,10 +175,10 @@ const methodOptions = [
 ]
 
 const addMenuOptions: DropdownOption[] = [
-  { label: '新建请求', key: 'request' },
-  { label: '新建集合', key: 'collection' },
+  { label: t('sidebar.createRequest'), key: 'request' },
+  { label: t('sidebar.createCollection'), key: 'collection' },
   { type: 'divider', key: 'div' },
-  { label: 'API 文档', key: 'docs' },
+  { label: t('sidebar.apiDocs'), key: 'docs' },
 ]
 
 function onAddMenuSelect(key: string) {
@@ -214,13 +217,13 @@ async function onCreateCollection() {
     showCollectionModal.value = false
     collectionName.value = ''
     await refreshTree()
-    message.success(`已创建集合 "${name}"`)
+    message.success(t('sidebar.collectionCreated', { name }))
     // Auto-scroll to newly created item
     nextTick(() => {
       scrollToNewestItem()
     })
   } catch (e: any) {
-    message.error('创建失败: ' + (e?.message || String(e)))
+    message.error(t('sidebar.createFailed', { error: e?.message || String(e) }))
   }
 }
 
@@ -234,12 +237,12 @@ async function onCreateRequest() {
       requestName.value = ''
       requestMethod.value = 'GET'
       await refreshTree()
-      message.success(`已创建请求 "${name}"`)
+      message.success(t('sidebar.requestCreated', { name }))
       nextTick(() => {
         scrollToNewestItem()
       })
     } catch (e: any) {
-      message.error('创建失败: ' + (e?.message || String(e)))
+      message.error(t('sidebar.createFailed', { error: e?.message || String(e) }))
     }
   }
 }

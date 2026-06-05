@@ -2,7 +2,7 @@
   <n-modal
     :show="show"
     preset="card"
-    title="API 文档"
+    :title="$t('docs.title')"
     :class="modalClass"
     style="width: 880px; max-height: 85vh"
     :mask-closable="false"
@@ -14,13 +14,13 @@
         <n-radio-button value="html">
           <span class="mode-label">
             <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="2" y="3" width="20" height="14" rx="2" ry="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>
-            预览
+          {{ $t('docs.preview') }}
           </span>
         </n-radio-button>
         <n-radio-button value="markdown">
           <span class="mode-label">
             <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
-            源码
+          {{ $t('docs.source') }}
           </span>
         </n-radio-button>
       </n-radio-group>
@@ -29,12 +29,12 @@
     <!-- Loading state -->
     <div v-if="loading" class="docs-loading">
       <n-spin size="medium" />
-      <p class="loading-text">正在生成文档...</p>
+      <p class="loading-text">{{ $t('docs.loading') }}</p>
     </div>
 
     <!-- Error state -->
     <div v-else-if="error" class="docs-error">
-      <n-result status="error" title="生成失败" :description="error" />
+      <n-result status="error" :title="$t('docs.generateFailed')" :description="error" />
     </div>
 
     <!-- Empty state -->
@@ -45,8 +45,8 @@
         <line x1="16" y1="13" x2="8" y2="13"/>
         <line x1="16" y1="17" x2="8" y2="17"/>
       </svg>
-      <span class="empty-text">暂无文档内容</span>
-      <span class="empty-hint">请先添加请求后再预览文档</span>
+      <span class="empty-text">{{ $t('docs.empty') }}</span>
+      <span class="empty-hint">{{ $t('docs.emptyHint') }}</span>
     </div>
 
     <!-- HTML preview with browser-like frame -->
@@ -75,7 +75,7 @@
           <template #icon>
             <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/></svg>
           </template>
-          复制全部
+          {{ $t('docs.copyAll') }}
         </n-button>
       </div>
       <pre class="docs-markdown">{{ markdownContent }}</pre>
@@ -83,19 +83,19 @@
 
     <template #footer>
       <div class="modal-footer">
-        <span class="footer-hint" v-if="viewMode === 'html'">Ctrl+P 可打印预览</span>
-        <n-button @click="emit('update:show', false)">关闭</n-button>
+        <span class="footer-hint" v-if="viewMode === 'html'">{{ $t('docs.printHint') }}</span>
+        <n-button @click="emit('update:show', false)">{{ $t('common.close') }}</n-button>
         <n-button type="primary" :disabled="!markdownContent" @click="onExportMD" secondary>
           <template #icon>
             <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
           </template>
-          导出 MD
+          {{ $t('docs.exportMD') }}
         </n-button>
         <n-button type="primary" :disabled="!htmlContent" @click="onExportHTML">
           <template #icon>
             <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
           </template>
-          导出 HTML
+          {{ $t('docs.exportHTML') }}
         </n-button>
       </div>
     </template>
@@ -107,11 +107,13 @@ import { ref, watch, onMounted, onUnmounted, computed } from 'vue'
 import { NModal, NButton, NRadioGroup, NRadioButton, NSpin, NResult, useMessage } from 'naive-ui'
 import { GenerateDocsMarkdown, GenerateDocsHTML } from '../../../wailsjs/go/main/App'
 import { ClipboardSetText } from '../../../wailsjs/runtime/runtime'
+import { useI18n } from 'vue-i18n'
 
 interface Props { show: boolean; projectId: number | null }
 const props = defineProps<Props>()
 const emit = defineEmits<{ 'update:show': [value: boolean] }>()
 const message = useMessage()
+const { t } = useI18n()
 
 const viewMode = ref<'html' | 'markdown'>('html')
 const loading = ref(false)
@@ -136,7 +138,7 @@ async function generateDocs() {
     markdownContent.value = md
     htmlContent.value = html
   } catch (err: any) {
-    error.value = err?.message || err?.toString() || '未知错误'
+    error.value = err?.message || err?.toString() || t('common.unknownError')
   } finally {
     loading.value = false
   }
@@ -163,9 +165,9 @@ function onExportHTML() {
 async function onCopyMarkdown() {
   try {
     await ClipboardSetText(markdownContent.value)
-    message.success('Markdown 已复制到剪贴板')
+    message.success(t('docs.copySuccess'))
   } catch {
-    message.error('复制失败')
+    message.error(t('docs.copyFailed'))
   }
 }
 
@@ -188,7 +190,7 @@ function printHtmlContent() {
     printWindow.focus()
     setTimeout(() => { printWindow.print() }, 400)
   } else {
-    message.warning('无法打开打印窗口，请检查弹窗拦截')
+    message.warning(t('docs.printBlocked'))
   }
 }
 

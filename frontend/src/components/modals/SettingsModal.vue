@@ -2,7 +2,7 @@
   <n-modal
     :show="show"
     preset="card"
-    title="设置"
+    :title="$t('settings.title')"
     :class="modalClass"
     style="width: 780px; height: 700px"
     :mask-closable="false"
@@ -27,7 +27,7 @@
           <span class="nav-icon">
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 102.13-9.36L1 10"/></svg>
           </span>
-          <span class="nav-label">恢复默认</span>
+          <span class="nav-label">{{ $t('settings.restoreDefaults') }}</span>
         </div>
       </div>
 
@@ -37,23 +37,26 @@
         <div v-if="activeNav === 'general'" class="section-panel">
           <div class="section-hdr">
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-2 2 2 2 0 01-2-2v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83 0 2 2 0 010-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 01-2-2 2 2 0 012-2h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 010-2.83 2 2 0 012.83 0l.06.06A1.65 1.65 0 009 4.68a1.65 1.65 0 001-1.51V3a2 2 0 012-2 2 2 0 012 2v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 0 2 2 0 010 2.83l-.06.06A1.65 1.65 0 0019.32 9a1.65 1.65 0 001.51 1H21a2 2 0 012 2 2 2 0 01-2 2h-.09a1.65 1.65 0 00-1.51 1z"/></svg>
-            <span>通用设置</span>
+            <span>{{ $t('settings.general.header') }}</span>
           </div>
           <n-form label-placement="left" label-width="140px">
-            <n-form-item label="请求超时 (s)">
+            <n-form-item :label="$t('settings.general.timeout')">
               <n-input-number v-model:value="timeout" :min="1" :max="300" style="width: 100px" />
             </n-form-item>
-            <n-form-item label="跟随重定向">
+            <n-form-item :label="$t('settings.general.followRedirects')">
               <n-switch v-model:value="followRedirects" />
             </n-form-item>
-            <n-form-item label="最大重定向次数">
+            <n-form-item :label="$t('settings.general.maxRedirects')">
               <n-input-number v-model:value="maxRedirects" :min="0" :max="20" style="width: 100px" :disabled="!followRedirects" />
             </n-form-item>
-            <n-form-item label="SSL 证书验证">
+            <n-form-item :label="$t('settings.general.sslVerify')">
               <n-switch v-model:value="sslVerify" />
               <template #feedback>
-                <span class="form-hint">关闭后可能影响安全性，请谨慎使用</span>
+                <span class="form-hint">{{ $t('settings.general.sslVerifyHint') }}</span>
               </template>
+            </n-form-item>
+            <n-form-item :label="$t('settings.general.language')">
+              <n-select v-model:value="locale" :options="localeOptions" style="width: 160px" />
             </n-form-item>
           </n-form>
         </div>
@@ -63,8 +66,8 @@
           <span class="muted-icon">
             <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.2"><circle cx="12" cy="12" r="10"/><path d="M2 12h20"/><path d="M12 2a15.3 15.3 0 014 10 15.3 15.3 0 01-4 10 15.3 15.3 0 01-4-10 15.3 15.3 0 014-10z"/></svg>
           </span>
-          <span>尚未实现代理功能</span>
-          <span class="muted-sub">将在后续版本中支持 HTTP/SOCKS 代理</span>
+          <span>{{ $t('settings.proxy.placeholder') }}</span>
+          <span class="muted-sub">{{ $t('settings.proxy.placeholderSub') }}</span>
         </div>
 
         <!-- Certificates (placeholder) -->
@@ -72,20 +75,20 @@
           <span class="muted-icon">
             <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.2"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0110 0v4"/></svg>
           </span>
-          <span>尚未配置证书管理</span>
-          <span class="muted-sub">将在后续版本中支持自定义 SSL 证书</span>
+          <span>{{ $t('settings.cert.placeholder') }}</span>
+          <span class="muted-sub">{{ $t('settings.cert.placeholderSub') }}</span>
         </div>
 
         <!-- Appearance -->
         <div v-else-if="activeNav === 'appearance'" class="section-panel">
           <div class="section-hdr">
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>
-            <span>外观设置</span>
+            <span>{{ $t('settings.appearance.header') }}</span>
           </div>
 
           <!-- Theme visual cards -->
           <div class="theme-section">
-            <label class="setting-label">主题</label>
+            <label class="setting-label">{{ $t('settings.appearance.theme') }}</label>
             <div class="theme-cards">
               <div
                 class="theme-card"
@@ -102,7 +105,7 @@
                     </div>
                   </div>
                 </div>
-                <span class="theme-name">夜间</span>
+                <span class="theme-name">{{ $t('settings.appearance.themeDark') }}</span>
               </div>
               <div
                 class="theme-card"
@@ -119,14 +122,14 @@
                     </div>
                   </div>
                 </div>
-                <span class="theme-name">日间</span>
+                <span class="theme-name">{{ $t('settings.appearance.themeLight') }}</span>
               </div>
             </div>
           </div>
 
           <!-- Accent color -->
           <n-form label-placement="left" label-width="140px" class="accent-form">
-            <n-form-item label="主色">
+            <n-form-item :label="$t('settings.appearance.accentColor')">
               <div class="accent-swatches">
                 <div
                   v-for="opt in accentOptions"
@@ -144,9 +147,9 @@
 
           <!-- Font section with live preview -->
           <div class="setting-group">
-            <div class="setting-group-hdr">字体</div>
+            <div class="setting-group-hdr">{{ $t('settings.appearance.font') }}</div>
             <n-form label-placement="left" label-width="140px">
-              <n-form-item label="字体大小">
+              <n-form-item :label="$t('settings.appearance.fontSize')">
                 <div class="font-slider-wrap">
                   <n-slider
                     v-model:value="fontSize"
@@ -160,7 +163,7 @@
                   <span class="fs-val">{{ fontSize }}px</span>
                 </div>
               </n-form-item>
-              <n-form-item label="字体族">
+              <n-form-item :label="$t('settings.appearance.fontFamily')">
                 <n-select v-model:value="fontFamily" :options="fontOptions" style="width: 220px" @update:value="onFontFamilyChange" />
               </n-form-item>
             </n-form>
@@ -175,7 +178,7 @@
         <div v-else-if="activeNav === 'data'" class="section-panel">
           <div class="section-hdr">
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><ellipse cx="12" cy="5" rx="9" ry="3"/><path d="M21 12c0 1.66-4 3-9 3s-9-1.34-9-3"/><path d="M3 5v14c0 1.66 4 3 9 3s9-1.34 9-3V5"/></svg>
-            <span>数据管理</span>
+            <span>{{ $t('settings.data.header') }}</span>
           </div>
           <div class="data-actions">
             <n-button block @click="onBackup" class="data-btn">
@@ -183,8 +186,8 @@
                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
               </template>
               <div class="data-btn-content">
-                <span class="data-btn-title">备份数据</span>
-                <span class="data-btn-desc">将所有项目、请求和环境导出为备份文件</span>
+                <span class="data-btn-title">{{ $t('settings.data.backup') }}</span>
+                <span class="data-btn-desc">{{ $t('settings.data.backupDesc') }}</span>
               </div>
             </n-button>
             <n-button block @click="onRestore" class="data-btn">
@@ -192,8 +195,8 @@
                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 102.13-9.36L1 10"/></svg>
               </template>
               <div class="data-btn-content">
-                <span class="data-btn-title">恢复数据</span>
-                <span class="data-btn-desc">从备份文件恢复所有数据</span>
+                <span class="data-btn-title">{{ $t('settings.data.restore') }}</span>
+                <span class="data-btn-desc">{{ $t('settings.data.restoreDesc') }}</span>
               </div>
             </n-button>
           </div>
@@ -205,10 +208,10 @@
       <div class="settings-footer">
         <span class="autosave-hint" v-if="hasChanges">
           <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>
-          已自动保存
+          {{ $t('settings.autosave.saved') }}
         </span>
-        <span class="autosave-hint" v-else>修改将自动保存</span>
-        <n-button @click="onClose">关闭</n-button>
+        <span class="autosave-hint" v-else>{{ $t('settings.autosave.hint') }}</span>
+        <n-button @click="onClose">{{ $t('settings.close') }}</n-button>
       </div>
     </template>
   </n-modal>
@@ -221,6 +224,9 @@ import {
   NSelect, NSwitch, NSlider, useMessage,
 } from 'naive-ui'
 import { useSettingsStore, applySettingsToDOM } from '../../stores/settings'
+import { useI18n } from 'vue-i18n'
+
+const { t } = useI18n()
 
 const DEFAULTS = {
   timeout: 30,
@@ -248,19 +254,19 @@ onMounted(() => {
 })
 const modalClass = computed(() => isLightMode.value ? 'settings-modal theme-light' : 'settings-modal')
 
-const navTabs = [
-  { key: 'general', label: '通用', icon: '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 11-2.83 2.83l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 11-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 11-2.83-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 110-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 112.83-2.83l.06.06A1.65 1.65 0 009 4.68a1.65 1.65 0 001-1.51V3a2 2 0 114 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 112.83 2.83l-.06.06A1.65 1.65 0 0019.32 9a1.65 1.65 0 001.51 1H21a2 2 0 110 4h-.09a1.65 1.65 0 00-1.51 1z"/></svg>' },
-  { key: 'proxy', label: '代理', icon: '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><path d="M2 12h20"/><path d="M12 2a15.3 15.3 0 014 10 15.3 15.3 0 01-4 10 15.3 15.3 0 01-4-10 15.3 15.3 0 014-10z"/></svg>' },
-  { key: 'cert', label: '证书', icon: '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0110 0v4"/></svg>' },
-  { key: 'appearance', label: '外观', icon: '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>' },
-  { key: 'data', label: '数据', icon: '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><ellipse cx="12" cy="5" rx="9" ry="3"/><path d="M21 12c0 1.66-4 3-9 3s-9-1.34-9-3"/><path d="M3 5v14c0 1.66 4 3 9 3s9-1.34 9-3V5"/></svg>' },
-]
+const navTabs = computed(() => [
+  { key: 'general', label: t('settings.nav.general'), icon: '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 11-2.83 2.83l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 11-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 11-2.83-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 110-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 112.83-2.83l.06.06A1.65 1.65 0 009 4.68a1.65 1.65 0 001-1.51V3a2 2 0 114 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 112.83 2.83l-.06.06A1.65 1.65 0 0019.32 9a1.65 1.65 0 001.51 1H21a2 2 0 110 4h-.09a1.65 1.65 0 00-1.51 1z"/></svg>' },
+  { key: 'proxy', label: t('settings.nav.proxy'), icon: '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><path d="M2 12h20"/><path d="M12 2a15.3 15.3 0 014 10 15.3 15.3 0 01-4 10 15.3 15.3 0 01-4-10 15.3 15.3 0 014-10z"/></svg>' },
+  { key: 'cert', label: t('settings.nav.cert'), icon: '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0110 0v4"/></svg>' },
+  { key: 'appearance', label: t('settings.nav.appearance'), icon: '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>' },
+  { key: 'data', label: t('settings.nav.data'), icon: '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><ellipse cx="12" cy="5" rx="9" ry="3"/><path d="M21 12c0 1.66-4 3-9 3s-9-1.34-9-3"/><path d="M3 5v14c0 1.66 4 3 9 3s9-1.34 9-3V5"/></svg>' },
+])
 
-const accentOptions = [
-  { label: '绿色', value: 'green' },
-  { label: '蓝色', value: 'blue' },
-  { label: '紫色', value: 'purple' },
-]
+const accentOptions = computed(() => [
+  { label: t('settings.accent.green'), value: 'green' },
+  { label: t('settings.accent.blue'), value: 'blue' },
+  { label: t('settings.accent.purple'), value: 'purple' },
+])
 
 const activeNav = ref('general')
 const hasChanges = ref(false)
@@ -274,6 +280,11 @@ const theme = ref(settingsStore.settings.theme ?? 'dark')
 const accentColor = ref(settingsStore.settings.accentColor ?? 'green')
 const fontSize = ref(settingsStore.settings.fontSize ?? 13)
 const fontFamily = ref(settingsStore.settings.fontFamily ?? 'JetBrains Mono')
+const locale = ref(settingsStore.settings.locale ?? 'zh-CN')
+const localeOptions = [
+  { label: '简体中文', value: 'zh-CN' },
+  { label: 'English', value: 'en-US' },
+]
 
 const fontOptions = settingsStore.FONT_FAMILIES
 
@@ -294,6 +305,7 @@ function applyToStore() {
   s.accentColor = accentColor.value
   s.fontSize = fontSize.value
   s.fontFamily = fontFamily.value
+  s.locale = locale.value
   hasChanges.value = true
   // Auto-hide the "saved" indicator after 2s
   if (saveTimer) clearTimeout(saveTimer)
@@ -301,7 +313,7 @@ function applyToStore() {
 }
 
 // Watch all local refs and auto-save
-watch([timeout, followRedirects, maxRedirects, sslVerify, theme, accentColor, fontSize, fontFamily], () => {
+watch([timeout, followRedirects, maxRedirects, sslVerify, theme, accentColor, fontSize, fontFamily, locale], () => {
   applyToStore()
 })
 
@@ -327,14 +339,14 @@ function onRestoreDefaults() {
   fontFamily.value = DEFAULTS.fontFamily
   applyToStore()
   onFontFamilyChange()
-  message.success('已恢复默认设置')
+  message.success(t('settings.restoreDefaultsSuccess'))
 }
 
 // -- Navigation --
 function onClose() { emit('update:show', false) }
 
-function onBackup() { message.info('备份功能即将推出') }
-function onRestore() { message.info('恢复功能即将推出') }
+function onBackup() { message.info(t('settings.data.backupComingSoon')) }
+function onRestore() { message.info(t('settings.data.restoreComingSoon')) }
 </script>
 
 <style scoped>

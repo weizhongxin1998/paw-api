@@ -17,7 +17,7 @@
         <span class="home-version">v1.0</span>
       </div>
       <div class="home-actions">
-        <button class="btn-theme" @click="emit('toggle-theme')" :title="props.themeMode === 'dark' ? '日间模式' : '夜间模式'">
+        <button class="btn-theme" @click="emit('toggle-theme')" :title="props.themeMode === 'dark' ? t('projectHome.dayMode') : t('projectHome.nightMode')">
           <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
             <circle v-if="props.themeMode === 'dark'" cx="12" cy="12" r="5"/><line v-if="props.themeMode === 'dark'" x1="12" y1="1" x2="12" y2="3"/><line v-if="props.themeMode === 'dark'" x1="12" y1="21" x2="12" y2="23"/><line v-if="props.themeMode === 'dark'" x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line v-if="props.themeMode === 'dark'" x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line v-if="props.themeMode === 'dark'" x1="1" y1="12" x2="3" y2="12"/><line v-if="props.themeMode === 'dark'" x1="21" y1="12" x2="23" y2="12"/><line v-if="props.themeMode === 'dark'" x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line v-if="props.themeMode === 'dark'" x1="18.36" y1="5.64" x2="19.78" y2="4.22"/>
             <path v-else d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>
@@ -27,9 +27,9 @@
           <template #icon>
             <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
           </template>
-          导入
+          {{ t('projectHome.import') }}
         </n-button>
-        <n-button type="primary" size="tiny" @click="showCreate = true">+ 新建项目</n-button>
+        <n-button type="primary" size="tiny" @click="showCreate = true">{{ t('projectHome.newProject') }}</n-button>
       </div>
     </div>
 
@@ -38,7 +38,7 @@
       <n-input
         ref="searchInputRef"
         v-model:value="searchQuery"
-        placeholder="搜索项目..."
+        :placeholder="t('projectHome.searchProjects')"
         clearable
         size="small"
         class="search-input"
@@ -51,7 +51,7 @@
         </template>
       </n-input>
       <span class="project-count" v-if="projectList.length > 0">
-        {{ filteredProjects.length }}<template v-if="searchQuery && filteredProjects.length !== projectList.length"> / </template><template v-if="searchQuery && filteredProjects.length !== projectList.length">{{ projectList.length }}</template> 个项目
+        {{ t('projectHome.projectCount', { count: filteredProjects.length + (searchQuery && filteredProjects.length !== projectList.length ? ' / ' + projectList.length : '') }) }}
       </span>
     </div>
 
@@ -87,12 +87,12 @@
             <div class="card-stats">
               <span class="stat">
                 <span class="stat-num">{{ p.stats?.request_count ?? 0 }}</span>
-                <span class="stat-label">接口</span>
+                <span class="stat-label">{{ t('projectHome.statInterfaces') }}</span>
               </span>
               <span class="stat-divider"></span>
               <span class="stat">
                 <span class="stat-num">{{ p.stats?.collection_count ?? 0 }}</span>
-                <span class="stat-label">集合</span>
+                <span class="stat-label">{{ t('projectHome.statCollections') }}</span>
               </span>
             </div>
             <div class="card-footer-right">
@@ -100,7 +100,7 @@
               <div class="card-actions">
                 <button
                   class="card-action-btn"
-                  title="编辑"
+                  :title="t('common.edit')"
                   @click.stop="onStartRename(p)"
                 >
                   <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -109,7 +109,7 @@
                 </button>
                 <button
                   class="card-action-btn card-action-delete"
-                  title="删除"
+                  :title="t('common.delete')"
                   @click.stop="onStartDelete(p)"
                 >
                   <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -142,9 +142,9 @@
           <div class="empty-ring empty-ring-2"></div>
           <div class="paw-float"></div>
         </div>
-        <h2 class="empty-title">还没有项目</h2>
-        <p class="empty-desc">创建第一个项目，开始调试 API</p>
-        <n-button type="primary" @click="showCreate = true">+ 新建项目</n-button>
+        <h2 class="empty-title">{{ t('projectHome.noProjects') }}</h2>
+        <p class="empty-desc">{{ t('projectHome.noProjectsDesc') }}</p>
+        <n-button type="primary" @click="showCreate = true">{{ t('projectHome.newProject') }}</n-button>
       </div>
 
       <!-- ── Empty: search yields no results ── -->
@@ -153,7 +153,7 @@
           <circle cx="11" cy="11" r="8" opacity="0.3"/><line x1="21" y1="21" x2="16.65" y2="16.65" opacity="0.3"/>
           <line x1="8" y1="8" x2="14" y2="14" opacity="0.5"/><line x1="14" y1="8" x2="8" y2="14" opacity="0.5"/>
         </svg>
-        <p class="empty-filter-text">没有匹配 "{{ searchQuery }}" 的项目</p>
+        <p class="empty-filter-text">{{ t('projectHome.noMatch', { query: searchQuery }) }}</p>
       </div>
     </div>
 
@@ -171,43 +171,43 @@
     />
 
     <!-- ═══ Create Project Modal ═══ -->
-    <n-modal v-model:show="showCreate" preset="card" title="新建项目" :class="modalClass" style="width: 400px" :mask-closable="false">
+    <n-modal v-model:show="showCreate" preset="card" :title="t('projectHome.createProject')" :class="modalClass" style="width: 400px" :mask-closable="false">
       <n-form label-placement="top">
-        <n-form-item label="名称">
-          <n-input v-model:value="newName" placeholder="项目名称" @keydown.enter="onCreate" />
+        <n-form-item :label="t('common.name')">
+          <n-input v-model:value="newName" :placeholder="t('projectHome.namePlaceholder')" @keydown.enter="onCreate" />
         </n-form-item>
-        <n-form-item label="描述">
-          <n-input v-model:value="newDesc" placeholder="项目描述（可选）" @keydown.enter="onCreate" />
+        <n-form-item :label="t('common.description')">
+          <n-input v-model:value="newDesc" :placeholder="t('projectHome.descPlaceholder')" @keydown.enter="onCreate" />
         </n-form-item>
       </n-form>
       <template #footer>
-        <n-button @click="showCreate = false">取消</n-button>
-        <n-button type="primary" :disabled="!newName.trim()" @click="onCreate">创建</n-button>
+        <n-button @click="showCreate = false">{{ t('common.cancel') }}</n-button>
+        <n-button type="primary" :disabled="!newName.trim()" @click="onCreate">{{ t('common.create') }}</n-button>
       </template>
     </n-modal>
 
     <!-- ═══ Edit Project Modal ═══ -->
-    <n-modal v-model:show="showRename" preset="card" title="编辑项目" :class="modalClass" style="width: 400px" :mask-closable="false">
+    <n-modal v-model:show="showRename" preset="card" :title="t('projectHome.editProject')" :class="modalClass" style="width: 400px" :mask-closable="false">
       <n-form label-placement="top">
-        <n-form-item label="名称">
+        <n-form-item :label="t('common.name')">
           <n-input
             ref="renameInputRef"
             v-model:value="renameValue"
-            placeholder="项目名称"
+            :placeholder="t('projectHome.namePlaceholder')"
             @keydown.enter="onRenameConfirm"
           />
         </n-form-item>
-        <n-form-item label="描述">
+        <n-form-item :label="t('common.description')">
           <n-input
             v-model:value="renameDesc"
-            placeholder="项目描述（可选）"
+            :placeholder="t('projectHome.descPlaceholder')"
             @keydown.enter="onRenameConfirm"
           />
         </n-form-item>
       </n-form>
       <template #footer>
-        <n-button @click="showRename = false">取消</n-button>
-        <n-button type="primary" :disabled="!renameValue.trim()" @click="onRenameConfirm">保存</n-button>
+        <n-button @click="showRename = false">{{ t('common.cancel') }}</n-button>
+        <n-button type="primary" :disabled="!renameValue.trim()" @click="onRenameConfirm">{{ t('common.save') }}</n-button>
       </template>
     </n-modal>
   </div>
@@ -215,6 +215,7 @@
 
 <script setup lang="ts">
 import { ref, computed, onMounted, nextTick, watch, h, type VNode } from 'vue'
+import { useI18n } from 'vue-i18n'
 import {
   NButton, NModal, NForm, NFormItem, NInput, NDropdown,
   useMessage, useDialog
@@ -222,6 +223,8 @@ import {
 import {
   ListProjects, CreateProject, GetProjectStats, DeleteProject, UpdateProject
 } from '../../../wailsjs/go/main/App'
+
+const { t } = useI18n()
 
 /* ──────────────────────────── Types ──────────────────────────── */
 
@@ -277,7 +280,7 @@ const contextTargetId = ref<number | null>(null)
 
 const contextOptions = computed(() => [
   {
-    label: '编辑',
+    label: t('common.edit'),
     key: 'rename',
     icon: () => h('svg', {
       width: 14, height: 14, viewBox: '0 0 24 24',
@@ -289,7 +292,7 @@ const contextOptions = computed(() => [
   },
   { type: 'divider' as const, key: 'd1' },
   {
-    label: '删除',
+    label: t('common.delete'),
     key: 'delete',
     icon: () => h('svg', {
       width: 14, height: 14, viewBox: '0 0 24 24',
@@ -321,16 +324,16 @@ function relativeTime(ts: number): string {
   const ms = ts > 1e12 ? ts : ts * 1000
   const diff = Math.max(0, Date.now() - ms)
   const seconds = Math.floor(diff / 1000)
-  if (seconds < 60) return '刚刚打开'
+  if (seconds < 60) return t('time.justNow')
   const minutes = Math.floor(seconds / 60)
-  if (minutes < 60) return `${minutes}分钟前打开`
+  if (minutes < 60) return t('time.minutesAgo', { n: minutes })
   const hours = Math.floor(minutes / 60)
-  if (hours < 24) return `${hours}小时前打开`
+  if (hours < 24) return t('time.hoursAgo', { n: hours })
   const days = Math.floor(hours / 24)
-  if (days < 30) return `${days}天前打开`
+  if (days < 30) return t('time.daysAgo', { n: days })
   const months = Math.floor(days / 30)
-  if (months < 12) return `${months}个月前打开`
-  return `${Math.floor(months / 12)}年前打开`
+  if (months < 12) return t('time.monthsAgo', { n: months })
+  return t('time.yearsAgo', { n: Math.floor(months / 12) })
 }
 
 /* ──────────────────────────── Data loading ───────────────────── */
@@ -369,11 +372,11 @@ async function onCreate() {
     showCreate.value = false
     newName.value = ''
     newDesc.value = ''
-    message.success(`已创建项目 "${name}"`)
+    message.success(t('projectHome.projectCreated', { name }))
     await loadProjects()
     enterProject(p.id)
   } catch (e: any) {
-    message.error('创建失败: ' + (e?.message || String(e)))
+    message.error(t('projectHome.createFailed', { error: e?.message || String(e) }))
   }
 }
 
@@ -396,17 +399,17 @@ function onStartRename(p: ProjectCard) {
 
 function onStartDelete(p: ProjectCard) {
   dialog.warning({
-    title: '确认删除',
-    content: `确定要删除项目 "${p.name}" 吗？此操作不可撤销。`,
-    positiveText: '删除',
-    negativeText: '取消',
+    title: t('projectHome.confirmDeleteTitle'),
+    content: t('projectHome.confirmDeleteContent', { name: p.name }),
+    positiveText: t('common.delete'),
+    negativeText: t('common.cancel'),
     onPositiveClick: async () => {
       try {
         await DeleteProject(p.id)
-        message.success(`已删除项目 "${p.name}"`)
+        message.success(t('projectHome.projectDeleted', { name: p.name }))
         await loadProjects()
       } catch (e: any) {
-        message.error('删除失败: ' + (e?.message || String(e)))
+        message.error(t('projectHome.deleteFailed', { error: e?.message || String(e) }))
       }
     }
   })
@@ -447,10 +450,10 @@ async function onRenameConfirm() {
   try {
     await UpdateProject(renameTargetId.value, name, renameDesc.value.trim())
     showRename.value = false
-    message.success('已保存')
+    message.success(t('common.save'))
     await loadProjects()
   } catch (e: any) {
-    message.error('保存失败: ' + (e?.message || String(e)))
+    message.error(t('projectHome.saveFailed', { error: e?.message || String(e) }))
   }
 }
 

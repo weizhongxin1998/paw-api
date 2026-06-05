@@ -1,5 +1,5 @@
 <template>
-  <n-config-provider :theme-overrides="themeOverrides" :theme="nTheme">
+  <n-config-provider :theme-overrides="themeOverrides" :theme="nTheme" :locale="naiveLocale" :date-locale="naiveDateLocale">
     <n-global-style />
     <n-dialog-provider>
       <n-message-provider>
@@ -41,6 +41,7 @@ import { useProjectStore } from './stores/project'
 import { useCollectionStore } from './stores/collection'
 import { useEnvStore } from './stores/env'
 import { useSettingsStore, buildNaiveOverrides } from './stores/settings'
+import { getNaiveLocale } from './i18n/naive-locales'
 
 const projectStore = useProjectStore()
 const collectionStore = useCollectionStore()
@@ -49,6 +50,10 @@ const settingsStore = useSettingsStore()
 
 const themeMode = ref<'dark' | 'light'>('dark')
 const nTheme = computed(() => themeMode.value === 'dark' ? darkTheme : null)
+
+const naiveLocalePair = computed(() => getNaiveLocale(settingsStore.settings.locale))
+const naiveLocale = computed(() => naiveLocalePair.value.locale)
+const naiveDateLocale = computed(() => naiveLocalePair.value.dateLocale)
 
 const themeOverrides = ref<GlobalThemeOverrides>(
   buildNaiveOverrides(settingsStore.settings, true)

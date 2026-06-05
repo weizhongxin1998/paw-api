@@ -1,7 +1,7 @@
 <template>
   <div class="header">
     <div class="header-left">
-      <n-button text size="tiny" @click="goHome" title="返回项目列表" class="back-btn">
+      <n-button text size="tiny" @click="goHome" :title="t('header.backToProjects')" class="back-btn">
         <template #icon>
           <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
             <line x1="19" y1="12" x2="5" y2="12"/>
@@ -17,7 +17,7 @@
         ref="projectDropdownRef"
       >
         <n-button size="tiny" class="project-btn" ref="projectBtnRef">
-          <span class="project-btn-label">{{ projectStore.currentProject?.name || '未选择项目' }}</span>
+          <span class="project-btn-label">{{ projectStore.currentProject?.name || t('header.noProjectSelected') }}</span>
           <svg class="project-btn-chevron" width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
             <polyline points="6 9 12 15 18 9"/>
           </svg>
@@ -63,26 +63,26 @@
     <n-modal
       v-model:show="showCreateModal"
       preset="card"
-      title="新建项目"
+      :title="t('header.createProject')"
       :class="modalClass"
       style="width: 380px"
       :mask-closable="false"
       @after-enter="onCreateModalOpened"
     >
       <n-form label-placement="top">
-        <n-form-item label="名称">
+        <n-form-item :label="t('common.name')">
           <n-input
             ref="createNameInputRef"
             v-model:value="newProjectName"
-            placeholder="项目名称"
+            :placeholder="t('header.projectNamePlaceholder')"
             @keydown.enter="onCreateProject"
             @keydown="onCreateModalKeydown"
           />
         </n-form-item>
-        <n-form-item label="描述">
+        <n-form-item :label="t('common.description')">
           <n-input
             v-model:value="newProjectDesc"
-            placeholder="项目描述（可选）"
+            :placeholder="t('header.projectDescPlaceholder')"
             @keydown.enter="onCreateProject"
             @keydown="onCreateModalKeydown"
           />
@@ -90,9 +90,9 @@
       </n-form>
       <template #footer>
         <div class="modal-footer">
-          <n-button @click="showCreateModal = false">取消</n-button>
+          <n-button @click="showCreateModal = false">{{ t('common.cancel') }}</n-button>
           <n-button type="primary" :disabled="!newProjectName.trim()" @click="onCreateProject">
-            创建
+            {{ t('common.create') }}
             <span class="shortcut-hint">Ctrl+Enter</span>
           </n-button>
         </div>
@@ -103,11 +103,14 @@
 
 <script setup lang="ts">
 import { ref, computed, onMounted, onUnmounted, nextTick } from 'vue'
+import { useI18n } from 'vue-i18n'
 import { NButton, NDropdown, NModal, NForm, NFormItem, NInput, useMessage } from 'naive-ui'
 import { useProjectStore } from '../../stores/project'
 import { useEnvStore } from '../../stores/env'
 import EnvSelector from '../environment/EnvSelector.vue'
 import SettingsModal from '../modals/SettingsModal.vue'
+
+const { t } = useI18n()
 
 const props = defineProps<{ themeMode: 'dark' | 'light' }>()
 const projectStore = useProjectStore()
@@ -132,7 +135,7 @@ const createNameInputRef = ref<InstanceType<typeof NInput> | null>(null)
 const isLightMode = ref(false)
 const modalClass = computed(() => isLightMode.value ? 'create-project-modal theme-light' : 'create-project-modal')
 
-const themeLabel = computed(() => props.themeMode === 'dark' ? '日间模式' : '夜间模式')
+const themeLabel = computed(() => props.themeMode === 'dark' ? t('header.dayMode') : t('header.nightMode'))
 
 const projectDropdownOptions = computed(() => {
   const items: Array<{ label?: string; key: string; disabled?: boolean; type?: string }> = projectStore.projects.map(p => ({
@@ -142,8 +145,8 @@ const projectDropdownOptions = computed(() => {
   }))
   items.push(
     { type: 'divider', key: 'div' },
-    { label: '+ 新建项目          Ctrl+N', key: '__create__' },
-    { label: '返回项目列表', key: '__home__' },
+    { label: t('header.newProjectMenu') + '          Ctrl+N', key: '__create__' },
+    { label: t('header.backToProjectsMenu'), key: '__home__' },
   )
   return items as any
 })
@@ -190,10 +193,10 @@ async function onCreateProject() {
     showCreateModal.value = false
     newProjectName.value = ''
     newProjectDesc.value = ''
-    message.success(`已创建项目 "${name}"`)
+    message.success(t('header.projectCreated', { name }))
     emit('projectChanged', p.id)
   } catch (e: any) {
-    message.error('创建失败: ' + (e?.message || String(e)))
+    message.error(t('header.projectCreateFailed', { error: e?.message || String(e) }))
   }
 }
 

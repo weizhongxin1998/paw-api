@@ -10,8 +10,8 @@
             <line x1="8" y1="11" x2="14" y2="11"/>
           </svg>
         </div>
-        <p class="empty-text">未找到匹配 "{{ searchFilter }}" 的请求</p>
-        <p class="empty-hint">尝试使用不同的关键词</p>
+        <p class="empty-text">{{ $t('collection.searchNoResults', { query: searchFilter }) }}</p>
+        <p class="empty-hint">{{ $t('collection.searchHint') }}</p>
       </template>
       <template v-else>
         <!-- No collections at all -->
@@ -22,8 +22,8 @@
             <line x1="9" y1="14" x2="15" y2="14"/>
           </svg>
         </div>
-        <p class="empty-text">创建第一个集合</p>
-        <p class="empty-hint">点击右上角 + 按钮开始组织你的 API 请求</p>
+        <p class="empty-text">{{ $t('collection.empty') }}</p>
+        <p class="empty-hint">{{ $t('collection.emptyHint') }}</p>
       </template>
     </div>
 
@@ -42,8 +42,11 @@
 
 <script setup lang="ts">
 import { computed } from 'vue'
+import { useI18n } from 'vue-i18n'
 import TreeNode from './TreeNode.vue'
 import type { TreeItem } from '../../types/collection'
+
+const { t } = useI18n()
 
 const props = defineProps<{
   tree: TreeItem[]

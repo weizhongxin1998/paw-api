@@ -17,7 +17,7 @@
         v-model="editingURL"
         class="url-input-editing"
         :class="{ hasPrefix: baseURLPrefix }"
-        placeholder="/v1/users"
+        :placeholder="$t('url.placeholder')"
         @blur="stopEdit"
         @keydown.enter="onEnter"
         @focus="onInputFocus"
@@ -48,16 +48,16 @@
       :class="{ 'send-btn--loading': isLoading }"
       @click="onSendClick"
       :disabled="isLoading"
-      title="发送请求 (Ctrl+Enter)"
+      :title="$t('url.sendTitle')"
     >
       <span v-if="isLoading" class="send-spinner"></span>
-      <span class="send-label">发送</span>
+      <span class="send-label">{{ $t('url.send') }}</span>
       <span class="send-arrow">→</span>
     </button>
     <button
       class="save-btn"
       @click="$emit('save')"
-      title="保存接口 (Ctrl+S)"
+      :title="$t('url.saveTitle')"
     >
       <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
         <path d="M19 21H5a2 2 0 01-2-2V5a2 2 0 012-2h11l5 5v11z"/>
@@ -69,10 +69,13 @@
 
 <script setup lang="ts">
 import { ref, computed, nextTick, h, onMounted, onBeforeUnmount } from 'vue'
+import { useI18n } from 'vue-i18n'
 import { NSelect } from 'naive-ui'
 import type { SelectOption } from 'naive-ui'
 import { ResolveVariable } from '../../../wailsjs/go/main/App'
 import { useEnvStore } from '../../stores/env'
+
+const { t } = useI18n()
 
 interface UrlSegment {
   type: 'text' | 'var'
@@ -317,7 +320,7 @@ function onVarHover(e: MouseEvent) {
       try {
         resolvedVarText.value = await ResolveVariable(varName, envId)
       } catch {
-        resolvedVarText.value = '(解析失败)'
+        resolvedVarText.value = t('url.resolveFailed')
       }
     }, 200)
   }

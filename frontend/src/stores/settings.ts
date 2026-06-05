@@ -1,6 +1,7 @@
 import { defineStore } from 'pinia'
 import { reactive, watch } from 'vue'
 import type { GlobalThemeOverrides } from 'naive-ui'
+import { setI18nLocale, type Locale } from '../i18n'
 
 export interface Settings {
   timeout: number
@@ -11,6 +12,7 @@ export interface Settings {
   accentColor: string
   fontSize: number
   fontFamily: string
+  locale: Locale
 }
 
 const FONT_FAMILIES = [
@@ -179,10 +181,15 @@ export const useSettingsStore = defineStore('settings', () => {
     accentColor: 'green',
     fontSize: 13,
     fontFamily: 'JetBrains Mono',
+    locale: 'zh-CN',
   })
 
   watch(() => [settings.fontSize, settings.fontFamily] as const, () => {
     applySettingsToDOM(settings)
+  }, { immediate: true })
+
+  watch(() => settings.locale, (locale) => {
+    setI18nLocale(locale)
   }, { immediate: true })
 
   return { settings, FONT_FAMILIES }
