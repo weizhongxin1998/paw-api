@@ -40,7 +40,7 @@ import ProjectHome from './components/layout/ProjectHome.vue'
 import { useProjectStore } from './stores/project'
 import { useCollectionStore } from './stores/collection'
 import { useEnvStore } from './stores/env'
-import { useSettingsStore, buildNaiveOverrides } from './stores/settings'
+import { useSettingsStore, buildNaiveOverrides, isThemeDark, type Theme } from './stores/settings'
 import { getNaiveLocale } from './i18n/naive-locales'
 
 const projectStore = useProjectStore()
@@ -48,11 +48,11 @@ const collectionStore = useCollectionStore()
 const envStore = useEnvStore()
 const settingsStore = useSettingsStore()
 
-const themeMode = ref<'dark' | 'light'>((settingsStore.settings.theme as 'dark' | 'light') || 'light')
-const nTheme = computed(() => themeMode.value === 'dark' ? darkTheme : null)
+const themeMode = ref<Theme>((settingsStore.settings.theme as Theme) || 'light')
+const nTheme = computed(() => isThemeDark(themeMode.value) ? darkTheme : null)
 
 watch(() => settingsStore.settings.theme, (t) => {
-  themeMode.value = (t as 'dark' | 'light') || 'light'
+  themeMode.value = (t as Theme) || 'light'
 })
 
 const naiveLocalePair = computed(() => getNaiveLocale(settingsStore.settings.locale))
@@ -60,7 +60,7 @@ const naiveLocale = computed(() => naiveLocalePair.value.locale)
 const naiveDateLocale = computed(() => naiveLocalePair.value.dateLocale)
 
 const themeOverrides = computed(() =>
-  buildNaiveOverrides(settingsStore.settings, settingsStore.settings.theme === 'dark')
+  buildNaiveOverrides(settingsStore.settings, isThemeDark(settingsStore.settings.theme))
 )
 
 async function onEnterProject(id: number) {
@@ -76,7 +76,7 @@ async function onProjectChanged(id: number) {
 }
 
 function toggleTheme() {
-  settingsStore.settings.theme = settingsStore.settings.theme === 'dark' ? 'light' : 'dark'
+  settingsStore.settings.theme = settingsStore.settings.theme === 'light' ? 'dark' : 'light'
 }
 
 onMounted(async () => {
@@ -227,6 +227,206 @@ defineExpose({ toggleTheme, themeMode })
   --shadow: 0 2px 8px rgba(0,0,0,0.08);
   --shadow-lg: 0 8px 24px rgba(0,0,0,0.12);
   --shadow-glow: 0 0 16px var(--accent-glow);
+}
+
+/* ════════════════════════════════════════════════════════════
+   Warm Theme — 暖色护眼
+   ════════════════════════════════════════════════════════════ */
+.theme-warm {
+  --bg-base: #1f1a14;
+  --bg-surface: #262017;
+  --bg-elevated: #2d261c;
+  --bg-hover: #332b20;
+  --bg-active: #3a3125;
+  --bg-inset: #17130e;
+  --border-primary: #3d3228;
+  --border-hover: #5c4d3b;
+  --border-focus: #d97706;
+  --border-subtle: rgba(200,160,100,0.04);
+  --text-primary: #e6d4b8;
+  --text-secondary: #b09878;
+  --text-muted: #806850;
+  --text-placeholder: #6b5a42;
+  --text-inverse: #1f1a14;
+  --accent: #f0a848;
+  --accent-hover: #f5b85e;
+  --accent-pressed: #d8922f;
+  --accent-soft: rgba(240,168,72,0.07);
+  --accent-glow: rgba(240,168,72,0.14);
+  --accent-glow-strong: rgba(240,168,72,0.28);
+  --accent-text: #f0a848;
+  --red: #e05548;
+  --red-hover: #f07065;
+  --red-soft: rgba(224,85,72,0.1);
+  --amber: #d9a05b;
+  --amber-soft: rgba(217,160,91,0.1);
+  --blue: #7b9ec7;
+  --blue-soft: rgba(123,158,199,0.1);
+  --purple: #b898c8;
+  --purple-soft: rgba(184,152,200,0.1);
+  --cyan: #7bb8b0;
+  --cyan-soft: rgba(123,184,176,0.1);
+  --method-get: #7b9ec7;
+  --method-post: #8bba6a;
+  --method-put: #d9a05b;
+  --method-patch: #b898c8;
+  --method-delete: #e05548;
+  --method-head: #7bb8b0;
+  --method-options: #806850;
+  --shadow-sm: 0 1px 2px rgba(0,0,0,0.2);
+  --shadow: 0 2px 8px rgba(0,0,0,0.3);
+  --shadow-lg: 0 8px 24px rgba(0,0,0,0.4);
+  --shadow-glow: 0 0 20px var(--accent-glow);
+}
+
+/* ════════════════════════════════════════════════════════════
+   Nord Theme — 冰湖蓝灰
+   ════════════════════════════════════════════════════════════ */
+.theme-nord {
+  --bg-base: #1f2535;
+  --bg-surface: #242b3c;
+  --bg-elevated: #293148;
+  --bg-hover: #2e364d;
+  --bg-active: #333c55;
+  --bg-inset: #191e2c;
+  --border-primary: #313b50;
+  --border-hover: #4a5670;
+  --border-focus: #5eead4;
+  --border-subtle: rgba(100,140,180,0.04);
+  --text-primary: #dde4ee;
+  --text-secondary: #a0aec0;
+  --text-muted: #6b7a8d;
+  --text-placeholder: #52607a;
+  --text-inverse: #1f2535;
+  --accent: #5eead4;
+  --accent-hover: #7df0de;
+  --accent-pressed: #4ac0ac;
+  --accent-soft: rgba(94,234,212,0.07);
+  --accent-glow: rgba(94,234,212,0.14);
+  --accent-glow-strong: rgba(94,234,212,0.28);
+  --accent-text: #5eead4;
+  --red: #e06070;
+  --red-hover: #f08090;
+  --red-soft: rgba(224,96,112,0.1);
+  --amber: #e0b060;
+  --amber-soft: rgba(224,176,96,0.1);
+  --blue: #7b9ed0;
+  --blue-soft: rgba(123,158,208,0.1);
+  --purple: #b898d8;
+  --purple-soft: rgba(184,152,216,0.1);
+  --cyan: #78c8c0;
+  --cyan-soft: rgba(120,200,192,0.1);
+  --method-get: #7b9ed0;
+  --method-post: #90c878;
+  --method-put: #e0b060;
+  --method-patch: #b898d8;
+  --method-delete: #e06070;
+  --method-head: #78c8c0;
+  --method-options: #6b7a8d;
+  --shadow-sm: 0 1px 2px rgba(0,0,0,0.2);
+  --shadow: 0 2px 8px rgba(0,0,0,0.3);
+  --shadow-lg: 0 8px 24px rgba(0,0,0,0.4);
+  --shadow-glow: 0 0 20px var(--accent-glow);
+}
+
+/* ════════════════════════════════════════════════════════════
+   Catppuccin Theme — 薄暮柔紫
+   ════════════════════════════════════════════════════════════ */
+.theme-catppuccin {
+  --bg-base: #1a1826;
+  --bg-surface: #201e30;
+  --bg-elevated: #27243a;
+  --bg-hover: #2d2a42;
+  --bg-active: #33304a;
+  --bg-inset: #13121e;
+  --border-primary: #353058;
+  --border-hover: #524a75;
+  --border-focus: #c4a0f8;
+  --border-subtle: rgba(140,120,200,0.04);
+  --text-primary: #dedcf0;
+  --text-secondary: #b8b4d0;
+  --text-muted: #7a7698;
+  --text-placeholder: #656080;
+  --text-inverse: #1a1826;
+  --accent: #c4a0f8;
+  --accent-hover: #d4b8ff;
+  --accent-pressed: #a880d8;
+  --accent-soft: rgba(196,160,248,0.07);
+  --accent-glow: rgba(196,160,248,0.14);
+  --accent-glow-strong: rgba(196,160,248,0.28);
+  --accent-text: #c4a0f8;
+  --red: #f08898;
+  --red-hover: #f8a8b8;
+  --red-soft: rgba(240,136,152,0.1);
+  --amber: #f0b878;
+  --amber-soft: rgba(240,184,120,0.1);
+  --blue: #8eb8e0;
+  --blue-soft: rgba(142,184,224,0.1);
+  --purple: #c8a8e8;
+  --purple-soft: rgba(200,168,232,0.1);
+  --cyan: #88d0c8;
+  --cyan-soft: rgba(136,208,200,0.1);
+  --method-get: #8eb8e0;
+  --method-post: #98d078;
+  --method-put: #f0b878;
+  --method-patch: #c8a8e8;
+  --method-delete: #f08898;
+  --method-head: #88d0c8;
+  --method-options: #7a7698;
+  --shadow-sm: 0 1px 2px rgba(0,0,0,0.2);
+  --shadow: 0 2px 8px rgba(0,0,0,0.3);
+  --shadow-lg: 0 8px 24px rgba(0,0,0,0.4);
+  --shadow-glow: 0 0 20px var(--accent-glow);
+}
+
+/* ════════════════════════════════════════════════════════════
+   Neon Theme — 赛博霓虹
+   ════════════════════════════════════════════════════════════ */
+.theme-neon {
+  --bg-base: #0a0a0f;
+  --bg-surface: #0f0f18;
+  --bg-elevated: #151524;
+  --bg-hover: #1a1a2c;
+  --bg-active: #202033;
+  --bg-inset: #06060c;
+  --border-primary: #1e1e33;
+  --border-hover: #383858;
+  --border-focus: #ff0088;
+  --border-subtle: rgba(255,0,136,0.04);
+  --text-primary: #e6e6f2;
+  --text-secondary: #a8a8c0;
+  --text-muted: #686880;
+  --text-placeholder: #525268;
+  --text-inverse: #0a0a0f;
+  --accent: #ff0088;
+  --accent-hover: #ff3399;
+  --accent-pressed: #cc0066;
+  --accent-soft: rgba(255,0,136,0.07);
+  --accent-glow: rgba(255,0,136,0.14);
+  --accent-glow-strong: rgba(255,0,136,0.28);
+  --accent-text: #ff0088;
+  --red: #ff4466;
+  --red-hover: #ff6688;
+  --red-soft: rgba(255,68,102,0.1);
+  --amber: #ff8844;
+  --amber-soft: rgba(255,136,68,0.1);
+  --blue: #4488ff;
+  --blue-soft: rgba(68,136,255,0.1);
+  --purple: #aa44ff;
+  --purple-soft: rgba(170,68,255,0.1);
+  --cyan: #44ccff;
+  --cyan-soft: rgba(68,204,255,0.1);
+  --method-get: #4488ff;
+  --method-post: #44ff66;
+  --method-put: #ff8844;
+  --method-patch: #aa44ff;
+  --method-delete: #ff4466;
+  --method-head: #44ccff;
+  --method-options: #686880;
+  --shadow-sm: 0 1px 2px rgba(0,0,0,0.3);
+  --shadow: 0 2px 8px rgba(0,0,0,0.4);
+  --shadow-lg: 0 8px 24px rgba(0,0,0,0.5);
+  --shadow-glow: 0 0 24px var(--accent-glow);
 }
 
 /* ════════════════════════════════════════════════════════════

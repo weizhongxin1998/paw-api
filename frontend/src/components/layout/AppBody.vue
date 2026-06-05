@@ -31,8 +31,9 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted } from 'vue'
+import { ref, computed } from 'vue'
 import { useI18n } from 'vue-i18n'
+import { useThemeClass } from '../../composables/useThemeClass'
 import { useDialog, useMessage, NModal, NForm, NFormItem, NInput, NButton } from 'naive-ui'
 import Sidebar from './Sidebar.vue'
 import Workspace from './Workspace.vue'
@@ -61,15 +62,7 @@ const renameValue = ref('')
 let renameNodeId = 0
 let renameNodeType = ''
 
-const isLightMode = ref(false)
-const modalClass = computed(() => isLightMode.value ? 'rename-modal theme-light' : 'rename-modal')
-
-onMounted(() => {
-  const check = () => { isLightMode.value = !!document.querySelector('.theme-light') }
-  check()
-  const observer = new MutationObserver(check)
-  observer.observe(document.documentElement, { attributes: true, attributeFilter: ['class'], subtree: true })
-})
+const { modalClass } = useThemeClass('rename-modal')
 
 function onRequestSaved() {
   sidebarRef.value?.refreshTree()

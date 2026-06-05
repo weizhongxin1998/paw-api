@@ -126,6 +126,7 @@
 <script setup lang="ts">
 import { ref, computed, watch, onMounted, onUnmounted, nextTick } from 'vue'
 import { useI18n } from 'vue-i18n'
+import { useThemeClass } from '../../composables/useThemeClass'
 import { NButton, NDropdown, NModal, NForm, NFormItem, NInput, NSelect, useMessage } from 'naive-ui'
 import type { DropdownOption } from 'naive-ui'
 import { useCollectionStore } from '../../stores/collection'
@@ -164,8 +165,7 @@ const requestMethod = ref('GET')
 const searchQuery = ref('')
 const sidebarCollapsed = ref(false)
 
-const isLightMode = ref(false)
-const modalClass = computed(() => isLightMode.value ? 'sidebar-modal theme-light' : 'sidebar-modal')
+const { modalClass } = useThemeClass('sidebar-modal')
 
 const methodOptions = [
   { label: 'GET', value: 'GET' }, { label: 'POST', value: 'POST' },
@@ -283,10 +283,6 @@ function onGlobalKeydown(e: KeyboardEvent) {
 
 onMounted(() => {
   document.addEventListener('keydown', onGlobalKeydown)
-  const check = () => { isLightMode.value = !!document.querySelector('.theme-light') }
-  check()
-  const observer = new MutationObserver(check)
-  observer.observe(document.documentElement, { attributes: true, attributeFilter: ['class'], subtree: true })
 })
 onUnmounted(() => {
   document.removeEventListener('keydown', onGlobalKeydown)

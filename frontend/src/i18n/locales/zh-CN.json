@@ -402,6 +402,10 @@
       "theme": "主题",
       "themeDark": "夜间",
       "themeLight": "日间",
+      "themeWarm": "暖色",
+      "themeNord": "Nord",
+      "themeCatppuccin": "Catppuccin",
+      "themeNeon": "霓虹",
       "accentColor": "主色",
       "font": "字体",
       "fontSize": "字体大小",
@@ -410,7 +414,11 @@
     "accent": {
       "green": "绿色",
       "blue": "蓝色",
-      "purple": "紫色"
+      "purple": "紫色",
+      "amber": "琥珀",
+      "teal": "青碧",
+      "mauve": "淡紫",
+      "magenta": "洋红"
     },
     "data": {
       "header": "数据管理",

@@ -36,15 +36,15 @@
       <n-button text size="tiny" @click="emit('toggleTheme')" :title="themeLabel" class="icon-btn">
         <template #icon>
           <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
-            <circle v-if="props.themeMode === 'dark'" cx="12" cy="12" r="4"/>
-            <line v-if="props.themeMode === 'dark'" x1="12" y1="2" x2="12" y2="4"/>
-            <line v-if="props.themeMode === 'dark'" x1="12" y1="20" x2="12" y2="22"/>
-            <line v-if="props.themeMode === 'dark'" x1="4.93" y1="4.93" x2="6.34" y2="6.34"/>
-            <line v-if="props.themeMode === 'dark'" x1="17.66" y1="17.66" x2="19.07" y2="19.07"/>
-            <line v-if="props.themeMode === 'dark'" x1="2" y1="12" x2="4" y2="12"/>
-            <line v-if="props.themeMode === 'dark'" x1="20" y1="12" x2="22" y2="12"/>
-            <line v-if="props.themeMode === 'dark'" x1="4.93" y1="19.07" x2="6.34" y2="17.66"/>
-            <line v-if="props.themeMode === 'dark'" x1="17.66" y1="6.34" x2="19.07" y2="4.93"/>
+            <circle v-if="isThemeDark(props.themeMode)" cx="12" cy="12" r="4"/>
+            <line v-if="isThemeDark(props.themeMode)" x1="12" y1="2" x2="12" y2="4"/>
+            <line v-if="isThemeDark(props.themeMode)" x1="12" y1="20" x2="12" y2="22"/>
+            <line v-if="isThemeDark(props.themeMode)" x1="4.93" y1="4.93" x2="6.34" y2="6.34"/>
+            <line v-if="isThemeDark(props.themeMode)" x1="17.66" y1="17.66" x2="19.07" y2="19.07"/>
+            <line v-if="isThemeDark(props.themeMode)" x1="2" y1="12" x2="4" y2="12"/>
+            <line v-if="isThemeDark(props.themeMode)" x1="20" y1="12" x2="22" y2="12"/>
+            <line v-if="isThemeDark(props.themeMode)" x1="4.93" y1="19.07" x2="6.34" y2="17.66"/>
+            <line v-if="isThemeDark(props.themeMode)" x1="17.66" y1="6.34" x2="19.07" y2="4.93"/>
             <path v-else d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>
           </svg>
         </template>
@@ -109,10 +109,12 @@ import { useProjectStore } from '../../stores/project'
 import { useEnvStore } from '../../stores/env'
 import EnvSelector from '../environment/EnvSelector.vue'
 import SettingsModal from '../modals/SettingsModal.vue'
+import { useThemeClass } from '../../composables/useThemeClass'
+import { isThemeDark, type Theme } from '../../stores/settings'
 
 const { t } = useI18n()
 
-const props = defineProps<{ themeMode: 'dark' | 'light' }>()
+const props = defineProps<{ themeMode: Theme }>()
 const projectStore = useProjectStore()
 const envStore = useEnvStore()
 const message = useMessage()
@@ -132,10 +134,9 @@ const projectBtnRef = ref<InstanceType<typeof NButton> | null>(null)
 const projectDropdownRef = ref<any>(null)
 const createNameInputRef = ref<InstanceType<typeof NInput> | null>(null)
 
-const isLightMode = ref(false)
-const modalClass = computed(() => isLightMode.value ? 'create-project-modal theme-light' : 'create-project-modal')
+const { modalClass } = useThemeClass('create-project-modal')
 
-const themeLabel = computed(() => props.themeMode === 'dark' ? t('header.dayMode') : t('header.nightMode'))
+const themeLabel = computed(() => isThemeDark(props.themeMode) ? t('header.dayMode') : t('header.nightMode'))
 
 const projectDropdownOptions = computed(() => {
   const items: Array<{ label?: string; key: string; disabled?: boolean; type?: string }> = projectStore.projects.map(p => ({
@@ -214,10 +215,6 @@ function onGlobalKeydown(e: KeyboardEvent) {
 
 onMounted(() => {
   document.addEventListener('keydown', onGlobalKeydown)
-  const check = () => { isLightMode.value = !!document.querySelector('.theme-light') }
-  check()
-  const observer = new MutationObserver(check)
-  observer.observe(document.documentElement, { attributes: true, attributeFilter: ['class'], subtree: true })
 })
 onUnmounted(() => {
   document.removeEventListener('keydown', onGlobalKeydown)

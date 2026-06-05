@@ -189,8 +189,9 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, watch, onMounted } from 'vue'
+import { ref, computed, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
+import { useThemeClass } from '../../composables/useThemeClass'
 import { NModal, NButton, NInput, NCheckbox, NDropdown, useMessage } from 'naive-ui'
 import {
   ListEnvironments, CreateEnvironment, RenameEnvironment, DeleteEnvironment,
@@ -205,15 +206,8 @@ interface Props { show: boolean; projectId: number | null }
 const props = defineProps<Props>()
 const emit = defineEmits<{ 'update:show': [value: boolean]; refresh: [] }>()
 
-// Detect light mode so teleported modal gets correct CSS variables
-const isLightMode = ref(false)
-onMounted(() => {
-  const check = () => { isLightMode.value = !!document.querySelector('.theme-light') }
-  check()
-  const observer = new MutationObserver(check)
-  observer.observe(document.documentElement, { attributes: true, attributeFilter: ['class'], subtree: true })
-})
-const modalClass = computed(() => isLightMode.value ? 'env-manager-modal theme-light' : 'env-manager-modal')
+// Detect theme class so teleported modal gets correct CSS variables
+const { modalClass } = useThemeClass('env-manager-modal')
 const environments = ref<Environment[]>([])
 const editingEnvId = ref<number | null>(null)
 const renamingId = ref<number | null>(null)

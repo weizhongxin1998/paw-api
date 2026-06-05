@@ -138,7 +138,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted } from 'vue'
+import { ref, computed } from 'vue'
 import {
   NModal, NForm, NFormItem, NSelect, NInput, NInputGroup,
   NButton, NResult, NProgress, NAlert, useMessage,
@@ -146,6 +146,7 @@ import {
 import { ImportPostman } from '../../../wailsjs/go/main/App'
 import { OnFileDrop, OnFileDropOff } from '../../../wailsjs/runtime/runtime'
 import { useI18n } from 'vue-i18n'
+import { useThemeClass } from '../../composables/useThemeClass'
 
 interface Props { show: boolean; projectId: number | null }
 const props = defineProps<Props>()
@@ -164,15 +165,7 @@ const importProgress = ref(0)
 const importError = ref('')
 const isDragging = ref(false)
 
-const isLightMode = ref(false)
-const modalClass = computed(() => isLightMode.value ? 'import-modal theme-light' : 'import-modal')
-
-onMounted(() => {
-  const check = () => { isLightMode.value = !!document.querySelector('.theme-light') }
-  check()
-  const observer = new MutationObserver(check)
-  observer.observe(document.documentElement, { attributes: true, attributeFilter: ['class'], subtree: true })
-})
+const { modalClass } = useThemeClass('import-modal')
 
 const canImport = computed(() => props.projectId !== null && filePath.value.trim() !== '')
 

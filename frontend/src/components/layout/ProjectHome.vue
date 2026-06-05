@@ -17,9 +17,9 @@
         <span class="home-version">v1.0</span>
       </div>
       <div class="home-actions">
-        <button class="btn-theme" @click="emit('toggle-theme')" :title="props.themeMode === 'dark' ? t('projectHome.dayMode') : t('projectHome.nightMode')">
-          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
-            <circle v-if="props.themeMode === 'dark'" cx="12" cy="12" r="5"/><line v-if="props.themeMode === 'dark'" x1="12" y1="1" x2="12" y2="3"/><line v-if="props.themeMode === 'dark'" x1="12" y1="21" x2="12" y2="23"/><line v-if="props.themeMode === 'dark'" x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line v-if="props.themeMode === 'dark'" x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line v-if="props.themeMode === 'dark'" x1="1" y1="12" x2="3" y2="12"/><line v-if="props.themeMode === 'dark'" x1="21" y1="12" x2="23" y2="12"/><line v-if="props.themeMode === 'dark'" x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line v-if="props.themeMode === 'dark'" x1="18.36" y1="5.64" x2="19.78" y2="4.22"/>
+        <button class="btn-theme" @click="emit('toggle-theme')" :title="isThemeDark(props.themeMode) ? t('projectHome.dayMode') : t('projectHome.nightMode')">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+            <circle v-if="isThemeDark(props.themeMode)" cx="12" cy="12" r="5"/><line v-if="isThemeDark(props.themeMode)" x1="12" y1="1" x2="12" y2="3"/><line v-if="isThemeDark(props.themeMode)" x1="12" y1="21" x2="12" y2="23"/><line v-if="isThemeDark(props.themeMode)" x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line v-if="isThemeDark(props.themeMode)" x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line v-if="isThemeDark(props.themeMode)" x1="1" y1="12" x2="3" y2="12"/><line v-if="isThemeDark(props.themeMode)" x1="21" y1="12" x2="23" y2="12"/><line v-if="isThemeDark(props.themeMode)" x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line v-if="isThemeDark(props.themeMode)" x1="18.36" y1="5.64" x2="19.78" y2="4.22"/>
             <path v-else d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>
           </svg>
         </button>
@@ -214,6 +214,8 @@
 
 <script setup lang="ts">
 import { ref, computed, onMounted, nextTick, watch, h, type VNode } from 'vue'
+import { useThemeClass } from '../../composables/useThemeClass'
+import { isThemeDark, type Theme } from '../../stores/settings'
 import { useI18n } from 'vue-i18n'
 import {
   NButton, NModal, NForm, NFormItem, NInput, NDropdown,
@@ -237,7 +239,7 @@ interface ProjectCard {
 
 /* ──────────────────────────── Props & Emits ──────────────────── */
 
-const props = defineProps<{ themeMode: 'dark' | 'light' }>()
+const props = defineProps<{ themeMode: Theme }>()
 
 const emit = defineEmits<{
   (e: 'enter-project', id: number): void
@@ -266,8 +268,7 @@ const searchInputRef = ref<InstanceType<typeof NInput> | null>(null)
 const renameInputRef = ref<InstanceType<typeof NInput> | null>(null)
 const cardRefs = ref<Record<number, HTMLElement>>({})
 
-const isLightMode = ref(false)
-const modalClass = computed(() => isLightMode.value ? 'project-home-modal theme-light' : 'project-home-modal')
+const { modalClass } = useThemeClass('project-home-modal')
 
 /* ──────────────────────────── Context menu ───────────────────── */
 
@@ -456,10 +457,6 @@ onMounted(async () => {
   nextTick(() => {
     searchInputRef.value?.focus()
   })
-  const check = () => { isLightMode.value = !!document.querySelector('.theme-light') }
-  check()
-  const observer = new MutationObserver(check)
-  observer.observe(document.documentElement, { attributes: true, attributeFilter: ['class'], subtree: true })
 })
 
 // Clear card refs when filtered list changes to avoid stale refs

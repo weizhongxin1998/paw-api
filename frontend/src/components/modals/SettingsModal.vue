@@ -124,6 +124,74 @@
                 </div>
                 <span class="theme-name">{{ $t('settings.appearance.themeLight') }}</span>
               </div>
+              <div
+                class="theme-card"
+                :class="{ selected: theme === 'warm' }"
+                @click="theme = 'warm'"
+              >
+                <div class="theme-preview theme-warm-preview">
+                  <div class="tp-titlebar"></div>
+                  <div class="tp-body">
+                    <div class="tp-sidebar"></div>
+                    <div class="tp-main">
+                      <div class="tp-line"></div>
+                      <div class="tp-line short"></div>
+                    </div>
+                  </div>
+                </div>
+                <span class="theme-name">{{ $t('settings.appearance.themeWarm') }}</span>
+              </div>
+              <div
+                class="theme-card"
+                :class="{ selected: theme === 'nord' }"
+                @click="theme = 'nord'"
+              >
+                <div class="theme-preview theme-nord-preview">
+                  <div class="tp-titlebar"></div>
+                  <div class="tp-body">
+                    <div class="tp-sidebar"></div>
+                    <div class="tp-main">
+                      <div class="tp-line"></div>
+                      <div class="tp-line short"></div>
+                    </div>
+                  </div>
+                </div>
+                <span class="theme-name">{{ $t('settings.appearance.themeNord') }}</span>
+              </div>
+              <div
+                class="theme-card"
+                :class="{ selected: theme === 'catppuccin' }"
+                @click="theme = 'catppuccin'"
+              >
+                <div class="theme-preview theme-catppuccin-preview">
+                  <div class="tp-titlebar"></div>
+                  <div class="tp-body">
+                    <div class="tp-sidebar"></div>
+                    <div class="tp-main">
+                      <div class="tp-line"></div>
+                      <div class="tp-line short"></div>
+                    </div>
+                  </div>
+                </div>
+                <span class="theme-name">{{ $t('settings.appearance.themeCatppuccin') }}</span>
+              </div>
+              <div
+                class="theme-card"
+                :class="{ selected: theme === 'neon' }"
+                @click="theme = 'neon'"
+              >
+                <div class="theme-preview theme-neon-preview">
+                  <div class="tp-titlebar"></div>
+                  <div class="tp-body">
+                    <div class="tp-sidebar"></div>
+                    <div class="tp-main">
+                      <div class="tp-line"></div>
+                      <div class="tp-line short"></div>
+                    </div>
+                  </div>
+                </div>
+                <span class="theme-name">{{ $t('settings.appearance.themeNeon') }}</span>
+              </div>
             </div>
           </div>
 
@@ -233,7 +301,7 @@ const DEFAULTS = {
   followRedirects: true,
   maxRedirects: 10,
   sslVerify: true,
-  theme: 'light',
+  theme: 'light' as const,
   accentColor: 'green',
   fontSize: 14,
   fontFamily: 'Microsoft YaHei',
@@ -258,6 +326,10 @@ const accentOptions = computed(() => [
   { label: t('settings.accent.green'), value: 'green' },
   { label: t('settings.accent.blue'), value: 'blue' },
   { label: t('settings.accent.purple'), value: 'purple' },
+  { label: t('settings.accent.amber'), value: 'amber' },
+  { label: t('settings.accent.teal'), value: 'teal' },
+  { label: t('settings.accent.mauve'), value: 'mauve' },
+  { label: t('settings.accent.magenta'), value: 'magenta' },
 ])
 
 const activeNav = ref('general')
@@ -462,7 +534,8 @@ function onRestore() { message.info(t('settings.data.restoreComingSoon')) }
 }
 .theme-cards {
   display: flex;
-  gap: 12px;
+  flex-wrap: wrap;
+  gap: 10px;
 }
 .theme-card {
   cursor: pointer;
@@ -470,7 +543,7 @@ function onRestore() { message.info(t('settings.data.restoreComingSoon')) }
   border-radius: var(--radius-lg, 10px);
   padding: 6px;
   transition: all 0.2s ease;
-  width: 120px;
+  width: 104px;
 }
 .theme-card:hover { border-color: var(--text-muted); }
 .theme-card.selected {
@@ -530,6 +603,102 @@ function onRestore() { message.info(t('settings.data.restoreComingSoon')) }
 }
 .theme-light-preview .tp-line.short { width: 60%; }
 
+/* Warm theme preview */
+.theme-warm-preview {
+  background: #1f1a14;
+}
+.theme-warm-preview .tp-titlebar {
+  height: 10px;
+  background: #262017;
+  border-bottom: 1px solid #3d3228;
+}
+.theme-warm-preview .tp-body { display: flex; height: calc(100% - 10px); }
+.theme-warm-preview .tp-sidebar {
+  width: 22px;
+  background: #17130e;
+  border-right: 1px solid #3d3228;
+}
+.theme-warm-preview .tp-main { flex: 1; padding: 5px; }
+.theme-warm-preview .tp-line {
+  height: 3px;
+  background: #3d3228;
+  border-radius: 2px;
+  margin-bottom: 3px;
+}
+.theme-warm-preview .tp-line.short { width: 60%; }
+
+/* Nord theme preview */
+.theme-nord-preview {
+  background: #1f2535;
+}
+.theme-nord-preview .tp-titlebar {
+  height: 10px;
+  background: #242b3c;
+  border-bottom: 1px solid #313b50;
+}
+.theme-nord-preview .tp-body { display: flex; height: calc(100% - 10px); }
+.theme-nord-preview .tp-sidebar {
+  width: 22px;
+  background: #191e2c;
+  border-right: 1px solid #313b50;
+}
+.theme-nord-preview .tp-main { flex: 1; padding: 5px; }
+.theme-nord-preview .tp-line {
+  height: 3px;
+  background: #313b50;
+  border-radius: 2px;
+  margin-bottom: 3px;
+}
+.theme-nord-preview .tp-line.short { width: 60%; }
+
+/* Catppuccin theme preview */
+.theme-catppuccin-preview {
+  background: #1a1826;
+}
+.theme-catppuccin-preview .tp-titlebar {
+  height: 10px;
+  background: #201e30;
+  border-bottom: 1px solid #353058;
+}
+.theme-catppuccin-preview .tp-body { display: flex; height: calc(100% - 10px); }
+.theme-catppuccin-preview .tp-sidebar {
+  width: 22px;
+  background: #13121e;
+  border-right: 1px solid #353058;
+}
+.theme-catppuccin-preview .tp-main { flex: 1; padding: 5px; }
+.theme-catppuccin-preview .tp-line {
+  height: 3px;
+  background: #353058;
+  border-radius: 2px;
+  margin-bottom: 3px;
+}
+.theme-catppuccin-preview .tp-line.short { width: 60%; }
+
+/* Neon theme preview */
+.theme-neon-preview {
+  background: #0a0a0f;
+}
+.theme-neon-preview .tp-titlebar {
+  height: 10px;
+  background: #0f0f18;
+  border-bottom: 1px solid #1e1e33;
+}
+.theme-neon-preview .tp-body { display: flex; height: calc(100% - 10px); }
+.theme-neon-preview .tp-sidebar {
+  width: 22px;
+  background: #06060c;
+  border-right: 1px solid #1e1e33;
+}
+.theme-neon-preview .tp-main { flex: 1; padding: 5px; }
+.theme-neon-preview .tp-line {
+  height: 3px;
+  background: #1e1e33;
+  border-radius: 2px;
+  margin-bottom: 3px;
+}
+.theme-neon-preview .tp-line.short { width: 60%; }
+
 .theme-name {
   display: block;
   text-align: center;
@@ -544,6 +713,7 @@ function onRestore() { message.info(t('settings.data.restoreComingSoon')) }
 .accent-swatches {
   display: flex;
   gap: 8px;
+  flex-wrap: wrap;
 }
 .accent-swatch {
   width: 28px;
@@ -556,9 +726,13 @@ function onRestore() { message.info(t('settings.data.restoreComingSoon')) }
   justify-content: center;
   transition: all 0.15s ease;
 }
-.accent-swatch.green  { background: #22c55e; }
-.accent-swatch.blue   { background: #3b82f6; }
-.accent-swatch.purple { background: #a855f7; }
+.accent-swatch.green   { background: #22c55e; }
+.accent-swatch.blue    { background: #3b82f6; }
+.accent-swatch.purple  { background: #a855f7; }
+.accent-swatch.amber   { background: #f0a848; }
+.accent-swatch.teal    { background: #5eead4; }
+.accent-swatch.mauve   { background: #c4a0f8; }
+.accent-swatch.magenta { background: #ff0088; }
 .accent-swatch:hover { transform: scale(1.15); }
 .accent-swatch.selected {
   border-color: var(--text-primary);

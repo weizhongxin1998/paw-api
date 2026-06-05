@@ -132,13 +132,14 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, watch, onMounted } from 'vue'
+import { ref, computed, watch } from 'vue'
 import {
   NModal, NForm, NFormItem, NSelect, NInput, NInputGroup,
   NButton, NResult, NProgress, NAlert, useMessage,
 } from 'naive-ui'
 import { ExportPostman, GetProjectStats } from '../../../wailsjs/go/main/App'
 import { useI18n } from 'vue-i18n'
+import { useThemeClass } from '../../composables/useThemeClass'
 
 interface Props { show: boolean; projectId: number | null }
 const props = defineProps<Props>()
@@ -158,15 +159,7 @@ const exportProgress = ref(0)
 const exportError = ref('')
 const stats = ref<{ request_count: number; collection_count: number } | null>(null)
 
-const isLightMode = ref(false)
-const modalClass = computed(() => isLightMode.value ? 'export-modal theme-light' : 'export-modal')
-
-onMounted(() => {
-  const check = () => { isLightMode.value = !!document.querySelector('.theme-light') }
-  check()
-  const observer = new MutationObserver(check)
-  observer.observe(document.documentElement, { attributes: true, attributeFilter: ['class'], subtree: true })
-})
+const { modalClass } = useThemeClass('export-modal')
 
 const canExport = computed(() => props.projectId !== null)
 

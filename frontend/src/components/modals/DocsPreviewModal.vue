@@ -104,6 +104,7 @@
 
 <script setup lang="ts">
 import { ref, watch, onMounted, onUnmounted, computed } from 'vue'
+import { useThemeClass } from '../../composables/useThemeClass'
 import { NModal, NButton, NRadioGroup, NRadioButton, NSpin, NResult, useMessage } from 'naive-ui'
 import { GenerateDocsMarkdown, GenerateDocsHTML } from '../../../wailsjs/go/main/App'
 import { ClipboardSetText } from '../../../wailsjs/runtime/runtime'
@@ -121,8 +122,7 @@ const error = ref('')
 const markdownContent = ref('')
 const htmlContent = ref('')
 
-const isLightMode = ref(false)
-const modalClass = computed(() => isLightMode.value ? 'docs-preview-modal theme-light' : 'docs-preview-modal')
+const { modalClass } = useThemeClass('docs-preview-modal')
 
 watch(() => props.show, (val) => { if (val && props.projectId) generateDocs() })
 
@@ -196,10 +196,6 @@ function printHtmlContent() {
 
 onMounted(() => {
   document.addEventListener('keydown', handleKeydown)
-  const check = () => { isLightMode.value = !!document.querySelector('.theme-light') }
-  check()
-  const observer = new MutationObserver(check)
-  observer.observe(document.documentElement, { attributes: true, attributeFilter: ['class'], subtree: true })
 })
 onUnmounted(() => {
   document.removeEventListener('keydown', handleKeydown)

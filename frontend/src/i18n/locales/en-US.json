@@ -402,6 +402,10 @@
       "theme": "Theme",
       "themeDark": "Dark",
       "themeLight": "Light",
+      "themeWarm": "Warm",
+      "themeNord": "Nord",
+      "themeCatppuccin": "Catppuccin",
+      "themeNeon": "Neon",
       "accentColor": "Accent color",
       "font": "Font",
       "fontSize": "Font size",
@@ -410,7 +414,11 @@
     "accent": {
       "green": "Green",
       "blue": "Blue",
-      "purple": "Purple"
+      "purple": "Purple",
+      "amber": "Amber",
+      "teal": "Teal",
+      "mauve": "Mauve",
+      "magenta": "Magenta"
     },
     "data": {
       "header": "Data Management",
